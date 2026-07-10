@@ -87,6 +87,10 @@ description: One line describing when to use this skill.
 Instructions the model follows when the skill is loaded…
 ```
 
+Or create one in-app: **✦ Skills → + New skill** scaffolds the folder and a starter `SKILL.md` from a built-in template (`lib/skill-template.md`) — then edit the file to write the instructions. Also available from the desktop menu (**CodeMonkii → Skills → New Skill…**).
+
+Prefer not to write it yourself? **✦ Create with model** has one of your installed Ollama models draft the instructions from your name + description brief. The model picker recommends the best installed candidate for the job (solid instruct families at GPU-friendly sizes; reasoning and cloud models rank lower). Review the generated `SKILL.md` before relying on it.
+
 Two ways to use a skill:
 1. **Project toggle** — switch it on in the project panel; it loads into every message.
 2. **Slash invoke** — type `/` in the composer and pick a skill; it loads for that message only (and stays in the conversation history from then on).
@@ -158,18 +162,29 @@ public/
     util.js             DOM helpers ($, esc, toast)
     markdown.js         safe markdown renderer
     status.js           health indicator, model list, update pill
-    projects.js         project lifecycle + inspector
-    skills.js           skill toggles + "/" invocation
+    skills.js           skill catalog, toggles + "/" invocation
+    skill-create.js     adding skills: template, model-written, import
+    views.js            main-area view switching (welcome / projects / chat)
+    modal.js            shared open/close behavior for backdrop modals
+    ctxmenu.js          right-click menus (chats, projects, messages, skills)
+    projects.js         projects page, lifecycle + inspector
     attachments.js      knowledge panel + file browser
     chat.js             messages, streaming, stop
-    prefs.js            preferences panel (models folder; desktop app only)
+    prefs.js            preferences panel (storage folders; desktop app only)
 skills/                 your skills (3 samples included)
 data/projects/          project + chat storage (JSON, gitignored)
-electron/
-  main.js               desktop shell: starts Ollama + server, native window
-  preload.js            contextBridge: exposes preferences IPC to the UI
+electron/               desktop shell, one module per concern
+  main.js               entry point: window + app lifecycle
+  runtime.js            shared state (window, server process, port)
+  settings.js           settings.json + storage-location resolution
+  dialogs.js            native-dialog helpers
+  ollama.js             starting Ollama + the models-folder question
+  server.js             fork/wait/restart of the Express server
+  menu.js               app menu with live Projects & Skills submenus
+  prefs-ipc.js          preferences IPC (validated senders)
+  preload.js            contextBridge exposed to the web UI
   loading.html          themed splash shown while the server boots
-  build/                installer resources (drop icon.ico here)
+  build/                icon assets + installer resources
 ```
 
 Each module carries a header comment explaining its responsibility.

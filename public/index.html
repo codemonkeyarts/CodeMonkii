@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CodeMonkii</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128018;</text></svg>">
+<link rel="icon" type="image/png" href="icon.png">
 <link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -14,7 +14,7 @@
   <!-- ===== left rail: projects & chats ===== -->
   <aside id="rail">
     <header id="brand">
-      <div class="brand-mark">🐒</div>
+      <img class="brand-mark" src="icon.png" alt="CodeMonkii">
       <div>
         <h1>Code<span>Monkii</span></h1>
         <div id="ollama-status" class="status status-unknown"><i></i><span>checking Ollama…</span></div>
@@ -22,17 +22,15 @@
       </div>
     </header>
 
-    <div class="rail-section">
-      <div class="rail-label">
-        <span>Projects</span>
-        <button id="btn-new-project" class="icon-btn" title="New project">+</button>
-      </div>
-      <ul id="project-list"></ul>
-    </div>
+    <nav class="rail-nav">
+      <button id="btn-projects-page" class="rail-nav-btn" title="All projects">▦ Projects</button>
+      <button id="btn-quick-chat" class="rail-nav-btn" title="Start chatting without setting up a project">✎ Quick chat</button>
+      <button id="btn-skills-page" class="rail-nav-btn" title="Browse available skills">✦ Skills</button>
+    </nav>
 
     <div class="rail-section" id="chat-section" hidden>
       <div class="rail-label">
-        <span>Chats</span>
+        <span id="rail-project-name">Chats</span>
         <button id="btn-new-chat" class="icon-btn" title="New chat">+</button>
       </div>
       <ul id="chat-list"></ul>
@@ -44,13 +42,22 @@
     </footer>
   </aside>
 
-  <!-- ===== main: chat ===== -->
+  <!-- ===== main: projects page / chat ===== -->
   <main id="main">
+    <div id="projects-page" hidden>
+      <header class="pp-head">
+        <h2>Projects</h2>
+        <button id="btn-new-project" class="btn btn-primary">+ New project</button>
+      </header>
+      <div id="project-grid"></div>
+    </div>
+
     <div id="welcome" class="welcome">
-      <div class="welcome-ember">🐒</div>
+      <img class="welcome-ember" src="icon.png" alt="">
       <h2>Your models. Your machine. Your mischief.</h2>
       <p>Create a project, attach files from your machine, switch on skills, and talk to your local Ollama models — nothing ever leaves this computer.</p>
       <button id="btn-welcome-project" class="btn btn-primary">Create your first project</button>
+      <button id="btn-welcome-quick" class="btn btn-ghost">or start a quick chat</button>
       <div id="welcome-hint" class="welcome-hint" hidden></div>
     </div>
 
@@ -99,8 +106,8 @@
     </label>
 
     <div class="field">
-      <span>Skills <em id="skills-dir-hint"></em></span>
-      <ul id="skill-list" class="toggle-list"></ul>
+      <span>Skills <em>always-on skills for this project</em></span>
+      <button id="btn-open-skills" class="btn btn-ghost">Manage skills…</button>
     </div>
 
     <div class="field">
@@ -113,8 +120,8 @@
   </aside>
 
   <!-- ===== file browser modal ===== -->
-  <div id="modal-backdrop" hidden>
-    <div id="file-browser">
+  <div id="modal-backdrop" class="modal-backdrop" hidden>
+    <div id="file-browser" class="modal-panel">
       <header>
         <h3>Attach from this machine</h3>
         <button id="btn-close-browser" class="icon-btn">×</button>
@@ -129,9 +136,38 @@
     </div>
   </div>
 
+  <!-- ===== skills modal ===== -->
+  <div id="skills-backdrop" class="modal-backdrop" hidden>
+    <div id="skills-panel" class="modal-panel">
+      <header>
+        <h3>Skills</h3>
+        <button id="btn-close-skills" class="icon-btn" title="Close">×</button>
+      </header>
+      <ul id="skill-list" class="toggle-list"></ul>
+      <div id="skill-create" hidden>
+        <input id="ns-name" type="text" maxlength="64" placeholder="skill-name — becomes the folder and the /command">
+        <input id="ns-desc" type="text" maxlength="200" placeholder="What should this skill do? (the brief for model generation)">
+        <select id="ns-model" title="Model used for 'Create with model'"></select>
+        <div class="prefs-actions">
+          <button id="btn-create-skill" class="btn btn-ghost">Blank from template</button>
+          <button id="btn-generate-skill" class="btn btn-primary">✦ Create with model</button>
+          <button id="btn-cancel-skill" class="btn btn-ghost">Cancel</button>
+        </div>
+      </div>
+      <footer>
+        <div class="prefs-actions">
+          <button id="btn-new-skill" class="btn btn-ghost">+ New skill</button>
+          <button id="btn-import-skill" class="btn btn-ghost">⇪ Import skill…</button>
+        </div>
+        <div id="skills-mode-note"></div>
+        <em id="skills-dir-hint"></em>
+      </footer>
+    </div>
+  </div>
+
   <!-- ===== preferences modal (desktop app only) ===== -->
-  <div id="prefs-backdrop" hidden>
-    <div id="prefs-panel">
+  <div id="prefs-backdrop" class="modal-backdrop" hidden>
+    <div id="prefs-panel" class="modal-panel">
       <header>
         <h3>Preferences</h3>
         <button id="btn-close-prefs" class="icon-btn" title="Close">×</button>

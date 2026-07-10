@@ -10,6 +10,7 @@
  * In plain browser mode the global is absent and the gear stays hidden.
  */
 import { $, toast } from './util.js';
+import { initModal } from './modal.js';
 
 const bridge = window.codemonkii;
 
@@ -36,13 +37,6 @@ function render(prefs) {
     prefs.skillsDir + (prefs.skillsDirCustom ? '' : '  (default)'), prefs.skillsDirEnv);
 }
 
-async function open() {
-  render(await bridge.getPrefs());
-  $('#prefs-backdrop').hidden = false;
-}
-
-const close = () => { $('#prefs-backdrop').hidden = true; };
-
 /* Data/skills changes restart the server and reload the page, so the toast
  * only shows if the call returns without a reload (cancel or env-locked). */
 function wireAction(btnId, call, msg) {
@@ -57,10 +51,12 @@ function wireAction(btnId, call, msg) {
 export function initPrefs() {
   if (!bridge) return; // browser mode — no desktop shell to configure
 
+  const modal = initModal('#prefs-backdrop', '#btn-close-prefs');
   $('#btn-prefs').hidden = false;
-  $('#btn-prefs').addEventListener('click', open);
-  $('#btn-close-prefs').addEventListener('click', close);
-  $('#prefs-backdrop').addEventListener('click', (e) => { if (e.target.id === 'prefs-backdrop') close(); });
+  $('#btn-prefs').addEventListener('click', async () => {
+    render(await bridge.getPrefs());
+    modal.open();
+  });
 
   wireAction('#btn-prefs-choose-dir', () => bridge.chooseModelsDir(),
     'Models folder saved — applies next time CodeMonkii starts Ollama');

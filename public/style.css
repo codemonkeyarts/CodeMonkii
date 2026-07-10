@@ -110,7 +110,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   border-bottom: 1px solid var(--line-soft);
 }
 .brand-mark {
-  font-size: 24px;
+  width: 34px; height: 34px; border-radius: 7px;
   filter: drop-shadow(0 0 10px rgba(255, 212, 0, .6));
   animation: markPulse 4s ease-in-out infinite;
 }
@@ -163,31 +163,28 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .icon-btn:hover { color: var(--gold); border-color: var(--gold); box-shadow: 0 0 8px rgba(255, 212, 0, .25); }
 .icon-btn.wide { width: auto; padding: 0 10px; height: 30px; font-size: 13px; }
 
-#project-list, #chat-list { list-style: none; }
-#project-list li, #chat-list li {
+#chat-list { list-style: none; }
+#chat-list li {
   padding: 8px 10px; border-radius: 2px; cursor: pointer;
   color: var(--bone-dim); font-size: 13.5px;
   display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
   transition: background .12s, color .12s;
   position: relative;
 }
-#project-list li:hover, #chat-list li:hover { background: var(--panel); color: var(--bone); }
-#project-list li.active, #chat-list li.active {
-  background: var(--panel); color: var(--bone);
-}
-#project-list li.active::before, #chat-list li.active::before {
+#chat-list li:hover { background: var(--panel); color: var(--bone); }
+#chat-list li.active { background: var(--panel); color: var(--bone); }
+#chat-list li.active::before {
   content: ''; position: absolute; left: -10px; top: 18%; bottom: 18%;
   width: 3px; background: var(--gold);
   box-shadow: 0 0 8px rgba(255, 212, 0, .8);
 }
-#project-list li .meta, #chat-list li .del {
-  font-size: 11px; color: var(--bone-dim); flex-shrink: 0;
+#chat-list li .del {
+  visibility: hidden; font-size: 14px; flex-shrink: 0;
+  border: none; background: none; color: var(--bone-dim);
 }
-#project-list li .meta { font-family: var(--font-mono); font-size: 14px; color: var(--gold-deep); }
-#chat-list li .del { visibility: hidden; border: none; background: none; color: var(--bone-dim); font-size: 14px; }
 #chat-list li:hover .del { visibility: visible; }
 #chat-list li .del:hover { color: var(--red-bright); }
-#project-list li span:first-child, #chat-list li span:first-child {
+#chat-list li span:first-child {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
@@ -206,7 +203,8 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 .welcome-ember {
-  font-size: 46px; display: inline-block; margin-bottom: 22px;
+  width: 84px; height: 84px; border-radius: 17px;
+  display: inline-block; margin-bottom: 22px;
   filter: drop-shadow(0 0 14px rgba(255, 212, 0, .6));
   animation: markPulse 4s ease-in-out infinite;
 }
@@ -451,25 +449,31 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 #attachment-list button:hover { color: var(--red-bright); }
 
 /* ============ file browser modal (CRT terminal) ============ */
-#modal-backdrop {
+/* Shared modal chrome — every backdrop/panel pair uses these classes; the
+ * per-id rules below only set sizing and stacking. */
+.modal-backdrop {
   position: fixed; inset: 0; background: rgba(0, 0, 0, .8); backdrop-filter: blur(3px);
   z-index: 100; display: flex; align-items: center; justify-content: center;
 }
-#file-browser {
-  width: min(680px, 92vw); height: min(560px, 86vh);
+.modal-panel {
   background: var(--onyx); border: 1px solid var(--gold-deep); border-radius: 2px;
   display: flex; flex-direction: column; overflow: hidden;
   box-shadow: 0 0 0 1px rgba(255, 212, 0, .12), 0 0 40px rgba(255, 212, 0, .08), 0 30px 80px rgba(0, 0, 0, .7);
   animation: fadeUp .2s ease both;
 }
-#file-browser > header {
+.modal-panel > header {
   display: flex; justify-content: space-between; align-items: center;
   padding: 16px 20px; border-bottom: 1px solid var(--line);
 }
-#file-browser h3 {
+.modal-panel > header h3 {
   font-family: var(--font-display); font-weight: 400; font-size: 17px;
   text-transform: uppercase; letter-spacing: .1em; color: var(--gold);
 }
+
+/* z-index 110: the file browser must stack above the skills modal when
+ * picking a skill folder to import. */
+#modal-backdrop { z-index: 110; }
+#file-browser { width: min(680px, 92vw); height: min(560px, 86vh); }
 #fb-path {
   font-family: var(--font-mono); font-size: 16px; color: var(--cyan);
   text-shadow: 0 0 8px rgba(0, 255, 224, .35);
@@ -498,28 +502,82 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 }
 .spacer { flex: 1; }
 
+/* ============ rail nav + projects page ============ */
+.rail-nav { padding: 4px 10px 14px; }
+.rail-nav-btn {
+  width: 100%; text-align: left; background: none;
+  border: 1px solid transparent; border-radius: 2px;
+  padding: 9px 10px; cursor: pointer;
+  font-family: var(--font-display); font-size: 12.5px;
+  letter-spacing: .24em; text-transform: uppercase;
+  color: var(--gold-deep); transition: all .15s;
+}
+.rail-nav-btn:hover { color: var(--gold); border-color: var(--line); background: var(--panel); }
+
+#projects-page { flex: 1; overflow-y: auto; padding: 46px 56px; animation: fadeUp .35s ease both; }
+.pp-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 30px; padding-bottom: 18px; border-bottom: 1px solid var(--line-soft);
+}
+.pp-head h2 {
+  font-family: var(--font-display); font-weight: 400; font-size: 30px;
+  text-transform: uppercase; letter-spacing: .1em; color: var(--gold);
+}
+#project-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.proj-card {
+  background: var(--obsidian); border: 1px solid var(--line-soft); border-radius: 2px;
+  padding: 20px; cursor: pointer; transition: all .15s;
+  display: flex; flex-direction: column; gap: 8px; min-height: 128px;
+}
+.proj-card:hover {
+  border-color: var(--gold); transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(255, 212, 0, .12), 0 12px 30px rgba(0, 0, 0, .5);
+}
+.pc-name {
+  font-family: var(--font-display); font-size: 18px; color: var(--bone);
+  letter-spacing: .04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pc-meta { font-size: 12px; color: var(--bone-dim); }
+.pc-date { margin-top: auto; font-family: var(--font-mono); font-size: 13px; color: var(--gold-deep); }
+
+.chat-crumb { cursor: pointer; }
+.chat-crumb:hover { color: var(--gold); }
+
+/* ============ skills modal ============ */
+#skills-panel { width: min(600px, 92vw); max-height: 80vh; }
+#skills-panel #skill-list { flex: 1; overflow-y: auto; padding: 14px 20px; }
+#skill-create {
+  padding: 14px 20px; border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 8px;
+}
+#skill-create input {
+  background: #030302; border: 1px solid var(--line); color: var(--bone);
+  padding: 8px 12px; border-radius: 2px; font-size: 13px; font-family: var(--font-body);
+}
+#skill-create input:first-child { font-family: var(--font-mono); font-size: 15px; }
+#skill-create input:focus { border-color: var(--gold); outline: none; }
+#skill-create select {
+  background: #030302; border: 1px solid var(--line); color: var(--bone);
+  padding: 8px 12px; border-radius: 2px; font-size: 13px; font-family: var(--font-body);
+}
+#skill-create select:focus { border-color: var(--gold); outline: none; }
+#skill-create button[disabled] { opacity: .5; pointer-events: none; }
+#skills-panel > footer .prefs-actions { margin-bottom: 8px; }
+#skills-panel .toggle-list li.browse { cursor: default; }
+#skills-mode-note { font-size: 11.5px; color: var(--bone-dim); line-height: 1.5; margin-bottom: 6px; }
+#skills-panel > footer {
+  padding: 12px 20px; border-top: 1px solid var(--line);
+  font-size: 11.5px; color: var(--bone-dim); font-style: normal;
+}
+#skills-panel > footer em { font-style: normal; font-family: var(--font-mono); font-size: 13px; color: var(--gold-deep); }
+
 /* ============ preferences modal (desktop app only) ============ */
 #rail-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 
-#prefs-backdrop {
-  position: fixed; inset: 0; background: rgba(0, 0, 0, .8); backdrop-filter: blur(3px);
-  z-index: 100; display: flex; align-items: center; justify-content: center;
-}
-#prefs-panel {
-  width: min(560px, 92vw);
-  background: var(--onyx); border: 1px solid var(--gold-deep); border-radius: 2px;
-  display: flex; flex-direction: column; overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(255, 212, 0, .12), 0 0 40px rgba(255, 212, 0, .08), 0 30px 80px rgba(0, 0, 0, .7);
-  animation: fadeUp .2s ease both;
-}
-#prefs-panel > header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 16px 20px; border-bottom: 1px solid var(--line);
-}
-#prefs-panel h3 {
-  font-family: var(--font-display); font-weight: 400; font-size: 17px;
-  text-transform: uppercase; letter-spacing: .1em; color: var(--gold);
-}
+#prefs-panel { width: min(560px, 92vw); }
 .prefs-body { padding: 20px; display: flex; flex-direction: column; gap: 18px; }
 .prefs-path {
   font-family: var(--font-mono); font-size: 16px; color: var(--cyan);
@@ -532,6 +590,31 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .prefs-actions button[disabled] { opacity: .4; pointer-events: none; }
 .prefs-note { font-size: 11.5px; color: var(--bone-dim); line-height: 1.5; }
 .prefs-note b { color: var(--gold-deep); }
+
+/* ============ context menu ============ */
+#ctx-menu {
+  position: fixed; z-index: 300; min-width: 180px;
+  background: var(--onyx); border: 1px solid var(--gold-deep); border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(255, 212, 0, .12), 0 12px 40px rgba(0, 0, 0, .7);
+  padding: 5px; display: flex; flex-direction: column;
+  animation: fadeUp .12s ease both;
+}
+.ctx-item {
+  background: none; border: none; border-radius: 2px; cursor: pointer;
+  padding: 8px 12px; text-align: left; font-size: 13px; color: var(--bone);
+  font-family: var(--font-body);
+}
+.ctx-item:hover { background: var(--panel); color: var(--gold); }
+.ctx-item.danger { color: var(--bone-dim); }
+.ctx-item.danger:hover { background: rgba(229, 9, 20, .12); color: var(--red-bright); }
+.ctx-sep { height: 1px; background: var(--line-soft); margin: 5px 4px; }
+
+.chat-rename {
+  flex: 1; min-width: 0;
+  background: #030302; border: 1px solid var(--gold); color: var(--bone);
+  border-radius: 2px; padding: 3px 6px; font-size: 13px; font-family: var(--font-body);
+  outline: none;
+}
 
 /* ============ toast ============ */
 #toast {

@@ -20,6 +20,9 @@ contextBridge.exposeInMainWorld('codemonkii', {
   /** Reset to Ollama's own default location; returns new summary. */
   setModelsDefault: () => ipcRenderer.invoke('prefs:set-models-default'),
 
+  /** Menu-bar actions (open project, new project, invoke skill) → UI. */
+  onMenuAction: (cb) => ipcRenderer.on('menu:action', (_e, msg) => cb(msg)),
+
   /** Data & skills folders — these restart the server and reload the UI. */
   chooseDataDir: () => ipcRenderer.invoke('prefs:choose-data-dir'),
   resetDataDir: () => ipcRenderer.invoke('prefs:reset-data-dir'),

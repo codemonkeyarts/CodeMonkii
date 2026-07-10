@@ -37,11 +37,27 @@ export async function attachPath(p) {
   } catch (e) { toast(e.message, true); }
 }
 
-/* ---- file browser modal ---- */
+/* ---- file browser modal ----
+ * By default picking a file/folder attaches it to the current project, but
+ * openBrowser accepts a different onPick handler (e.g. importing a skill
+ * folder) along with the title and verb to show. The mode resets on every
+ * open, so a skill import never leaks into a later knowledge attach. */
 
-export async function openBrowser(dir) {
+let pick = attachPath;
+let pickVerb = 'attach';
+
+export async function openBrowser(opts = {}) {
+  pick = opts.onPick || attachPath;
+  pickVerb = opts.verb || 'attach';
+  $('#file-browser h3').textContent = opts.title || 'Attach from this machine';
+  $('#btn-attach-dir').textContent = opts.dirLabel || 'Attach this folder';
   $('#modal-backdrop').hidden = false;
-  await browseTo(dir || state.fbDir || undefined);
+  await browseTo(state.fbDir || undefined);
+}
+
+/** Hand the currently open directory to the active pick handler. */
+export function pickCurrentDir() {
+  if (state.fbDir && state.fbDir !== '__drives__') { pick(state.fbDir); closeBrowser(); }
 }
 
 export async function browseTo(dir) {
@@ -53,15 +69,15 @@ export async function browseTo(dir) {
     const up = data.dir !== '__drives__' && data.parent !== data.dir
       ? `<li data-dir="${esc(data.parent)}"><span class="fb-icon">↰</span><span>..</span></li>` : '';
     $('#fb-entries').innerHTML = up + data.entries.map(e => e.isDir
-      ? `<li data-dir="${esc(e.path)}"><span class="fb-icon">▣</span><span>${esc(e.name)}</span><button class="fb-attach" data-attach="${esc(e.path)}">attach</button></li>`
-      : `<li class="fb-file" data-file="${esc(e.path)}"><span class="fb-icon">▤</span><span>${esc(e.name)}</span><button class="fb-attach" data-attach="${esc(e.path)}">attach</button></li>`
+      ? `<li data-dir="${esc(e.path)}"><span class="fb-icon">▣</span><span>${esc(e.name)}</span><button class="fb-attach" data-attach="${esc(e.path)}">${esc(pickVerb)}</button></li>`
+      : `<li class="fb-file" data-file="${esc(e.path)}"><span class="fb-icon">▤</span><span>${esc(e.name)}</span><button class="fb-attach" data-attach="${esc(e.path)}">${esc(pickVerb)}</button></li>`
     ).join('');
     $('#fb-entries').querySelectorAll('li[data-dir]').forEach(li =>
       li.addEventListener('click', (e) => { if (!e.target.dataset.attach) browseTo(li.dataset.dir); }));
     $('#fb-entries').querySelectorAll('li[data-file]').forEach(li =>
-      li.addEventListener('click', (e) => { if (!e.target.dataset.attach) { attachPath(li.dataset.file); closeBrowser(); } }));
+      li.addEventListener('click', (e) => { if (!e.target.dataset.attach) { pick(li.dataset.file); closeBrowser(); } }));
     $('#fb-entries').querySelectorAll('[data-attach]').forEach(b =>
-      b.addEventListener('click', () => { attachPath(b.dataset.attach); closeBrowser(); }));
+      b.addEventListener('click', () => { pick(b.dataset.attach); closeBrowser(); }));
   } catch (e) { toast(e.message, true); }
 }
 

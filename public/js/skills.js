@@ -1,10 +1,12 @@
 /**
- * skills.js — skill catalog and both ways of activating skills.
+ * skills.js — the skill catalog and both ways of activating skills.
  *
  * Loads the skill list from the server and renders:
- *   - the always-on toggles in the project inspector (persisted per project)
+ *   - the toggles in the skills modal (always-on per project; a browsable
+ *     catalog when no project is open)
  *   - the "/" slash-command popup in the composer, which invokes a skill for
  *     the next message only, shown as removable chips above the input.
+ * Creating and importing skills lives in skill-create.js.
  */
 import { $, esc } from './util.js';
 import { api } from './api.js';
@@ -25,23 +27,41 @@ export function skillNames(ids) {
   });
 }
 
-/* ---- project inspector toggles ---- */
+/* ---- skills modal toggles ---- */
 
+/** Reflect how many skills are on in the inspector's "Manage skills…" button. */
+function updateSkillsButton() {
+  const btn = $('#btn-open-skills');
+  if (!btn) return;
+  const n = state.project ? (state.project.skills || []).length : 0;
+  btn.textContent = n ? `Manage skills… (${n} on)` : 'Manage skills…';
+}
+
+/* With a project open, items are always-on toggles persisted to the project.
+ * Without one (opened from the rail), the same modal is a browsable catalog —
+ * skills are still invocable per message with "/" in any chat. */
 export function renderSkillToggles() {
+  updateSkillsButton();
+  const hasProject = Boolean(state.project);
+  $('#skills-mode-note').textContent = hasProject
+    ? `Toggles load a skill into every message of "${state.project.name}". Any skill can also be invoked once with / in the composer.`
+    : 'Open a project to pin always-on skills — or invoke any skill for a single message by typing / in a chat.';
   const ul = $('#skill-list');
   if (!state.skills.length) {
     ul.innerHTML = '<li class="empty">No skills found yet — each skill is a folder containing a SKILL.md with name/description frontmatter.</li>';
     return;
   }
-  const enabled = new Set(state.project.skills || []);
+  const enabled = new Set(hasProject ? state.project.skills || [] : []);
   ul.innerHTML = state.skills.map(s => `
-    <li data-skill="${esc(s.id)}" class="${enabled.has(s.id) ? 'on' : ''}" title="Always load this skill in this project">
-      <div class="tgl"></div>
+    <li data-skill="${esc(s.id)}" class="${enabled.has(s.id) ? 'on' : ''}${hasProject ? '' : ' browse'}"
+        title="${hasProject ? 'Always load this skill in this project' : esc('/' + s.id + ' invokes this skill in a chat')}">
+      ${hasProject ? '<div class="tgl"></div>' : ''}
       <div>
         <div class="tl-name">${esc(s.name)}</div>
         <div class="tl-desc">${esc(s.description)}</div>
       </div>
     </li>`).join('');
+  if (!hasProject) return;
   ul.querySelectorAll('li[data-skill]').forEach(li => {
     li.addEventListener('click', async () => {
       const sid = li.dataset.skill;
@@ -49,6 +69,7 @@ export function renderSkillToggles() {
       set.has(sid) ? set.delete(sid) : set.add(sid);
       state.project.skills = [...set];
       li.classList.toggle('on');
+      updateSkillsButton();
       await api(`/api/projects/${state.project.id}`, { method: 'PUT', body: { skills: state.project.skills } });
     });
   });

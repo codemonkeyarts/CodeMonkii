@@ -13,6 +13,7 @@ import { api } from './api.js';
 import { state } from './state.js';
 import { md } from './markdown.js';
 import { skillNames, renderSkillChips } from './skills.js';
+import { showView } from './views.js';
 
 export function currentChat() {
   return state.project.chats.find(c => c.id === state.chatId);
@@ -28,14 +29,48 @@ export function renderChatList() {
   ul.querySelectorAll('li').forEach(li =>
     li.addEventListener('click', (e) => { if (!e.target.dataset.del) openChat(li.dataset.id); }));
   ul.querySelectorAll('[data-del]').forEach(b =>
-    b.addEventListener('click', async () => {
-      await api(`/api/projects/${state.project.id}/chats/${b.dataset.del}`, { method: 'DELETE' });
-      state.project.chats = state.project.chats.filter(c => c.id !== b.dataset.del);
-      if (state.chatId === b.dataset.del) {
-        state.chatId = null;
-        if (state.project.chats.length) openChat(state.project.chats[0].id); else newChat();
-      } else renderChatList();
-    }));
+    b.addEventListener('click', () => deleteChat(b.dataset.del)));
+}
+
+export async function deleteChat(cid) {
+  await api(`/api/projects/${state.project.id}/chats/${cid}`, { method: 'DELETE' });
+  state.project.chats = state.project.chats.filter(c => c.id !== cid);
+  if (state.chatId === cid) {
+    state.chatId = null;
+    if (state.project.chats.length) openChat(state.project.chats[0].id); else newChat();
+  } else renderChatList();
+}
+
+/** Swap a chat's rail entry for an inline input; Enter/blur saves, Esc cancels. */
+export function renameChat(cid) {
+  const li = document.querySelector(`#chat-list li[data-id="${cid}"]`);
+  const chat = state.project.chats.find(c => c.id === cid);
+  if (!li || !chat) return;
+  const input = document.createElement('input');
+  input.className = 'chat-rename';
+  input.value = chat.title;
+  li.querySelector('span').replaceWith(input);
+  input.focus();
+  input.select();
+  let done = false;
+  const commit = async () => {
+    if (done) return;
+    done = true;
+    const title = input.value.trim();
+    if (title && title !== chat.title) {
+      chat.title = title;
+      await api(`/api/projects/${state.project.id}/chats/${cid}`, { method: 'PUT', body: { title } });
+      if (cid === state.chatId) $('#chat-title').textContent = title;
+    }
+    renderChatList();
+  };
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') commit();
+    else if (e.key === 'Escape') { done = true; renderChatList(); }
+    e.stopPropagation();
+  });
+  input.addEventListener('blur', commit);
+  input.addEventListener('click', (e) => e.stopPropagation());
 }
 
 export async function newChat() {
@@ -49,8 +84,7 @@ export async function newChat() {
 export function openChat(cid) {
   state.chatId = cid;
   const chat = currentChat();
-  $('#welcome').hidden = true;
-  $('#chat-view').hidden = false;
+  showView('chat');
   $('#chat-title').textContent = chat.title;
   $('#chat-project-name').textContent = state.project.name;
   if (chat.model) {

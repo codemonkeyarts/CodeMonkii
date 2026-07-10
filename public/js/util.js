@@ -25,3 +25,16 @@ export function autoGrow(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 200) + 'px';
 }
+
+/* Clipboard write via a transient textarea — works on plain-http localhost
+ * and inside the sandboxed desktop renderer, where navigator.clipboard can
+ * be unavailable or permission-gated. */
+export function copyText(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch { /* clipboard unavailable */ }
+  ta.remove();
+}
