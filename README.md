@@ -69,6 +69,20 @@ Attach any file or folder via the built-in browser. Contents are **re-read from 
 | `PORT` | `8113` | Web UI port |
 | `OLLAMA_HOST` | `http://localhost:11434` | Ollama server address |
 | `CODEMONKII_SKILLS_DIR` | `./skills` | Where to scan for skills |
+| `CODEMONKII_FS_ROOTS` | *(unset — whole disk)* | Semicolon-separated list of directories the file browser and attachments are restricted to, e.g. `C:\projects;D:\writing` |
+
+## Security
+
+CodeMonkii is a single-user local app, hardened accordingly:
+
+- **Loopback only** — the server binds `127.0.0.1`; it is never reachable from the network.
+- **DNS-rebinding protection** — requests with a `Host` header other than `localhost`/`127.0.0.1` are rejected, so a malicious website that points its own domain at your loopback address gets a 403.
+- **CSRF protection** — cross-origin requests (any `Origin` other than the app's own) are rejected.
+- **Content Security Policy** — scripts run from the app's own origin only; no eval, no inline scripts, no third-party script sources. Plus `nosniff`, `no-referrer`, and a locked-down `Permissions-Policy`.
+- **Filesystem scoping** — set `CODEMONKII_FS_ROOTS` to fence browsing *and* attachment reads into specific directories; the check runs both when attaching and again on every read.
+- **Input validation** — project/skill ids are strictly validated (no path traversal), all model output is HTML-escaped before rendering, and errors return generic JSON with no stack traces.
+
+Your chats and project data stay in `data/` on your disk; the only outbound connections are to your local Ollama and Google Fonts (for the UI typefaces).
 
 ## Layout
 

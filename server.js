@@ -38,6 +38,45 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 fs.mkdirSync(SKILLS_DIR, { recursive: true });
 
 const app = express();
+app.disable('x-powered-by');
+
+/* ---------------- security ----------------
+ * The server binds 127.0.0.1, but a malicious website in the user's own
+ * browser can still attack it: DNS rebinding gives an attacker's page a
+ * "same-origin" view of localhost, and CSRF fires blind cross-site writes.
+ * Host + Origin validation closes both; the API is only reachable by
+ * pages actually served from this app. */
+const ALLOWED_HOSTS = new Set([`localhost:${PORT}`, `127.0.0.1:${PORT}`, `[::1]:${PORT}`]);
+const ALLOWED_ORIGINS = new Set([`http://localhost:${PORT}`, `http://127.0.0.1:${PORT}`]);
+
+app.use((req, res, next) => {
+  const host = (req.headers.host || '').toLowerCase();
+  if (!ALLOWED_HOSTS.has(host)) return res.status(403).json({ error: 'forbidden host' });
+  const origin = req.headers.origin;
+  if (origin && !ALLOWED_ORIGINS.has(origin)) return res.status(403).json({ error: 'forbidden origin' });
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('Content-Security-Policy',
+    "default-src 'self'; script-src 'self'; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; " +
+    "base-uri 'none'; form-action 'self'; frame-ancestors 'self'; object-src 'none'");
+  next();
+});
+
+/* Optional filesystem allowlist: CODEMONKII_FS_ROOTS="C:\projects;D:\writing"
+ * restricts browsing AND attachment reads to those trees. Unset = whole disk
+ * (single-user convenience default). */
+const FS_ROOTS = (process.env.CODEMONKII_FS_ROOTS || '')
+  .split(';').map(s => s.trim()).filter(Boolean).map(p => path.resolve(p));
+
+function pathAllowed(p) {
+  if (!FS_ROOTS.length) return true;
+  const full = path.resolve(p).toLowerCase() + path.sep;
+  return FS_ROOTS.some(root => full.startsWith(root.toLowerCase() + path.sep));
+}
+
 app.use(express.json({ limit: '4mb' }));
 app.use(express.static(path.join(ROOT, 'public')));
 
@@ -202,10 +241,14 @@ function listDrives() {
 }
 
 app.get('/api/fs', (req, res) => {
-  const dir = req.query.dir || os.homedir();
+  const fallback = FS_ROOTS.length ? FS_ROOTS[0] : os.homedir();
+  const dir = req.query.dir || fallback;
   if (dir === '__drives__') {
-    return res.json({ dir: '__drives__', entries: listDrives().map(d => ({ name: d, path: d, isDir: true })) });
+    // with an allowlist configured, "Drives" shows the allowed roots instead
+    const tops = FS_ROOTS.length ? FS_ROOTS : listDrives();
+    return res.json({ dir: '__drives__', entries: tops.map(d => ({ name: d, path: d, isDir: true })) });
   }
+  if (!pathAllowed(dir)) return res.status(403).json({ error: 'path outside CODEMONKII_FS_ROOTS' });
   try {
     const entries = fs.readdirSync(dir, { withFileTypes: true })
       .filter(e => !e.name.startsWith('$') && e.name !== 'System Volume Information')
@@ -221,6 +264,8 @@ app.post('/api/projects/:pid/attachments', (req, res) => {
   try {
     const p = loadProject(req.params.pid);
     const target = req.body.path;
+    if (typeof target !== 'string' || !target.trim()) throw new Error('missing path');
+    if (!pathAllowed(target)) throw new Error('path outside CODEMONKII_FS_ROOTS');
     const st = fs.statSync(target);
     if (p.attachments.some(a => a.path === target)) return res.json(p);
     p.attachments.push({ id: id(), path: target, type: st.isDirectory() ? 'dir' : 'file' });
@@ -295,6 +340,8 @@ function attachmentContext(project) {
   let budget = TOTAL_BUDGET;
   for (const att of project.attachments) {
     if (budget <= 0) { errors.push(`${att.path}: skipped (context budget exhausted)`); continue; }
+    // re-check at read time: attachments may pre-date a newly configured allowlist
+    if (!pathAllowed(att.path)) { errors.push(`${att.path}: outside CODEMONKII_FS_ROOTS, not included`); continue; }
     try {
       if (att.type === 'file') {
         const text = readTextFile(att.path, Math.min(FILE_LIMIT, budget));
@@ -449,6 +496,15 @@ app.post('/api/chat', async (req, res) => {
     } catch { /* project deleted mid-stream */ }
   }
   res.end();
+});
+
+/* JSON error handler — no stack traces to the client */
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
+  const status = err.type === 'entity.parse.failed' ? 400
+    : err.type === 'entity.too.large' ? 413
+    : err.status || 500;
+  res.status(status).json({ error: status < 500 ? 'invalid request body' : 'internal error' });
 });
 
 app.listen(PORT, '127.0.0.1', () => {
