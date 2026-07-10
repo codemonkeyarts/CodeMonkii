@@ -2,11 +2,54 @@
   "name": "codemonkii",
   "version": "1.0.0",
   "description": "CodeMonkii — local LLM studio for Ollama: projects, Claude-style skills, and live file knowledge",
-  "main": "server.js",
+  "main": "electron/main.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "desktop": "electron .",
+    "dist": "electron-builder",
+    "dist:dir": "electron-builder --dir"
   },
   "dependencies": {
     "express": "^4.22.2"
+  },
+  "devDependencies": {
+    "electron": "^43.1.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.codalanguez.codemonkii",
+    "productName": "CodeMonkii",
+    "asar": false,
+    "directories": {
+      "output": "dist",
+      "buildResources": "electron/build"
+    },
+    "files": [
+      "server.js",
+      "electron/**/*",
+      "lib/**/*",
+      "routes/**/*",
+      "public/**/*",
+      "skills/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "electron/build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "CodeMonkii"
+    }
   }
 }

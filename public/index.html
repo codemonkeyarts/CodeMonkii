@@ -5,9 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CodeMonkii</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128018;</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Forum&family=Inter:wght@400;600;700&family=VT323&family=Cormorant+Garamond:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -42,6 +40,7 @@
 
     <footer id="rail-foot">
       <span>local · private · yours</span>
+      <button id="btn-prefs" class="icon-btn" title="Preferences" hidden>⚙</button>
     </footer>
   </aside>
 
@@ -127,6 +126,56 @@
         <div class="spacer"></div>
         <button id="btn-attach-dir" class="btn btn-primary">Attach this folder</button>
       </footer>
+    </div>
+  </div>
+
+  <!-- ===== preferences modal (desktop app only) ===== -->
+  <div id="prefs-backdrop" hidden>
+    <div id="prefs-panel">
+      <header>
+        <h3>Preferences</h3>
+        <button id="btn-close-prefs" class="icon-btn" title="Close">×</button>
+      </header>
+      <div class="prefs-body">
+        <div class="field">
+          <span>Ollama models folder <em>where pulled models are stored on disk</em></span>
+          <div id="prefs-models-dir" class="prefs-path"></div>
+          <div class="prefs-actions">
+            <button id="btn-prefs-choose-dir" class="btn btn-ghost">Choose folder…</button>
+            <button id="btn-prefs-default-dir" class="btn btn-ghost">Use Ollama default</button>
+          </div>
+          <div id="prefs-env-note" class="prefs-note" hidden>
+            Set by the <b>OLLAMA_MODELS</b> environment variable — it overrides this preference. Unset it to manage the folder here.
+          </div>
+          <div class="prefs-note">Takes effect the next time CodeMonkii starts Ollama (quit Ollama, then relaunch the app).</div>
+        </div>
+
+        <div class="field">
+          <span>Projects &amp; chats folder <em>where conversations and project settings are saved</em></span>
+          <div id="prefs-data-dir" class="prefs-path"></div>
+          <div class="prefs-actions">
+            <button id="btn-prefs-choose-data" class="btn btn-ghost">Choose folder…</button>
+            <button id="btn-prefs-default-data" class="btn btn-ghost">Use default</button>
+          </div>
+          <div id="prefs-data-env-note" class="prefs-note" hidden>
+            Set by the <b>CODEMONKII_DATA_DIR</b> environment variable — it overrides this preference.
+          </div>
+          <div class="prefs-note">Changing this restarts the app view. Existing chats stay in the old folder — move the JSON files over if you want them in the new one.</div>
+        </div>
+
+        <div class="field">
+          <span>Skills folder <em>where SKILL.md folders are scanned from</em></span>
+          <div id="prefs-skills-dir" class="prefs-path"></div>
+          <div class="prefs-actions">
+            <button id="btn-prefs-choose-skills" class="btn btn-ghost">Choose folder…</button>
+            <button id="btn-prefs-default-skills" class="btn btn-ghost">Use default</button>
+          </div>
+          <div id="prefs-skills-env-note" class="prefs-note" hidden>
+            Set by the <b>CODEMONKII_SKILLS_DIR</b> environment variable — it overrides this preference.
+          </div>
+          <div class="prefs-note">Point this at an existing library (e.g. <b>~\.claude\skills</b>) to use your Claude Code skills as-is.</div>
+        </div>
+      </div>
     </div>
   </div>
 

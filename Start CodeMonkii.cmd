@@ -2,8 +2,9 @@
 title CodeMonkii
 cd /d "%~dp0"
 
-rem where Ollama keeps its models on this machine
-set OLLAMA_MODELS=%USERPROFILE%\.ollama\models
+rem Ollama models location: set the OLLAMA_MODELS env var (system-wide or
+rem right here) if your models live somewhere other than Ollama's default:
+rem     set OLLAMA_MODELS=D:\path\to\models
 
 rem start Ollama if it isn't already running
 tasklist /FI "IMAGENAME eq ollama.exe" 2>nul | find /I "ollama.exe" >nul

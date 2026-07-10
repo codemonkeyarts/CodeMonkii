@@ -13,8 +13,10 @@ import { loadSkills, updateSkillPopup, pickSkill } from './skills.js';
 import { createProject, openProject, saveProjectMeta, deleteProject, refreshProjects } from './projects.js';
 import { openBrowser, browseTo, closeBrowser, attachPath } from './attachments.js';
 import { newChat, send } from './chat.js';
+import { initPrefs } from './prefs.js';
 
 function wire() {
+  initPrefs();
   $('#btn-new-project').addEventListener('click', createProject);
   $('#btn-welcome-project').addEventListener('click', createProject);
   $('#btn-new-chat').addEventListener('click', newChat);

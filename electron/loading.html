@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>CodeMonkii</title>
+<style>
+  :root {
+    --void: #000; --gold: #ffd400; --gold-bright: #ffe875;
+    --cyan: #00ffe0; --bone: #f5efd8; --bone-dim: #8c8775;
+    --line: rgba(255, 212, 0, .18);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    background: radial-gradient(ellipse at 50% 30%, #14110c 0%, #050403 55%, #000 100%);
+    color: var(--bone);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 26px; user-select: none; overflow: hidden;
+  }
+  .frame {
+    position: absolute; inset: 18px;
+    border: 1px solid var(--line);
+    box-shadow: inset 0 0 60px rgba(255,212,0,.05);
+    pointer-events: none;
+  }
+  .frame::before, .frame::after {
+    content: ''; position: absolute; width: 22px; height: 22px;
+    border: 2px solid var(--gold);
+  }
+  .frame::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+  .frame::after  { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+  .monkey {
+    width: 110px; height: 110px; border-radius: 22px;
+    filter: drop-shadow(0 0 22px rgba(255,212,0,.35));
+    animation: bob 2.4s ease-in-out infinite;
+  }
+  @keyframes bob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+  .title {
+    font-size: 34px; letter-spacing: .32em; text-transform: uppercase;
+    color: var(--gold); text-shadow: 0 0 18px rgba(255,212,0,.4);
+    padding-left: .32em;
+  }
+  .sub {
+    font-family: 'Consolas', ui-monospace, monospace;
+    font-size: 13px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--cyan);
+  }
+  .bar {
+    width: 240px; height: 3px; border-radius: 2px;
+    background: rgba(255,212,0,.14); overflow: hidden;
+  }
+  .bar > i {
+    display: block; height: 100%; width: 40%; border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), var(--cyan), transparent);
+    animation: slide 1.3s ease-in-out infinite;
+  }
+  @keyframes slide {
+    0% { transform: translateX(-120%) } 100% { transform: translateX(320%) }
+  }
+  .hint { font-size: 11px; letter-spacing: .1em; color: var(--bone-dim); }
+</style>
+</head>
+<body>
+  <div class="frame"></div>
+  <img class="monkey" src="build/icon.png" alt="CodeMonkii" />
+  <div class="title">CodeMonkii</div>
+  <div class="sub">Booting local studio…</div>
+  <div class="bar"><i></i></div>
+  <div class="hint">starting server &amp; ollama · loopback only · nothing leaves your machine</div>
+</body>
+</html>

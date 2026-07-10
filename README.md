@@ -15,6 +15,49 @@ On Windows you can also just double-click **`Start CodeMonkii.cmd`** — it star
 
 Requires **Node.js 18+** and **Ollama** running locally (`ollama serve`, or the Ollama app) with at least one model pulled, e.g. `ollama pull llama3.2`.
 
+## Desktop app
+
+CodeMonkii can also run as a native desktop application (like the ComfyUI desktop app) instead of in a browser tab. An [Electron](https://www.electronjs.org) shell starts Ollama, boots the server on a free port, and shows the UI in its own window with a splash screen.
+
+```powershell
+npm install        # first time only — pulls in Electron
+npm run desktop    # launches the desktop app
+```
+
+Or double-click **`Start CodeMonkii Desktop.cmd`** (installs dependencies on first run).
+
+**Preferences** — the ⚙ gear in the sidebar footer opens a panel with three storage locations, each user-changeable via a native folder picker (or resettable to its default):
+
+- **Ollama models folder** — where pulled models live. If the app has to start Ollama itself, it asks once on first launch (Ollama default `~/.ollama/models`, or pick a folder). Applies the next time CodeMonkii starts Ollama; also reachable via the **CodeMonkii → Ollama Models Folder…** menu. If Ollama is already running, it uses whatever Ollama is configured with.
+- **Projects & chats folder** — where conversations and project settings are saved. Changing it restarts the server and reloads the UI; existing chats stay in the old folder (move the JSON files manually if you want them along).
+- **Skills folder** — where `SKILL.md` folders are scanned from. Point it at `~\.claude\skills` to use your Claude Code skills as-is.
+
+Each location's env var (`OLLAMA_MODELS`, `CODEMONKII_DATA_DIR`, `CODEMONKII_SKILLS_DIR`) always wins over the saved preference and shows as read-only in the panel.
+
+### Build a standalone installer
+
+To produce a Windows installer (`.exe`) you can hand to another machine — no Node required on the target:
+
+```powershell
+npm run dist       # outputs CodeMonkii Setup <version>.exe under dist/
+```
+
+The installer is a standard NSIS setup: install-location picker, Start-menu entry, desktop shortcut, uninstaller. It installs per-user (no admin needed). The target machine only needs [Ollama](https://ollama.com/download).
+
+When running as an installed app, project data and skills live in `%APPDATA%\CodeMonkii` (`data\projects` and `skills`), so updates and uninstalls never touch your chats; the bundled sample skills are copied there on first run. A repo checkout (`npm start` / `npm run desktop`) keeps everything repo-local as before. `CODEMONKII_DATA_DIR` / `CODEMONKII_SKILLS_DIR` env vars override either way.
+
+The build config lives in `package.json` under `"build"`; icon assets are in `electron/build/`. The desktop shell lives entirely in `electron/` and reuses the server unchanged — `npm start` still runs it headless in a browser.
+
+**Code signing** — point electron-builder at a PFX and it signs the app, uninstaller, and installer (SHA-256 + RFC-3161 timestamp):
+
+```powershell
+$env:CSC_LINK = "$HOME\.codemonkii-signing\codemonkii-codesign.pfx"
+$env:CSC_KEY_PASSWORD = Get-Content "$HOME\.codemonkii-signing\pfx-password.txt"
+npm run dist
+```
+
+A self-signed certificate (as generated here) makes signatures verify on machines that trust it, but other people's PCs still see "unknown publisher" and SmartScreen still warns — only a CA-issued certificate (Azure Trusted Signing, or an OV cert from SSL.com/Certum, or SignPath's free open-source program) fixes that. Swap the PFX path when you get one; nothing else changes.
+
 ## Features
 
 ### Projects (like Claude Projects)
@@ -84,7 +127,9 @@ CodeMonkii is a single-user local app, hardened accordingly:
 - **Filesystem scoping** — set `CODEMONKII_FS_ROOTS` to fence browsing *and* attachment reads into specific directories; the check runs both when attaching and again on every read.
 - **Input validation** — project/skill ids are strictly validated (no path traversal), all model output is HTML-escaped before rendering, and errors return generic JSON with no stack traces.
 
-Your chats and project data stay in `data/` on your disk; the only outbound connections are to your local Ollama, Google Fonts (UI typefaces), and one GitHub API call per day to check the latest Ollama release version (no data sent; `CODEMONKII_UPDATE_CHECK=off` disables it).
+Your chats and project data stay on your disk. UI fonts are bundled locally (no Google Fonts requests), so the only outbound connections are to your local Ollama and one GitHub API call per day to check the latest Ollama release version (no data sent; `CODEMONKII_UPDATE_CHECK=off` disables it — then nothing leaves your machine at all).
+
+The desktop shell adds its own hardening: sandboxed renderer with context isolation, a navigation guard (the window can only ever display the app — external links open in your real browser), all web permission requests (camera, mic, location…) denied, and preferences IPC that only accepts calls from the app's own pages.
 
 ## Layout
 
@@ -117,8 +162,14 @@ public/
     skills.js           skill toggles + "/" invocation
     attachments.js      knowledge panel + file browser
     chat.js             messages, streaming, stop
+    prefs.js            preferences panel (models folder; desktop app only)
 skills/                 your skills (3 samples included)
 data/projects/          project + chat storage (JSON, gitignored)
+electron/
+  main.js               desktop shell: starts Ollama + server, native window
+  preload.js            contextBridge: exposes preferences IPC to the UI
+  loading.html          themed splash shown while the server boots
+  build/                installer resources (drop icon.ico here)
 ```
 
 Each module carries a header comment explaining its responsibility.

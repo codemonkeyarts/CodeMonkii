@@ -47,7 +47,11 @@ router.put('/projects/:pid', (req, res) => {
     const p = loadProject(req.params.pid);
     if (typeof req.body.name === 'string') p.name = req.body.name.slice(0, 120);
     if (typeof req.body.instructions === 'string') p.instructions = req.body.instructions;
-    if (Array.isArray(req.body.skills)) p.skills = req.body.skills;
+    if (Array.isArray(req.body.skills)) {
+      p.skills = req.body.skills
+        .filter(s => typeof s === 'string' && !/[\\/]|\.\./.test(s))
+        .slice(0, 200);
+    }
     saveProject(p);
     res.json(p);
   } catch { res.status(404).json({ error: 'project not found' }); }
