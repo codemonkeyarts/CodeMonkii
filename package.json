@@ -1,0 +1,12 @@
+{
+  "name": "codemonkii",
+  "version": "1.0.0",
+  "description": "CodeMonkii — local LLM studio for Ollama: projects, Claude-style skills, and live file knowledge",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
