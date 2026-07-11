@@ -183,12 +183,13 @@ The guiding rule for everything below: **it stays local.** Nothing here should e
 - [x] **Model management in-app** — pull, delete, and see disk usage for Ollama models without dropping to a terminal
 - [x] **Token & context awareness** — a live estimate and a warning before a request overflows the chosen context length
 - [x] **Error logging** — failures written to a rotating log file (open it from the app menu)
+- [ ] **Completion notifications** — a desktop notification (and optional sound) when a generation finishes while Monkii is in the background, so you can start a long response and step away
 - [ ] **Edit / regenerate / branch** messages, and copy a whole conversation as Markdown
 - [ ] **Export & import** a project (skills, knowledge refs, and settings) as a single portable file
 - [ ] **Search** across chats and projects
 - [ ] **Per-chat option overrides** on top of the project defaults
 - [ ] **Auto-update** for the desktop app (`electron-updater`)
-- [ ] **Codalanguez rebrand** — align the app's bundle id (`appId`) with the `codalanguez` handle on a version bump; the desktop app keeps upgrading in place until the switch, which is a one-time reinstall
+- [x] **Codalanguez rebrand** — shipped: renamed to Monkii, `appId` `com.codalanguez.monkii`, with a one-time data migration from the old install
 
 ### Appearance & theming
 
