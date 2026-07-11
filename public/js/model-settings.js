@@ -12,6 +12,7 @@ import { $, esc, toast } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
 import { updateModelInfo } from './model-info.js';
+import { fmtK } from './context-meter.js';
 
 /* Advanced params: [key, label, description, placeholder]. Order matches the
  * Ollama docs the screenshots came from. num_ctx/temperature live in the
@@ -34,7 +35,7 @@ const ADVANCED = [
   ['keep_alive', 'keep_alive', 'How long the model stays loaded (e.g. 5m, 30, -1 for forever, 0 to unload now).', '5m'],
 ];
 
-const ctxLabel = (pow) => `${(2 ** pow) / 1024}k`;
+const ctxLabel = (pow) => fmtK(2 ** pow);
 
 function renderAdvanced() {
   $('#ms-advanced-fields').innerHTML = ADVANCED.map(([key, label, desc, ph]) => `

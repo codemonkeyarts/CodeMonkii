@@ -16,6 +16,9 @@ import { state } from './state.js';
 const estimate = (text) => Math.ceil((text || '').length / 4);
 const fmt = (n) => n.toLocaleString();
 
+/** Token count as a compact "16k" / "512" label. */
+export const fmtK = (n) => (n >= 1024 ? `${Math.round(n / 1024)}k` : `${n}`);
+
 /** Re-estimate the fixed cost of the current chat and repaint the meter. */
 export async function refreshContext() {
   const meter = $('#context-meter');

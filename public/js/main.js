@@ -13,7 +13,8 @@ import { loadSkills, updateSkillPopup, pickSkill, renderSkillToggles, handleSkil
 import { initSkillCreate, showSkillCreateForm, importSkillFlow } from './skill-create.js';
 import { createProject, openProject, saveProjectMeta, deleteProject, showProjectsPage, quickChat } from './projects.js';
 import { openBrowser, browseTo, closeBrowser, pickCurrentDir } from './attachments.js';
-import { newChat, send, initOverflowDialog } from './chat.js';
+import { newChat, send } from './chat.js';
+import { initOverflowDialog } from './overflow.js';
 import { initModal } from './modal.js';
 import { initPrefs } from './prefs.js';
 import { initContextMenus } from './ctxmenu.js';
@@ -83,7 +84,7 @@ function wireFileBrowser() {
 }
 
 function wireComposer() {
-  $('#btn-send').addEventListener('click', send);
+  $('#btn-send').addEventListener('click', () => send()); // no event arg — it would be read as bypassOverflow
   $('#btn-stop').addEventListener('click', () => state.abort && state.abort.abort());
 
   const input = $('#input');
@@ -102,7 +103,7 @@ async function init() {
   wireInspector();
   wireFileBrowser();
   wireComposer();
-  initOverflowDialog();
+  initOverflowDialog(send, newChat);
 
   await Promise.all([checkHealth(), loadModels(), loadSkills()]);
   await showProjectsPage(); // land on the all-projects page (welcome if none)

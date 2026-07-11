@@ -126,7 +126,8 @@ router.post('/chat', async (req, res) => {
   // estimated request fits num_ctx, always keeping the system prompt and the
   // latest message. (Stored history is untouched — only this request is trimmed.)
   const limit = sanitizeOptions(project.options || {}).num_ctx || DEFAULT_CONTEXT;
-  const fits = (msgs) => estimateTokens(system) + msgs.reduce((n, m) => n + estimateTokens(m.content), 0) <= limit;
+  const sysTokens = estimateTokens(system);
+  const fits = (msgs) => sysTokens + msgs.reduce((n, m) => n + estimateTokens(m.content), 0) <= limit;
   while (history.length > 1 && !fits(history)) history.shift();
 
   const messages = [{ role: 'system', content: system }, ...history];

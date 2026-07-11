@@ -14,7 +14,8 @@ import { state } from './state.js';
 import { md } from './markdown.js';
 import { skillNames, renderSkillChips } from './skills.js';
 import { showView } from './views.js';
-import { refreshContext, willOverflow, cannotCompact, neededContext } from './context-meter.js';
+import { refreshContext, willOverflow, cannotCompact } from './context-meter.js';
+import { openOverflowDialog } from './overflow.js';
 
 const THINKING_DOTS = '<span class="thinking-dots"><i></i><i></i><i></i></span>';
 
@@ -116,42 +117,6 @@ export function renderMessages() {
     : `<div class="msg msg-assistant"><div class="msg-role">${esc(m.model || 'Model')}</div><div class="msg-body">${md(m.content)}</div></div>`
   ).join('');
   box.scrollTop = box.scrollHeight;
-}
-
-/* Shown when a request can't be compacted to fit (the system prompt +
- * attachments alone exceed the context). Wired once from main.js. */
-let overflowText = '';
-export function initOverflowDialog() {
-  const backdrop = $('#overflow-backdrop');
-  const close = () => { backdrop.hidden = true; };
-  $('#btn-close-overflow').addEventListener('click', close);
-  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
-
-  $('#btn-of-increase').addEventListener('click', async () => {
-    const ctx = neededContext(overflowText);
-    state.project.options = { ...(state.project.options || {}), num_ctx: ctx };
-    state.contextLimit = ctx;
-    await api(`/api/projects/${state.project.id}`, { method: 'PUT', body: { options: state.project.options } });
-    close();
-    toast(`Context raised to ${ctx >= 1024 ? Math.round(ctx / 1024) + 'k' : ctx} for this project`);
-    send(true);
-  });
-
-  $('#btn-of-newchat').addEventListener('click', async () => {
-    close();
-    await newChat();
-    send(true);
-  });
-
-  $('#btn-of-send').addEventListener('click', () => { close(); send(true); });
-}
-
-function openOverflowDialog(text) {
-  overflowText = text;
-  const limit = state.contextLimit;
-  $('#of-msg').textContent =
-    `This request needs more room than the context length (${limit >= 1024 ? Math.round(limit / 1024) + 'k' : limit} tokens) allows, and it can't be trimmed by dropping older messages — the project's instructions and attached files alone fill it. Choose how to proceed:`;
-  $('#overflow-backdrop').hidden = false;
 }
 
 export async function send(bypassOverflow = false) {
