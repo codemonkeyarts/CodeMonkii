@@ -66,10 +66,11 @@ function wireModelSettings() {
 }
 
 function wireInspector() {
-  $('#btn-toggle-inspector').addEventListener('click', () => {
-    $('#inspector').hidden = !$('#inspector').hidden;
-  });
-  $('#btn-close-inspector').addEventListener('click', () => { $('#inspector').hidden = true; });
+  // the project panel opens from a right-edge pull-tab; closing reveals the tab
+  const openPanel = () => { $('#inspector').hidden = false; $('#inspector-tab').hidden = true; };
+  const closePanel = () => { $('#inspector').hidden = true; $('#inspector-tab').hidden = false; };
+  $('#inspector-tab').addEventListener('click', openPanel);
+  $('#btn-close-inspector').addEventListener('click', closePanel);
   $('#proj-name').addEventListener('change', saveProjectMeta);
   $('#proj-instructions').addEventListener('change', saveProjectMeta);
   $('#btn-delete-project').addEventListener('click', deleteProject);

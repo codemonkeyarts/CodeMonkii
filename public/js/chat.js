@@ -107,6 +107,7 @@ export function openChat(cid) {
   renderChatList();
   renderMessages();
   renderChatAttachments();
+  $('#inspector-tab').hidden = !$('#inspector').hidden; // tab shows when the panel is closed
   $('#input').focus();
   refreshContext();
 }

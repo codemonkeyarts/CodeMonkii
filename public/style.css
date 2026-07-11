@@ -409,6 +409,24 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   width: 330px; background: var(--onyx); border-left: 1px solid var(--line-soft);
   padding: 18px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;
 }
+
+/* right-edge pull-tab that opens the project panel */
+#inspector-tab {
+  position: fixed; right: 0; top: 84px; z-index: 60;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--onyx); border: 1px solid var(--gold-deep); border-right: none;
+  border-radius: 4px 0 0 4px; color: var(--gold); cursor: pointer;
+  padding: 10px 10px 10px 12px;
+  font-family: var(--font-display); font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+  transition: background .15s, box-shadow .15s;
+}
+#inspector-tab .it-arrows { font-size: 15px; line-height: 1; }
+#inspector-tab .it-label {
+  max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0;
+  transition: max-width .22s ease, opacity .18s ease;
+}
+#inspector-tab:hover { background: var(--panel); box-shadow: -4px 0 18px rgba(255, 212, 0, .14); }
+#inspector-tab:hover .it-label { max-width: 160px; opacity: 1; }
 #inspector > header { display: flex; justify-content: space-between; align-items: center; }
 #inspector h3 {
   font-family: var(--font-display); font-weight: 400; font-size: 18px;
