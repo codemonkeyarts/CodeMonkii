@@ -169,56 +169,9 @@ The desktop shell adds its own hardening: sandboxed renderer with context isolat
 
 ## Roadmap
 
-The guiding rule for everything below: **it stays local.** Nothing here should ever require an account, a cloud service, or sending your data off the machine.
+Monkii's plans live in **[ROADMAP.md](ROADMAP.md)** — grouped by the promise each item serves: keeping it **local**, **secure**, and **yours**. The guiding rule for everything there: it never requires an account, a cloud service, or sending your data off the machine.
 
-### Shipped
-
-- [x] Projects, chats, and quick chat (no project needed)
-- [x] Claude-format skills: always-on toggles + `/` per-message invocation
-- [x] Create skills three ways — blank template, written by a local model, or imported (folder / `SKILL.md` / packaged `.skill`)
-- [x] Skill detail view (instructions + bundled reference files)
-- [x] Per-project model settings — context length, temperature, and the full advanced Ollama option set
-- [x] Live file & directory knowledge, re-read from disk each message
-- [x] Right-click menus and native text-field editing
-- [x] Signed Windows desktop app with an installer; per-user data in `%APPDATA%`
-
-### Next up
-
-- [x] **Model management in-app** — pull, delete, and see disk usage for Ollama models without dropping to a terminal
-- [x] **Token & context awareness** — a live estimate and a warning before a request overflows the chosen context length
-- [x] **Error logging** — failures written to a rotating log file (open it from the app menu)
-- [ ] **Self-contained Ollama** — run (and ideally ship) the Ollama runtime so Monkii works without a separate Ollama install. It already auto-starts `ollama serve` when Ollama is present; the gap is when it isn't. Investigation tradeoff: the `ollama` binary is only ~34 MB, but the GPU runtimes (CUDA/ROCm) are ~2.8 GB, so full bundling would balloon the installer. Likely path — ship the small binary + CPU backend and fetch the GPU runtime on first run (or offer a guided one-click Ollama install when it's missing), with models still stored separately as today
-- [ ] **Completion notifications** — a desktop notification (and optional sound) when a generation finishes while Monkii is in the background, so you can start a long response and step away
-- [ ] **Edit / regenerate / branch** messages, and copy a whole conversation as Markdown
-- [ ] **Export & import** a project (skills, knowledge refs, and settings) as a single portable file
-- [ ] **Search** across chats and projects
-- [ ] **Per-chat option overrides** on top of the project defaults
-- [ ] **Auto-update** for the desktop app (`electron-updater`)
-- [x] **Codalanguez rebrand** — shipped: renamed to Monkii, `appId` `com.codalanguez.monkii`, with a one-time data migration from the old install
-
-### Appearance & theming
-
-Right now the UI ships one look — the cyber-deco dark theme (gold on black, Forum / VT323 type). Making it yours is next:
-
-- [ ] **Theme presets** — pick from a set of built-in palettes (e.g. Cyber Deco, Speakeasy Noir, Gothic Library, plain Midnight), swappable from Preferences
-- [ ] **Light / dark / system** mode toggle
-- [ ] **Custom palette editor** — set your own accent, background, surface, and text colors, with a live preview and contrast check
-- [ ] **Font choices** — pick the display, body, and mono typefaces (bundled options plus any font installed on your machine)
-- [ ] **Background options** — solid color, subtle gradient, or a local image, all rendered offline
-- [ ] **Density & size** — comfortable/compact spacing and a base text-size control
-- [ ] **Save & share themes** — export a theme as a small file and import someone else's (local-first, no gallery required)
-
-Themes persist per-user like the other preferences, and — like everything else — never phone home.
-
-### Exploring
-
-- [ ] **Image input** for multimodal models (llava, etc.)
-- [ ] **Embeddings-backed knowledge** — retrieve from large folders instead of spending a flat byte budget
-- [ ] **A skill "shelf"** for browsing and one-click installing shared `.skill` packs
-- [ ] **macOS & Linux builds**
-- [ ] **Voice** in and out, entirely on-device
-
-Have an idea? Open an issue — local-first, private-by-default proposals move to the top.
+A few of what's next: version-check-off by default, self-contained Ollama, local retrieval over big attachments, theming, and export/import. See the [full roadmap →](ROADMAP.md)
 
 ## Layout
 
