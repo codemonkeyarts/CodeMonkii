@@ -169,6 +169,22 @@
     </div>
   </div>
 
+  <!-- ===== context-overflow dialog ===== -->
+  <div id="overflow-backdrop" class="modal-backdrop" hidden>
+    <div id="overflow-panel" class="modal-panel">
+      <header>
+        <h3>Too long for the context</h3>
+        <button id="btn-close-overflow" class="icon-btn" title="Close">×</button>
+      </header>
+      <div class="of-body">
+        <p id="of-msg"></p>
+        <button id="btn-of-increase" class="btn btn-primary">Increase context length <em>may slow responses</em></button>
+        <button id="btn-of-newchat" class="btn btn-ghost">Start a new chat</button>
+        <button id="btn-of-send" class="btn btn-ghost">Send anyway <em>the model will drop the oldest text</em></button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== model manager modal ===== -->
   <div id="model-manager-backdrop" class="modal-backdrop" hidden>
     <div id="model-manager-panel" class="modal-panel">

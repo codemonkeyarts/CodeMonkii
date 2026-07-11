@@ -13,7 +13,7 @@ import { loadSkills, updateSkillPopup, pickSkill, renderSkillToggles, handleSkil
 import { initSkillCreate, showSkillCreateForm, importSkillFlow } from './skill-create.js';
 import { createProject, openProject, saveProjectMeta, deleteProject, showProjectsPage, quickChat } from './projects.js';
 import { openBrowser, browseTo, closeBrowser, pickCurrentDir } from './attachments.js';
-import { newChat, send } from './chat.js';
+import { newChat, send, initOverflowDialog } from './chat.js';
 import { initModal } from './modal.js';
 import { initPrefs } from './prefs.js';
 import { initContextMenus } from './ctxmenu.js';
@@ -102,6 +102,7 @@ async function init() {
   wireInspector();
   wireFileBrowser();
   wireComposer();
+  initOverflowDialog();
 
   await Promise.all([checkHealth(), loadModels(), loadSkills()]);
   await showProjectsPage(); // land on the all-projects page (welcome if none)

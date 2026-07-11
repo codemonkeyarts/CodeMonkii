@@ -14,7 +14,7 @@ import { state } from './state.js';
 import { md } from './markdown.js';
 import { skillNames, renderSkillChips } from './skills.js';
 import { showView } from './views.js';
-import { refreshContext, willOverflow } from './context-meter.js';
+import { refreshContext, willOverflow, cannotCompact, neededContext } from './context-meter.js';
 
 const THINKING_DOTS = '<span class="thinking-dots"><i></i><i></i><i></i></span>';
 
@@ -118,15 +118,57 @@ export function renderMessages() {
   box.scrollTop = box.scrollHeight;
 }
 
-export async function send() {
+/* Shown when a request can't be compacted to fit (the system prompt +
+ * attachments alone exceed the context). Wired once from main.js. */
+let overflowText = '';
+export function initOverflowDialog() {
+  const backdrop = $('#overflow-backdrop');
+  const close = () => { backdrop.hidden = true; };
+  $('#btn-close-overflow').addEventListener('click', close);
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
+
+  $('#btn-of-increase').addEventListener('click', async () => {
+    const ctx = neededContext(overflowText);
+    state.project.options = { ...(state.project.options || {}), num_ctx: ctx };
+    state.contextLimit = ctx;
+    await api(`/api/projects/${state.project.id}`, { method: 'PUT', body: { options: state.project.options } });
+    close();
+    toast(`Context raised to ${ctx >= 1024 ? Math.round(ctx / 1024) + 'k' : ctx} for this project`);
+    send(true);
+  });
+
+  $('#btn-of-newchat').addEventListener('click', async () => {
+    close();
+    await newChat();
+    send(true);
+  });
+
+  $('#btn-of-send').addEventListener('click', () => { close(); send(true); });
+}
+
+function openOverflowDialog(text) {
+  overflowText = text;
+  const limit = state.contextLimit;
+  $('#of-msg').textContent =
+    `This request needs more room than the context length (${limit >= 1024 ? Math.round(limit / 1024) + 'k' : limit} tokens) allows, and it can't be trimmed by dropping older messages — the project's instructions and attached files alone fill it. Choose how to proceed:`;
+  $('#overflow-backdrop').hidden = false;
+}
+
+export async function send(bypassOverflow = false) {
   if (state.streaming) return;
   const input = $('#input');
   const text = input.value.trim();
   if (!text || !state.project || !state.chatId) return;
   const model = $('#model-select').value;
   if (!model) { toast('No model available — is Ollama running with a pulled model?', true); return; }
-  if (willOverflow()) {
-    toast('This request likely exceeds the context length — the model may drop earlier messages or respond slowly. Raise it in Model settings if needed.', true);
+
+  // Overflow handling: if the request won't fit the context, either the server
+  // can compact it (drop old history) or — if even the system prompt alone is
+  // too big — we ask the user what to do. bypassOverflow skips this after they
+  // pick a remedy.
+  if (!bypassOverflow && willOverflow()) {
+    if (cannotCompact(text)) { openOverflowDialog(text); return; }
+    toast('This chat is long — older messages will be trimmed to fit the context.');
   }
 
   const skillIds = [...state.invokedSkills];

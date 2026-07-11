@@ -21,14 +21,30 @@ export async function refreshContext() {
   const meter = $('#context-meter');
   if (!state.project || !state.chatId) { meter.textContent = ''; return; }
   try {
-    const { baseTokens, limit } = await api('/api/context', {
+    const { baseTokens, systemTokens, limit } = await api('/api/context', {
       method: 'POST',
       body: { projectId: state.project.id, chatId: state.chatId, skillIds: state.invokedSkills },
     });
     state.baseTokens = baseTokens;
+    state.systemTokens = systemTokens || 0;
     state.contextLimit = limit;
   } catch { state.baseTokens = null; }
   updateMeter();
+}
+
+/** Would this request still overflow even with all history dropped? Then
+ *  compaction can't help — the system prompt/attachments alone are too big. */
+export function cannotCompact(inputText) {
+  if (state.baseTokens == null) return false;
+  return state.systemTokens + estimate(inputText) > state.contextLimit;
+}
+
+/** Smallest power-of-two num_ctx (capped at 256k) that fits this request. */
+export function neededContext(inputText) {
+  const need = state.systemTokens + estimate(inputText) + 512; // headroom for the reply
+  let ctx = 4096;
+  while (ctx < need && ctx < 262144) ctx *= 2;
+  return ctx;
 }
 
 /** Repaint using the cached base plus whatever is currently typed. */

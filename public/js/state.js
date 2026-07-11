@@ -18,5 +18,6 @@ export const state = {
   abort: null,           // AbortController for the in-flight stream
   fbDir: null,           // file browser's current directory
   baseTokens: null,      // est. tokens of the fixed request part (system + history)
+  systemTokens: 0,       // est. tokens of the system prompt alone (the overflow floor)
   contextLimit: 4096,    // num_ctx the meter compares against
 };

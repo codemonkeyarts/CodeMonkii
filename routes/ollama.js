@@ -92,9 +92,12 @@ router.post('/context', (req, res) => {
     if (!chat) throw new Error('chat not found');
     const system = buildSystem(project, skillIds);
     const history = chat.messages.slice(-HISTORY_LIMIT).map(m => m.content).join('\n');
-    const baseTokens = estimateTokens(system) + estimateTokens(history);
+    const systemTokens = estimateTokens(system);
+    const baseTokens = systemTokens + estimateTokens(history);
     const limit = sanitizeOptions(project.options || {}).num_ctx || DEFAULT_CONTEXT;
-    res.json({ baseTokens, limit });
+    // systemTokens is the floor: dropping history can't get a request below it,
+    // so the client uses it to tell "compact-able" from "can't compact" overflow
+    res.json({ baseTokens, systemTokens, limit });
   } catch (e) { res.status(404).json({ error: String(e.message || e) }); }
 });
 
@@ -117,10 +120,16 @@ router.post('/chat', async (req, res) => {
   saveProject(project);
 
   const system = buildSystem(project, skillIds);
-  const messages = [
-    { role: 'system', content: system },
-    ...chat.messages.slice(-HISTORY_LIMIT).map(m => ({ role: m.role, content: m.content })),
-  ];
+  const history = chat.messages.slice(-HISTORY_LIMIT).map(m => ({ role: m.role, content: m.content }));
+
+  // Compact to fit the context: drop the oldest history messages until the
+  // estimated request fits num_ctx, always keeping the system prompt and the
+  // latest message. (Stored history is untouched — only this request is trimmed.)
+  const limit = sanitizeOptions(project.options || {}).num_ctx || DEFAULT_CONTEXT;
+  const fits = (msgs) => estimateTokens(system) + msgs.reduce((n, m) => n + estimateTokens(m.content), 0) <= limit;
+  while (history.length > 1 && !fits(history)) history.shift();
+
+  const messages = [{ role: 'system', content: system }, ...history];
 
   const ac = new AbortController();
   // fires when the client disconnects mid-stream (req 'close' fires too early in modern Node)

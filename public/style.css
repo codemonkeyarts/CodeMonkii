@@ -1,31 +1,30 @@
 /* ============ Monkii — Haunted Tech ============
-   Cyber-deco skin matching the haunted-tech WordPress theme
-   (codalanguez/haunted-tech-wptheme): void black + vivid gold +
-   oxblood red + CRT cyan, Forum uppercase headings with glitch tears,
-   VT323 terminal mono, animated scanlines. */
+   Cyber-deco skin: near-black warm ground + vivid gold + oxblood red +
+   CRT cyan, Forum uppercase headings, a clean readable monospace for
+   terminal/meta text. Tuned for legibility on dark. */
 :root {
   /* palette — mirrors theme.json */
-  --void: #000000;        /* page */
-  --onyx: #050403;        /* rail */
-  --obsidian: #0f0d0a;    /* cards / composer */
-  --panel: #14110c;       /* hover */
+  --void: #0a0908;        /* page (soft near-black — eases halation vs pure #000) */
+  --onyx: #060504;        /* rail */
+  --obsidian: #100e0b;    /* cards / composer */
+  --panel: #17140e;       /* hover */
   --gold: #ffd400;        /* primary accent */
   --gold-bright: #ffe875;
-  --gold-deep: #b89200;
+  --gold-deep: #c39c12;   /* dim gold — brightened for label legibility */
   --red: #e50914;         /* danger / hover accent */
   --red-bright: #ff1f2e;
   --red-deep: #5a0a12;
   --teal: #1a4550;
-  --cyan: #00ffe0;        /* terminal accent */
-  --bone: #f5efd8;        /* text */
-  --bone-dim: #8c8775;    /* secondary text */
+  --cyan: #33ffe6;        /* terminal accent (slightly lifted for contrast) */
+  --bone: #f6f1de;        /* text */
+  --bone-dim: #b3ad98;    /* secondary text — raised contrast for readability */
 
   --line: rgba(255, 212, 0, .18);       /* gold hairlines */
   --line-soft: rgba(255, 212, 0, .09);
 
   --font-display: 'Forum', Georgia, serif;
   --font-body: 'Inter', 'Segoe UI', sans-serif;
-  --font-mono: 'VT323', Consolas, monospace;
+  --font-mono: 'Cascadia Mono', 'Consolas', 'SFMono-Regular', ui-monospace, 'Segoe UI Mono', monospace;
   --font-serif: 'Cormorant Garamond', Georgia, serif;
 }
 
@@ -39,9 +38,11 @@ body {
   font-family: var(--font-body);
   background: var(--void);
   color: var(--bone);
-  font-size: 14.5px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.65;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* atmosphere: faint gold/red glows + CRT scanlines */
@@ -559,6 +560,18 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 /* the skill name opens the detail view; make it read as clickable */
 .toggle-list .tl-name { cursor: pointer; }
 .toggle-list .tl-name:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+/* ---- context-overflow dialog ---- */
+#overflow-backdrop { z-index: 130; }
+#overflow-panel { width: min(460px, 92vw); }
+.of-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.of-body p { font-size: 13.5px; color: var(--bone-dim); line-height: 1.55; margin-bottom: 4px; }
+.of-body .btn { justify-content: center; }
+.of-body .btn em {
+  font-style: normal; display: block; font-size: 11px; margin-top: 2px;
+  color: var(--bone-dim); text-transform: none; letter-spacing: 0;
+}
+.of-body .btn-primary em { color: rgba(0, 0, 0, .6); }
 
 /* ---- model manager modal ---- */
 #model-manager-backdrop { z-index: 118; }
