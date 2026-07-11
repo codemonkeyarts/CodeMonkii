@@ -187,6 +187,7 @@ The guiding rule for everything below: **it stays local.** Nothing here should e
 - [x] **Model management in-app** — pull, delete, and see disk usage for Ollama models without dropping to a terminal
 - [x] **Token & context awareness** — a live estimate and a warning before a request overflows the chosen context length
 - [x] **Error logging** — failures written to a rotating log file (open it from the app menu)
+- [ ] **Self-contained Ollama** — run (and ideally ship) the Ollama runtime so Monkii works without a separate Ollama install. It already auto-starts `ollama serve` when Ollama is present; the gap is when it isn't. Investigation tradeoff: the `ollama` binary is only ~34 MB, but the GPU runtimes (CUDA/ROCm) are ~2.8 GB, so full bundling would balloon the installer. Likely path — ship the small binary + CPU backend and fetch the GPU runtime on first run (or offer a guided one-click Ollama install when it's missing), with models still stored separately as today
 - [ ] **Completion notifications** — a desktop notification (and optional sound) when a generation finishes while Monkii is in the background, so you can start a long response and step away
 - [ ] **Edit / regenerate / branch** messages, and copy a whole conversation as Markdown
 - [ ] **Export & import** a project (skills, knowledge refs, and settings) as a single portable file
