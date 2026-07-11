@@ -161,6 +161,7 @@ The guiding rule for everything below: **it stays local.** Nothing here should e
 - [ ] **Token & context awareness** — a live count and a warning before a request overflows the chosen context length
 - [ ] **Per-chat option overrides** on top of the project defaults
 - [ ] **Auto-update** for the desktop app (`electron-updater`)
+- [ ] **Codalanguez rebrand** — align the app's bundle id (`appId`) with the `codalanguez` handle on a version bump; the desktop app keeps upgrading in place until the switch, which is a one-time reinstall
 
 ### Appearance & theming
 
