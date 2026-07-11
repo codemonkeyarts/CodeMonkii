@@ -2,6 +2,32 @@
 
 A local, private LLM studio for [Ollama](https://ollama.com) — projects, Claude-style skills, and live file knowledge. Nothing ever leaves your machine.
 
+![Chat with a project, skill, and live token count](docs/screenshots/chat.png)
+
+<table>
+  <tr>
+    <td width="50%"><img alt="Projects page" src="docs/screenshots/projects.png"></td>
+    <td width="50%"><img alt="Model settings with size and usage recommendation" src="docs/screenshots/model-settings.png"></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Projects overview</em></td>
+    <td align="center"><em>Model settings — size, specs & usage recommendation</em></td>
+  </tr>
+  <tr>
+    <td width="50%"><img alt="Skills manager" src="docs/screenshots/skills.png"></td>
+    <td width="50%" valign="top">
+      <br>
+      <strong>What you're looking at</strong>
+      <ul>
+        <li>Claude-format <strong>skills</strong> as per-project toggles or <code>/</code> per message</li>
+        <li>A live <strong>token / context</strong> readout in the composer</li>
+        <li>Per-project <strong>model settings</strong> with a size &amp; use-case recommendation</li>
+        <li>The cyber-deco dark theme (see the roadmap for theming plans)</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
 ## Quick start
 
 ```powershell
@@ -154,11 +180,12 @@ The guiding rule for everything below: **it stays local.** Nothing here should e
 
 ### Next up
 
-- [ ] **Model management in-app** — pull, delete, and see disk usage for Ollama models without dropping to a terminal
+- [x] **Model management in-app** — pull, delete, and see disk usage for Ollama models without dropping to a terminal
+- [x] **Token & context awareness** — a live estimate and a warning before a request overflows the chosen context length
+- [x] **Error logging** — failures written to a rotating log file (open it from the app menu)
 - [ ] **Edit / regenerate / branch** messages, and copy a whole conversation as Markdown
 - [ ] **Export & import** a project (skills, knowledge refs, and settings) as a single portable file
 - [ ] **Search** across chats and projects
-- [ ] **Token & context awareness** — a live count and a warning before a request overflows the chosen context length
 - [ ] **Per-chat option overrides** on top of the project defaults
 - [ ] **Auto-update** for the desktop app (`electron-updater`)
 - [ ] **Codalanguez rebrand** — align the app's bundle id (`appId`) with the `codalanguez` handle on a version bump; the desktop app keeps upgrading in place until the switch, which is a one-time reinstall
@@ -199,6 +226,10 @@ lib/
   attachments.js        reading knowledge from disk under byte budgets
   prompt.js             system prompt assembly
   ollama.js             Ollama HTTP client + release update check
+  stream.js             NDJSON tee helper (chat + pull share it)
+  tokens.js             rough token estimate
+  options.js            Ollama generation-option sanitizer
+  log.js                error logging to a rotating file
 routes/
   projects.js           projects / chats / attachments CRUD
   skills.js             skill listing endpoints
@@ -223,6 +254,9 @@ public/
     projects.js         projects page, lifecycle + inspector
     attachments.js      knowledge panel + file browser
     chat.js             messages, streaming, stop
+    context-meter.js    live token/context estimate in the composer
+    model-manager.js    pull / delete / disk usage for Ollama models
+    model-info.js       selected-model size, specs + usage recommendation
     prefs.js            preferences panel (storage folders; desktop app only)
 skills/                 your skills (3 samples included)
 data/projects/          project + chat storage (JSON, gitignored)

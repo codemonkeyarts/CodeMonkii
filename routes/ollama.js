@@ -9,10 +9,13 @@
  * if the user hit Stop mid-generation.
  */
 const express = require('express');
-const { OLLAMA, HISTORY_LIMIT } = require('../lib/config');
+const { OLLAMA, HISTORY_LIMIT, DEFAULT_CONTEXT } = require('../lib/config');
 const { loadProject, saveProject } = require('../lib/store');
 const { sanitizeOptions } = require('../lib/options');
 const { buildSystem } = require('../lib/prompt');
+const { estimateTokens } = require('../lib/tokens');
+const { logError } = require('../lib/log');
+const { pipeNdjson } = require('../lib/stream');
 const ollama = require('../lib/ollama');
 
 const router = express.Router();
@@ -33,7 +36,67 @@ router.get('/models', async (req, res) => {
   }
 });
 
+/* Rich metadata for one model (for the model info box). */
+router.get('/models/info', async (req, res) => {
+  const name = typeof req.query.name === 'string' ? req.query.name.trim() : '';
+  if (!name) return res.status(400).json({ error: 'model name required' });
+  try { res.json(await ollama.showModel(name)); }
+  catch { res.status(502).json({ error: 'cannot reach Ollama or model not found' }); }
+});
+
+/* Stream a model pull's progress (NDJSON) straight through to the browser. */
+router.post('/models/pull', async (req, res) => {
+  const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+  if (!name) return res.status(400).json({ error: 'model name required' });
+
+  const ac = new AbortController();
+  res.on('close', () => { if (!res.writableEnded) ac.abort(); });
+
+  let up;
+  try { up = await ollama.pullModel(name, ac.signal); }
+  catch (e) { logError(`model pull "${name}"`, e); return res.status(502).json({ error: `Cannot reach Ollama at ${OLLAMA}` }); }
+  if (!up.ok) {
+    const t = await up.text().catch(() => '');
+    logError(`model pull "${name}"`, t || `status ${up.status}`);
+    return res.status(up.status).json({ error: t || `pull failed (${up.status})` });
+  }
+
+  res.setHeader('Content-Type', 'application/x-ndjson');
+  res.setHeader('Cache-Control', 'no-cache');
+  // Ollama reports pull failures as an {error} event inside a 200 stream — log
+  // it while still forwarding everything to the client.
+  try {
+    await pipeNdjson(up, res, (o) => { if (o.error) logError(`model pull "${name}"`, o.error); });
+  } catch (e) { if (!ac.signal.aborted) logError(`model pull stream "${name}"`, e); }
+  res.end();
+});
+
+/* Delete a model. Name comes as a query param since it can contain "/" and ":". */
+router.delete('/models', async (req, res) => {
+  const name = typeof req.query.name === 'string' ? req.query.name.trim() : '';
+  if (!name) return res.status(400).json({ error: 'model name required' });
+  try { await ollama.deleteModel(name); res.json({ ok: true }); }
+  catch (e) { logError(`model delete "${name}"`, e); res.status(400).json({ error: String(e.message || e) }); }
+});
+
 router.get('/update-check', async (req, res) => res.json(await ollama.checkOllamaUpdate()));
+
+/* Estimated token cost of the fixed part of a request (system prompt +
+ * history), plus the context limit, so the composer can warn before overflow.
+ * Cheap heuristic — see lib/tokens. */
+router.post('/context', (req, res) => {
+  const { projectId, chatId, skillIds = [] } = req.body;
+  try {
+    const project = loadProject(projectId);
+    const chat = project.chats.find(c => c.id === chatId);
+    if (!chat) throw new Error('chat not found');
+    const system = buildSystem(project, skillIds);
+    const history = chat.messages.slice(-HISTORY_LIMIT).map(m => m.content).join('\n');
+    const baseTokens = estimateTokens(system) + estimateTokens(history);
+    const limit = sanitizeOptions(project.options || {}).num_ctx || DEFAULT_CONTEXT;
+    res.json({ baseTokens, limit });
+  } catch (e) { res.status(404).json({ error: String(e.message || e) }); }
+});
 
 router.post('/chat', async (req, res) => {
   const { projectId, chatId, message, model, skillIds = [], options = {} } = req.body;
@@ -72,13 +135,15 @@ router.post('/chat', async (req, res) => {
   let upstream;
   try {
     upstream = await ollama.streamChat({ model, messages, options: clean, keepAlive, signal: ac.signal });
-  } catch {
+  } catch (e) {
+    logError(`chat "${model}" — Ollama unreachable`, e);
     return res.status(502).json({ error: `Cannot reach Ollama at ${OLLAMA}. Is it running?` });
   }
   if (!upstream.ok) {
     const errText = await upstream.text().catch(() => '');
     let detail = errText;
     try { detail = JSON.parse(errText).error || errText; } catch { /* raw */ }
+    logError(`chat "${model}" — Ollama ${upstream.status}`, detail);
     return res.status(upstream.status).json({ error: detail || `Ollama error ${upstream.status}` });
   }
 
@@ -86,28 +151,14 @@ router.post('/chat', async (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
 
   let acc = '';
-  let buffered = '';
-  const reader = upstream.body.getReader();
-  const decoder = new TextDecoder();
   try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunkText = decoder.decode(value, { stream: true });
-      buffered += chunkText;
-      let nl;
-      while ((nl = buffered.indexOf('\n')) >= 0) {
-        const line = buffered.slice(0, nl).trim();
-        buffered = buffered.slice(nl + 1);
-        if (!line) continue;
-        try {
-          const obj = JSON.parse(line);
-          if (obj.message && obj.message.content) acc += obj.message.content;
-        } catch { /* partial line */ }
-      }
-      res.write(value);
-    }
-  } catch { /* client aborted or upstream died — save what we have */ }
+    await pipeNdjson(upstream, res, (obj) => {
+      if (obj.message && obj.message.content) acc += obj.message.content;
+    });
+  } catch (e) {
+    // client aborting is normal (Stop button); anything else is worth logging
+    if (!ac.signal.aborted) logError(`chat "${model}" — stream error`, e);
+  }
 
   if (acc) {
     // reload in case another request touched the project while streaming

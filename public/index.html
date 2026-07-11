@@ -84,7 +84,10 @@
           <button id="btn-send" class="btn btn-primary" title="Send">Send</button>
           <button id="btn-stop" class="btn btn-stop" title="Stop" hidden>Stop</button>
         </div>
-        <div class="composer-hint">Enter to send · Shift+Enter for newline · <b>/</b> invokes a skill for this message</div>
+        <div class="composer-hint">
+          <span>Enter to send · Shift+Enter for newline · <b>/</b> invokes a skill for this message</span>
+          <span id="context-meter" title="Estimated tokens for this request vs the context length set in Model settings"></span>
+        </div>
       </div>
     </div>
   </main>
@@ -166,6 +169,28 @@
     </div>
   </div>
 
+  <!-- ===== model manager modal ===== -->
+  <div id="model-manager-backdrop" class="modal-backdrop" hidden>
+    <div id="model-manager-panel" class="modal-panel">
+      <header>
+        <h3>Manage models</h3>
+        <button id="btn-close-model-manager" class="icon-btn" title="Close">×</button>
+      </header>
+      <div class="mm-scroll">
+        <div class="mm-pull">
+          <input id="mm-pull-name" type="text" placeholder="Pull a model, e.g. llama3.2 or qwen2.5:7b">
+          <button id="btn-mm-pull" class="btn btn-primary">Pull</button>
+        </div>
+        <div id="mm-progress" hidden>
+          <div class="mm-bar"><i id="mm-bar-fill"></i></div>
+          <div id="mm-progress-text" class="mm-hint"></div>
+        </div>
+        <div class="mm-total"><span id="mm-total"></span></div>
+        <ul id="mm-list"></ul>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== model settings modal ===== -->
   <div id="model-settings-backdrop" class="modal-backdrop" hidden>
     <div id="model-settings-panel" class="modal-panel">
@@ -177,6 +202,13 @@
         <label class="ms-field">
           <span>Model <em>which model answers in this project</em></span>
           <select id="ms-model"></select>
+          <div id="model-info" hidden>
+            <div id="mi-name"></div>
+            <div id="mi-specs"></div>
+            <div id="mi-uses"></div>
+            <div id="mi-rec"></div>
+          </div>
+          <button id="btn-open-model-manager" class="btn btn-ghost">Manage models…</button>
         </label>
 
         <label class="ms-field">

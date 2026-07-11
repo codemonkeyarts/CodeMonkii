@@ -50,6 +50,12 @@ function effectiveStorage() {
   };
 }
 
+/** Logs live beside the per-user data when installed, repo-local in dev. */
+function logDir() {
+  const base = app.isPackaged ? app.getPath('userData') : runtime.APP_ROOT;
+  return process.env.CODEMONKII_LOG_DIR || path.join(base, 'logs');
+}
+
 /** Env block handed to the forked server. Seeds the bundled sample skills
  *  into a fresh skills folder when packaged (never overwriting files). */
 function storageEnv() {
@@ -61,7 +67,11 @@ function storageEnv() {
       });
     } catch { try { fs.mkdirSync(skillsDir, { recursive: true }); } catch {} }
   }
-  return { CODEMONKII_DATA_DIR: dataDir, CODEMONKII_SKILLS_DIR: skillsDir };
+  return {
+    CODEMONKII_DATA_DIR: dataDir,
+    CODEMONKII_SKILLS_DIR: skillsDir,
+    CODEMONKII_LOG_DIR: logDir(),
+  };
 }
 
-module.exports = { loadSettings, saveSettings, defaultStorage, effectiveStorage, storageEnv };
+module.exports = { loadSettings, saveSettings, defaultStorage, effectiveStorage, storageEnv, logDir };

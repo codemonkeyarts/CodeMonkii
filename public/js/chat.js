@@ -8,12 +8,13 @@
  * 80ms, keeps the view pinned to the bottom unless the user scrolled up,
  * and supports mid-generation Stop.
  */
-import { $, esc, toast } from './util.js';
+import { $, esc, toast, readNdjson } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
 import { md } from './markdown.js';
 import { skillNames, renderSkillChips } from './skills.js';
 import { showView } from './views.js';
+import { refreshContext, willOverflow } from './context-meter.js';
 
 const THINKING_DOTS = '<span class="thinking-dots"><i></i><i></i><i></i></span>';
 
@@ -103,6 +104,7 @@ export function openChat(cid) {
   renderChatList();
   renderMessages();
   $('#input').focus();
+  refreshContext();
 }
 
 export function renderMessages() {
@@ -123,6 +125,9 @@ export async function send() {
   if (!text || !state.project || !state.chatId) return;
   const model = $('#model-select').value;
   if (!model) { toast('No model available — is Ollama running with a pulled model?', true); return; }
+  if (willOverflow()) {
+    toast('This request likely exceeds the context length — the model may drop earlier messages or respond slowly. Raise it in Model settings if needed.', true);
+  }
 
   const skillIds = [...state.invokedSkills];
   state.invokedSkills = [];
@@ -159,25 +164,10 @@ export async function send() {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || `HTTP ${res.status}`);
     }
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffered = '';
     let lastRender = 0;
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffered += decoder.decode(value, { stream: true });
-      let nl;
-      while ((nl = buffered.indexOf('\n')) >= 0) {
-        const line = buffered.slice(0, nl).trim();
-        buffered = buffered.slice(nl + 1);
-        if (!line) continue;
-        try {
-          const obj = JSON.parse(line);
-          if (obj.error) throw new Error(obj.error);
-          if (obj.message && obj.message.content) acc += obj.message.content;
-        } catch (e) { if (e.message && !e.message.includes('JSON')) throw e; }
-      }
+    for await (const obj of readNdjson(res)) {
+      if (obj.error) throw new Error(obj.error);
+      if (obj.message && obj.message.content) acc += obj.message.content;
       const now = performance.now();
       if (now - lastRender > 80) {  // throttle markdown re-render
         body.innerHTML = md(acc) || THINKING_DOTS;
@@ -198,4 +188,5 @@ export async function send() {
   setStreaming(false);
   chat.messages.push({ role: 'assistant', content: acc, model });
   chat.model = model;
+  refreshContext(); // history grew — re-estimate the base
 }

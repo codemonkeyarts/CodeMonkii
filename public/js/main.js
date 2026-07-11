@@ -18,6 +18,8 @@ import { initModal } from './modal.js';
 import { initPrefs } from './prefs.js';
 import { initContextMenus } from './ctxmenu.js';
 import { initModelSettings } from './model-settings.js';
+import { initModelManager, openModelManager } from './model-manager.js';
+import { updateMeter } from './context-meter.js';
 
 function wireNavigation() {
   $('#btn-new-project').addEventListener('click', createProject);
@@ -41,7 +43,7 @@ function wireSkillsModal() {
 }
 
 /** Actions arriving from the desktop shell's menu bar (preload bridge). */
-function wireDesktopMenu(openSkillsModal) {
+function wireDesktopMenu(openSkillsModal, openModelManager) {
   if (!window.codemonkii?.onMenuAction) return;
   window.codemonkii.onMenuAction(({ type, id }) => {
     if (type === 'new-project') createProject();
@@ -49,12 +51,17 @@ function wireDesktopMenu(openSkillsModal) {
     else if (type === 'pick-skill') pickSkill(id);
     else if (type === 'new-skill') { openSkillsModal(); showSkillCreateForm(); }
     else if (type === 'import-skill') { openSkillsModal(); importSkillFlow(); }
+    else if (type === 'manage-models') openModelManager();
   });
 }
 
 function wireModelSettings() {
-  const modal = initModal('#model-settings-backdrop', '#btn-close-model-settings');
-  initModelSettings(modal.open);
+  const settings = initModal('#model-settings-backdrop', '#btn-close-model-settings');
+  initModelSettings(settings.open);
+  initModal('#model-manager-backdrop', '#btn-close-model-manager');
+  initModelManager();
+  $('#btn-open-model-manager').addEventListener('click', openModelManager);
+  return openModelManager;
 }
 
 function wireInspector() {
@@ -80,7 +87,7 @@ function wireComposer() {
   $('#btn-stop').addEventListener('click', () => state.abort && state.abort.abort());
 
   const input = $('#input');
-  input.addEventListener('input', () => { autoGrow(input); updateSkillPopup(); });
+  input.addEventListener('input', () => { autoGrow(input); updateSkillPopup(); updateMeter(); });
   input.addEventListener('keydown', (e) => {
     if (handleSkillPopupKey(e)) return; // "/" popup owns Tab/Enter/arrows/Esc while open
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
@@ -91,8 +98,7 @@ async function init() {
   initPrefs();
   initContextMenus();
   wireNavigation();
-  wireDesktopMenu(wireSkillsModal());
-  wireModelSettings();
+  wireDesktopMenu(wireSkillsModal(), wireModelSettings());
   wireInspector();
   wireFileBrowser();
   wireComposer();

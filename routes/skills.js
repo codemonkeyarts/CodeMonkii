@@ -47,7 +47,10 @@ router.post('/skills/generate', async (req, res) => {
 
   try {
     res.json(await generateSkill(name, description, model));
-  } catch (e) { res.status(502).json({ error: String(e.message || e) }); }
+  } catch (e) {
+    require('../lib/log').logError(`skill generate "${name}" with "${model}"`, e);
+    res.status(502).json({ error: String(e.message || e) });
+  }
 });
 
 /* Full skill info for the detail view: frontmatter, body, reference files. */

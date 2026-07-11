@@ -9,7 +9,7 @@
  */
 const { Menu, shell } = require('electron');
 const runtime = require('./runtime');
-const { effectiveStorage } = require('./settings');
+const { effectiveStorage, logDir } = require('./settings');
 const { askModelsDir } = require('./ollama');
 
 const MENU_LIST_LIMIT = 25; // native menus get unwieldy past this
@@ -79,6 +79,10 @@ async function buildMenu() {
         },
         { type: 'separator' },
         {
+          label: 'Manage Models…',
+          click: () => sendToUI('manage-models'),
+        },
+        {
           label: 'Ollama Models Folder…',
           click: () => askModelsDir({
             allowCancel: true,
@@ -88,6 +92,8 @@ async function buildMenu() {
         { type: 'separator' },
         { label: 'Projects', submenu: projectsSubmenu(projects) },
         { label: 'Skills', submenu: skillsSubmenu(skills) },
+        { type: 'separator' },
+        { label: 'Open Logs Folder', click: () => shell.openPath(logDir()) },
         { type: 'separator' },
         { role: 'quit' },
       ],

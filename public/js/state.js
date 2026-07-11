@@ -17,4 +17,6 @@ export const state = {
   streaming: false,      // a reply is currently streaming
   abort: null,           // AbortController for the in-flight stream
   fbDir: null,           // file browser's current directory
+  baseTokens: null,      // est. tokens of the fixed request part (system + history)
+  contextLimit: 4096,    // num_ctx the meter compares against
 };

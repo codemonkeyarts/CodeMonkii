@@ -11,6 +11,7 @@
 import { $, esc, toast } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
+import { updateModelInfo } from './model-info.js';
 
 /* Advanced params: [key, label, description, placeholder]. Order matches the
  * Ollama docs the screenshots came from. num_ctx/temperature live in the
@@ -54,6 +55,7 @@ function fillModels() {
 /** Load the current project's saved options into the controls. */
 function load() {
   fillModels();
+  updateModelInfo($('#ms-model').value);
   const o = state.project?.options || {};
 
   const pow = o.num_ctx ? Math.round(Math.log2(o.num_ctx)) : 12;
@@ -102,6 +104,7 @@ export function initModelSettings(openModal) {
   $('#ms-model').addEventListener('change', () => {
     $('#model-select').value = $('#ms-model').value;
     $('#model-select').dispatchEvent(new Event('change'));
+    updateModelInfo($('#ms-model').value);
   });
 
   $('#ms-num_ctx').addEventListener('input', () => {

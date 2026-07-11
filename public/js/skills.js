@@ -12,6 +12,7 @@ import { $, esc, toast } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
 import { md } from './markdown.js';
+import { refreshContext } from './context-meter.js';
 
 export async function loadSkills() {
   try {
@@ -153,6 +154,7 @@ export function pickSkill(sid) {
   renderSkillChips();
   $('#skill-popup').hidden = true;
   input.focus();
+  refreshContext();
 }
 
 /**
@@ -189,5 +191,6 @@ export function renderSkillChips() {
     b.addEventListener('click', () => {
       state.invokedSkills = state.invokedSkills.filter(s => s !== b.dataset.remove);
       renderSkillChips();
+      refreshContext();
     }));
 }

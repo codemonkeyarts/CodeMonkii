@@ -26,6 +26,35 @@ export function autoGrow(el) {
   el.style.height = Math.min(el.scrollHeight, 200) + 'px';
 }
 
+/** Bytes → "4.7 GB" / "820 MB"; `empty` is returned for 0/undefined. */
+export function fmtBytes(n, empty = '') {
+  if (!n) return empty;
+  if (n >= 1e9) return `${(n / 1e9).toFixed(1)} GB`;
+  return `${(n / 1e6).toFixed(0)} MB`;
+}
+
+/** Async-iterate an NDJSON fetch Response, yielding each parsed object.
+ *  Partial/invalid lines are skipped; the caller handles any {error} events. */
+export async function* readNdjson(res) {
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffered = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffered += decoder.decode(value, { stream: true });
+    let nl;
+    while ((nl = buffered.indexOf('\n')) >= 0) {
+      const line = buffered.slice(0, nl).trim();
+      buffered = buffered.slice(nl + 1);
+      if (!line) continue;
+      let obj;
+      try { obj = JSON.parse(line); } catch { continue; }
+      yield obj;
+    }
+  }
+}
+
 /* Clipboard write via a transient textarea — works on plain-http localhost
  * and inside the sandboxed desktop renderer, where navigator.clipboard can
  * be unavailable or permission-gated. */
