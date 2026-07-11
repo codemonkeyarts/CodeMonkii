@@ -44,8 +44,8 @@ function wireSkillsModal() {
 
 /** Actions arriving from the desktop shell's menu bar (preload bridge). */
 function wireDesktopMenu(openSkillsModal, openModelManager) {
-  if (!window.codemonkii?.onMenuAction) return;
-  window.codemonkii.onMenuAction(({ type, id }) => {
+  if (!window.monkii?.onMenuAction) return;
+  window.monkii.onMenuAction(({ type, id }) => {
     if (type === 'new-project') createProject();
     else if (type === 'open-project') openProject(id);
     else if (type === 'pick-skill') pickSkill(id);

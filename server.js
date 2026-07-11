@@ -48,7 +48,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, '127.0.0.1', () => {
-  console.log(`CodeMonkii running at http://localhost:${PORT}`);
+  console.log(`Monkii running at http://localhost:${PORT}`);
   console.log(`Ollama host: ${OLLAMA}`);
   console.log(`Skills dir:  ${SKILLS_DIR}`);
   console.log(`Logs dir:    ${LOG_DIR}`);

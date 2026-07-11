@@ -1,7 +1,7 @@
 {
-  "name": "codemonkii",
-  "version": "1.0.0",
-  "description": "CodeMonkii — local LLM studio for Ollama: projects, Claude-style skills, and live file knowledge",
+  "name": "monkii",
+  "version": "1.1.0",
+  "description": "Monkii — local LLM studio for Ollama: projects, Claude-style skills, and live file knowledge",
   "main": "electron/main.js",
   "scripts": {
     "start": "node server.js",
@@ -18,8 +18,8 @@
     "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "com.codalanguez.codemonkii",
-    "productName": "CodeMonkii",
+    "appId": "com.codalanguez.monkii",
+    "productName": "Monkii",
     "asar": false,
     "directories": {
       "output": "dist",
@@ -50,7 +50,7 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "CodeMonkii"
+      "shortcutName": "Monkii"
     }
   }
 }

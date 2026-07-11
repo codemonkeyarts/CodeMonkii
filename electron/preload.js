@@ -2,13 +2,13 @@
  * electron/preload.js — secure bridge between the web UI and the desktop shell.
  *
  * Runs with contextIsolation on; the page gets exactly one global,
- * `window.codemonkii`, carrying the handful of desktop-only capabilities the
+ * `window.monkii`, carrying the handful of desktop-only capabilities the
  * UI needs (preferences, native folder picker). In plain browser mode this
  * global simply doesn't exist and the UI hides its desktop-only controls.
  */
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('codemonkii', {
+contextBridge.exposeInMainWorld('monkii', {
   desktop: true,
 
   /** Current preferences summary: { modelsDir, envOverride }. */

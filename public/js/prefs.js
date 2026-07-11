@@ -1,7 +1,7 @@
 /**
  * prefs.js — in-app Preferences panel (desktop shell only).
  *
- * The Electron preload exposes `window.codemonkii`; when present, the gear in
+ * The Electron preload exposes `window.monkii`; when present, the gear in
  * the rail footer opens a modal with three storage locations:
  *   - Ollama models folder (applies next time the shell starts Ollama)
  *   - projects & chats folder (server restarts + UI reloads on change)
@@ -12,7 +12,7 @@
 import { $, toast } from './util.js';
 import { initModal } from './modal.js';
 
-const bridge = window.codemonkii;
+const bridge = window.monkii;
 
 function renderLocation(pathElId, noteElId, buttonIds, value, envValue) {
   $(pathElId).textContent = envValue || value;
@@ -59,9 +59,9 @@ export function initPrefs() {
   });
 
   wireAction('#btn-prefs-choose-dir', () => bridge.chooseModelsDir(),
-    'Models folder saved — applies next time CodeMonkii starts Ollama');
+    'Models folder saved — applies next time Monkii starts Ollama');
   wireAction('#btn-prefs-default-dir', () => bridge.setModelsDefault(),
-    'Using Ollama default — applies next time CodeMonkii starts Ollama');
+    'Using Ollama default — applies next time Monkii starts Ollama');
 
   wireAction('#btn-prefs-choose-data', () => bridge.chooseDataDir());
   wireAction('#btn-prefs-default-data', () => bridge.resetDataDir());

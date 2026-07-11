@@ -36,7 +36,7 @@ async function askModelsDir({ allowCancel = false, detail } = {}) {
   if (allowCancel) buttons.push('Cancel');
   const { response } = await dialog.showMessageBox(runtime.win, {
     type: 'question',
-    title: 'CodeMonkii — Ollama models',
+    title: 'Monkii — Ollama models',
     message: 'Where should Ollama store its models?',
     detail,
     buttons,

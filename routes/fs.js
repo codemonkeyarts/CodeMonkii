@@ -3,7 +3,7 @@
  *
  * Powers the in-app file browser: lists a directory's entries (directories
  * first), exposes a "__drives__" pseudo-directory that enumerates drive
- * letters — or, when CODEMONKII_FS_ROOTS is set, the allowed roots instead —
+ * letters — or, when MONKII_FS_ROOTS is set, the allowed roots instead —
  * and refuses to look outside the allowlist.
  */
 const fs = require('fs');
@@ -32,7 +32,7 @@ router.get('/fs', (req, res) => {
     const tops = FS_ROOTS.length ? FS_ROOTS : listDrives();
     return res.json({ dir: '__drives__', entries: tops.map(d => ({ name: d, path: d, isDir: true })) });
   }
-  if (!pathAllowed(dir)) return res.status(403).json({ error: 'path outside CODEMONKII_FS_ROOTS' });
+  if (!pathAllowed(dir)) return res.status(403).json({ error: 'path outside MONKII_FS_ROOTS' });
   try {
     const entries = fs.readdirSync(dir, { withFileTypes: true })
       .filter(e => !e.name.startsWith('$') && e.name !== 'System Volume Information')

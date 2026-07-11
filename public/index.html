@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CodeMonkii</title>
+<title>Monkii</title>
 <link rel="icon" type="image/png" href="icon.png">
 <link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="style.css">
@@ -14,9 +14,9 @@
   <!-- ===== left rail: projects & chats ===== -->
   <aside id="rail">
     <header id="brand">
-      <img class="brand-mark" src="icon.png" alt="CodeMonkii">
+      <img class="brand-mark" src="icon.png" alt="Monkii">
       <div>
-        <h1>Code<span>Monkii</span></h1>
+        <h1>Mon<span>kii</span></h1>
         <div id="ollama-status" class="status status-unknown"><i></i><span>checking Ollama…</span></div>
         <a id="ollama-update" class="update-pill" href="https://ollama.com/download" target="_blank" rel="noopener" hidden></a>
       </div>
@@ -268,7 +268,7 @@
           <div id="prefs-env-note" class="prefs-note" hidden>
             Set by the <b>OLLAMA_MODELS</b> environment variable — it overrides this preference. Unset it to manage the folder here.
           </div>
-          <div class="prefs-note">Takes effect the next time CodeMonkii starts Ollama (quit Ollama, then relaunch the app).</div>
+          <div class="prefs-note">Takes effect the next time Monkii starts Ollama (quit Ollama, then relaunch the app).</div>
         </div>
 
         <div class="field">
@@ -279,7 +279,7 @@
             <button id="btn-prefs-default-data" class="btn btn-ghost">Use default</button>
           </div>
           <div id="prefs-data-env-note" class="prefs-note" hidden>
-            Set by the <b>CODEMONKII_DATA_DIR</b> environment variable — it overrides this preference.
+            Set by the <b>MONKII_DATA_DIR</b> environment variable — it overrides this preference.
           </div>
           <div class="prefs-note">Changing this restarts the app view. Existing chats stay in the old folder — move the JSON files over if you want them in the new one.</div>
         </div>
@@ -292,7 +292,7 @@
             <button id="btn-prefs-default-skills" class="btn btn-ghost">Use default</button>
           </div>
           <div id="prefs-skills-env-note" class="prefs-note" hidden>
-            Set by the <b>CODEMONKII_SKILLS_DIR</b> environment variable — it overrides this preference.
+            Set by the <b>MONKII_SKILLS_DIR</b> environment variable — it overrides this preference.
           </div>
           <div class="prefs-note">Point this at an existing library (e.g. <b>~\.claude\skills</b>) to use your Claude Code skills as-is.</div>
         </div>

@@ -1,5 +1,5 @@
 @echo off
-title CodeMonkii Desktop
+title Monkii Desktop
 cd /d "%~dp0"
 
 rem Ollama models location: uses your OLLAMA_MODELS env var if set, otherwise

@@ -63,7 +63,7 @@ function startServer(port) {
   proc.on('exit', (code) => {
     if (runtime.serverProc === proc) runtime.serverProc = null;
     if (code && !app.isQuitting && !proc.expectedExit) {
-      dialog.showErrorBox('CodeMonkii', `The server process exited unexpectedly (code ${code}).`);
+      dialog.showErrorBox('Monkii', `The server process exited unexpectedly (code ${code}).`);
       app.quit();
     }
   });

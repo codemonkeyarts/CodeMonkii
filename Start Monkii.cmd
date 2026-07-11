@@ -1,5 +1,5 @@
 @echo off
-title CodeMonkii
+title Monkii
 cd /d "%~dp0"
 
 rem Ollama models location: set the OLLAMA_MODELS env var (system-wide or
@@ -14,6 +14,6 @@ if errorlevel 1 (
     timeout /t 3 /nobreak >nul
 )
 
-echo Starting CodeMonkii at http://localhost:8113 ...
+echo Starting Monkii at http://localhost:8113 ...
 start "" http://localhost:8113
 node server.js

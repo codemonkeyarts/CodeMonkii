@@ -1,4 +1,4 @@
-# 🐒 CodeMonkii
+# 🐒 Monkii
 
 A local, private LLM studio for [Ollama](https://ollama.com) — projects, Claude-style skills, and live file knowledge. Nothing ever leaves your machine.
 
@@ -31,54 +31,54 @@ A local, private LLM studio for [Ollama](https://ollama.com) — projects, Claud
 ## Quick start
 
 ```powershell
-git clone https://github.com/codalanguez/CodeMonkii.git
-cd CodeMonkii
+git clone https://github.com/codalanguez/Monkii.git
+cd Monkii
 npm install        # first time only
 npm start          # then open http://localhost:8113
 ```
 
-On Windows you can also just double-click **`Start CodeMonkii.cmd`** — it starts Ollama if needed and opens the app.
+On Windows you can also just double-click **`Start Monkii.cmd`** — it starts Ollama if needed and opens the app.
 
 Requires **Node.js 18+** and **Ollama** running locally (`ollama serve`, or the Ollama app) with at least one model pulled, e.g. `ollama pull llama3.2`.
 
 ## Desktop app
 
-CodeMonkii can also run as a native desktop application (like the ComfyUI desktop app) instead of in a browser tab. An [Electron](https://www.electronjs.org) shell starts Ollama, boots the server on a free port, and shows the UI in its own window with a splash screen.
+Monkii can also run as a native desktop application (like the ComfyUI desktop app) instead of in a browser tab. An [Electron](https://www.electronjs.org) shell starts Ollama, boots the server on a free port, and shows the UI in its own window with a splash screen.
 
 ```powershell
 npm install        # first time only — pulls in Electron
 npm run desktop    # launches the desktop app
 ```
 
-Or double-click **`Start CodeMonkii Desktop.cmd`** (installs dependencies on first run).
+Or double-click **`Start Monkii Desktop.cmd`** (installs dependencies on first run).
 
 **Preferences** — the ⚙ gear in the sidebar footer opens a panel with three storage locations, each user-changeable via a native folder picker (or resettable to its default):
 
-- **Ollama models folder** — where pulled models live. If the app has to start Ollama itself, it asks once on first launch (Ollama default `~/.ollama/models`, or pick a folder). Applies the next time CodeMonkii starts Ollama; also reachable via the **CodeMonkii → Ollama Models Folder…** menu. If Ollama is already running, it uses whatever Ollama is configured with.
+- **Ollama models folder** — where pulled models live. If the app has to start Ollama itself, it asks once on first launch (Ollama default `~/.ollama/models`, or pick a folder). Applies the next time Monkii starts Ollama; also reachable via the **Monkii → Ollama Models Folder…** menu. If Ollama is already running, it uses whatever Ollama is configured with.
 - **Projects & chats folder** — where conversations and project settings are saved. Changing it restarts the server and reloads the UI; existing chats stay in the old folder (move the JSON files manually if you want them along).
 - **Skills folder** — where `SKILL.md` folders are scanned from. Point it at `~\.claude\skills` to use your Claude Code skills as-is.
 
-Each location's env var (`OLLAMA_MODELS`, `CODEMONKII_DATA_DIR`, `CODEMONKII_SKILLS_DIR`) always wins over the saved preference and shows as read-only in the panel.
+Each location's env var (`OLLAMA_MODELS`, `MONKII_DATA_DIR`, `MONKII_SKILLS_DIR`) always wins over the saved preference and shows as read-only in the panel.
 
 ### Build a standalone installer
 
 To produce a Windows installer (`.exe`) you can hand to another machine — no Node required on the target:
 
 ```powershell
-npm run dist       # outputs CodeMonkii Setup <version>.exe under dist/
+npm run dist       # outputs Monkii Setup <version>.exe under dist/
 ```
 
 The installer is a standard NSIS setup: install-location picker, Start-menu entry, desktop shortcut, uninstaller. It installs per-user (no admin needed). The target machine only needs [Ollama](https://ollama.com/download).
 
-When running as an installed app, project data and skills live in `%APPDATA%\CodeMonkii` (`data\projects` and `skills`), so updates and uninstalls never touch your chats; the bundled sample skills are copied there on first run. A repo checkout (`npm start` / `npm run desktop`) keeps everything repo-local as before. `CODEMONKII_DATA_DIR` / `CODEMONKII_SKILLS_DIR` env vars override either way.
+When running as an installed app, project data and skills live in `%APPDATA%\Monkii` (`data\projects` and `skills`), so updates and uninstalls never touch your chats; the bundled sample skills are copied there on first run. A repo checkout (`npm start` / `npm run desktop`) keeps everything repo-local as before. `MONKII_DATA_DIR` / `MONKII_SKILLS_DIR` env vars override either way.
 
 The build config lives in `package.json` under `"build"`; icon assets are in `electron/build/`. The desktop shell lives entirely in `electron/` and reuses the server unchanged — `npm start` still runs it headless in a browser.
 
 **Code signing** — point electron-builder at a PFX and it signs the app, uninstaller, and installer (SHA-256 + RFC-3161 timestamp):
 
 ```powershell
-$env:CSC_LINK = "$HOME\.codemonkii-signing\codemonkii-codesign.pfx"
-$env:CSC_KEY_PASSWORD = Get-Content "$HOME\.codemonkii-signing\pfx-password.txt"
+$env:CSC_LINK = "$HOME\.monkii-signing\monkii-codesign.pfx"
+$env:CSC_KEY_PASSWORD = Get-Content "$HOME\.monkii-signing\pfx-password.txt"
 npm run dist
 ```
 
@@ -113,7 +113,7 @@ description: One line describing when to use this skill.
 Instructions the model follows when the skill is loaded…
 ```
 
-Or create one in-app: **✦ Skills → + New skill** scaffolds the folder and a starter `SKILL.md` from a built-in template (`lib/skill-template.md`) — then edit the file to write the instructions. Also available from the desktop menu (**CodeMonkii → Skills → New Skill…**).
+Or create one in-app: **✦ Skills → + New skill** scaffolds the folder and a starter `SKILL.md` from a built-in template (`lib/skill-template.md`) — then edit the file to write the instructions. Also available from the desktop menu (**Monkii → Skills → New Skill…**).
 
 Existing skills can be brought in with **⇪ Import skill…** — pick a skill folder, a `SKILL.md`, or a packaged **`.skill` file** (a zip of the skill folder; plain `.zip` works too) and it's copied/extracted into your skills directory with size and path-safety checks.
 
@@ -123,10 +123,10 @@ Two ways to use a skill:
 1. **Project toggle** — switch it on in the project panel; it loads into every message.
 2. **Slash invoke** — type `/` in the composer and pick a skill; it loads for that message only (and stays in the conversation history from then on).
 
-Existing Claude Code skills work as-is — point CodeMonkii at them:
+Existing Claude Code skills work as-is — point Monkii at them:
 
 ```powershell
-$env:CODEMONKII_SKILLS_DIR = "$HOME\.claude\skills"; npm start
+$env:MONKII_SKILLS_DIR = "$HOME\.claude\skills"; npm start
 ```
 
 ### File & directory knowledge
@@ -136,7 +136,7 @@ Attach any file or folder via the built-in browser. Contents are **re-read from 
 - Auto-detects Ollama at `http://localhost:11434` (override with `OLLAMA_HOST`; bind-style values like `0.0.0.0` are normalized automatically)
 - Model picker per chat, streaming responses, stop button
 - Health indicator in the sidebar
-- Update check on startup (cached daily): when a newer Ollama release exists, the server logs it and the sidebar shows a download pill — disable with `CODEMONKII_UPDATE_CHECK=off`
+- Update check on startup (cached daily): when a newer Ollama release exists, the server logs it and the sidebar shows a download pill — disable with `MONKII_UPDATE_CHECK=off`
 
 ## Configuration
 
@@ -144,22 +144,22 @@ Attach any file or folder via the built-in browser. Contents are **re-read from 
 |---|---|---|
 | `PORT` | `8113` | Web UI port |
 | `OLLAMA_HOST` | `http://localhost:11434` | Ollama server address |
-| `CODEMONKII_SKILLS_DIR` | `./skills` | Where to scan for skills |
-| `CODEMONKII_FS_ROOTS` | *(unset — whole disk)* | Semicolon-separated list of directories the file browser and attachments are restricted to, e.g. `C:\projects;D:\writing` |
-| `CODEMONKII_UPDATE_CHECK` | `on` | Set to `off` to disable the daily Ollama update check |
+| `MONKII_SKILLS_DIR` | `./skills` | Where to scan for skills |
+| `MONKII_FS_ROOTS` | *(unset — whole disk)* | Semicolon-separated list of directories the file browser and attachments are restricted to, e.g. `C:\projects;D:\writing` |
+| `MONKII_UPDATE_CHECK` | `on` | Set to `off` to disable the daily Ollama update check |
 
 ## Security
 
-CodeMonkii is a single-user local app, hardened accordingly:
+Monkii is a single-user local app, hardened accordingly:
 
 - **Loopback only** — the server binds `127.0.0.1`; it is never reachable from the network.
 - **DNS-rebinding protection** — requests with a `Host` header other than `localhost`/`127.0.0.1` are rejected, so a malicious website that points its own domain at your loopback address gets a 403.
 - **CSRF protection** — cross-origin requests (any `Origin` other than the app's own) are rejected.
 - **Content Security Policy** — scripts run from the app's own origin only; no eval, no inline scripts, no third-party script sources. Plus `nosniff`, `no-referrer`, and a locked-down `Permissions-Policy`.
-- **Filesystem scoping** — set `CODEMONKII_FS_ROOTS` to fence browsing *and* attachment reads into specific directories; the check runs both when attaching and again on every read.
+- **Filesystem scoping** — set `MONKII_FS_ROOTS` to fence browsing *and* attachment reads into specific directories; the check runs both when attaching and again on every read.
 - **Input validation** — project/skill ids are strictly validated (no path traversal), all model output is HTML-escaped before rendering, and errors return generic JSON with no stack traces.
 
-Your chats and project data stay on your disk. UI fonts are bundled locally (no Google Fonts requests), so the only outbound connections are to your local Ollama and one GitHub API call per day to check the latest Ollama release version (no data sent; `CODEMONKII_UPDATE_CHECK=off` disables it — then nothing leaves your machine at all).
+Your chats and project data stay on your disk. UI fonts are bundled locally (no Google Fonts requests), so the only outbound connections are to your local Ollama and one GitHub API call per day to check the latest Ollama release version (no data sent; `MONKII_UPDATE_CHECK=off` disables it — then nothing leaves your machine at all).
 
 The desktop shell adds its own hardening: sandboxed renderer with context isolation, a navigation guard (the window can only ever display the app — external links open in your real browser), all web permission requests (camera, mic, location…) denied, and preferences IPC that only accepts calls from the app's own pages.
 

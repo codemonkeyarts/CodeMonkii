@@ -2,15 +2,15 @@
  * settings.js — persisted preferences and storage-location resolution.
  *
  * Settings live in a small JSON file in Electron's per-user data dir
- * (e.g. %APPDATA%\CodeMonkii\settings.json). Keys:
+ * (e.g. %APPDATA%\Monkii\settings.json). Keys:
  *   modelsDir — 'default' (Ollama's own ~/.ollama/models) or an absolute path
  *   dataDir   — where projects & chats are stored (absent = default)
  *   skillsDir — where skills are scanned from   (absent = default)
  *
  * Data & skills locations resolve in priority order:
- *   1. CODEMONKII_DATA_DIR / CODEMONKII_SKILLS_DIR env vars — always win;
+ *   1. MONKII_DATA_DIR / MONKII_SKILLS_DIR env vars — always win;
  *   2. folders picked in the in-app Preferences panel (saved here);
- *   3. defaults — %APPDATA%\CodeMonkii when installed (the install folder is
+ *   3. defaults — %APPDATA%\Monkii when installed (the install folder is
  *      replaced wholesale on every update, so user data can't live there),
  *      repo-local in dev, same as `npm start`.
  */
@@ -45,15 +45,15 @@ function effectiveStorage() {
   const s = loadSettings();
   const d = defaultStorage();
   return {
-    dataDir: process.env.CODEMONKII_DATA_DIR || s.dataDir || d.dataDir,
-    skillsDir: process.env.CODEMONKII_SKILLS_DIR || s.skillsDir || d.skillsDir,
+    dataDir: process.env.MONKII_DATA_DIR || s.dataDir || d.dataDir,
+    skillsDir: process.env.MONKII_SKILLS_DIR || s.skillsDir || d.skillsDir,
   };
 }
 
 /** Logs live beside the per-user data when installed, repo-local in dev. */
 function logDir() {
   const base = app.isPackaged ? app.getPath('userData') : runtime.APP_ROOT;
-  return process.env.CODEMONKII_LOG_DIR || path.join(base, 'logs');
+  return process.env.MONKII_LOG_DIR || path.join(base, 'logs');
 }
 
 /** Env block handed to the forked server. Seeds the bundled sample skills
@@ -68,9 +68,9 @@ function storageEnv() {
     } catch { try { fs.mkdirSync(skillsDir, { recursive: true }); } catch {} }
   }
   return {
-    CODEMONKII_DATA_DIR: dataDir,
-    CODEMONKII_SKILLS_DIR: skillsDir,
-    CODEMONKII_LOG_DIR: logDir(),
+    MONKII_DATA_DIR: dataDir,
+    MONKII_SKILLS_DIR: skillsDir,
+    MONKII_LOG_DIR: logDir(),
   };
 }
 

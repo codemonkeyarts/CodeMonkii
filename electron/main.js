@@ -24,12 +24,34 @@
  */
 const { app, BrowserWindow, Menu, shell, dialog } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 const runtime = require('./runtime');
 const { ensureOllama } = require('./ollama');
 const { findFreePort, waitForServer, startServer } = require('./server');
 const { buildMenu } = require('./menu');
 const { registerPrefsIpc } = require('./prefs-ipc');
+
+/**
+ * One-time data migration for the CodeMonkii → Monkii rebrand. The productName
+ * change moves per-user storage from %APPDATA%\CodeMonkii to %APPDATA%\Monkii,
+ * so on the first Monkii launch — if the new folder has no data yet and the
+ * old install's folder exists — copy the projects, skills, settings, and logs
+ * over so nothing is orphaned. Runs before anything reads the storage paths.
+ */
+function migrateLegacyData() {
+  if (!app.isPackaged) return; // dev keeps its data repo-local
+  try {
+    const oldDir = path.join(app.getPath('appData'), 'CodeMonkii');
+    const newDir = app.getPath('userData'); // %APPDATA%\Monkii
+    const alreadyMigrated = fs.existsSync(path.join(newDir, 'data')) || fs.existsSync(path.join(newDir, 'settings.json'));
+    if (!fs.existsSync(oldDir) || alreadyMigrated) return;
+    for (const item of ['data', 'skills', 'settings.json', 'logs']) {
+      const src = path.join(oldDir, item);
+      if (fs.existsSync(src)) fs.cpSync(src, path.join(newDir, item), { recursive: true });
+    }
+  } catch { /* best-effort: a failed migration just starts fresh, no data lost */ }
+}
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -39,7 +61,7 @@ function createWindow() {
     minHeight: 600,
     backgroundColor: '#0d0b14',
     show: false,
-    title: 'CodeMonkii',
+    title: 'Monkii',
     icon: runtime.IS_WINDOWS ? path.join(__dirname, 'build', 'icon.ico') : undefined,
     webPreferences: {
       contextIsolation: true,
@@ -96,6 +118,7 @@ function createWindow() {
 }
 
 async function boot() {
+  migrateLegacyData(); // carry data over from a prior CodeMonkii install
   buildMenu();
   createWindow();
 
@@ -108,7 +131,7 @@ async function boot() {
     if (runtime.win) await runtime.win.loadURL(runtime.appUrl());
     buildMenu(); // now with live projects & skills
   } catch (e) {
-    dialog.showErrorBox('CodeMonkii', `Could not reach the app server.\n\n${e.message}`);
+    dialog.showErrorBox('Monkii', `Could not reach the app server.\n\n${e.message}`);
     app.quit();
   }
 }

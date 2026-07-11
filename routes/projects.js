@@ -106,7 +106,7 @@ router.post('/projects/:pid/attachments', (req, res) => {
     const p = loadProject(req.params.pid);
     const target = req.body.path;
     if (typeof target !== 'string' || !target.trim()) throw new Error('missing path');
-    if (!pathAllowed(target)) throw new Error('path outside CODEMONKII_FS_ROOTS');
+    if (!pathAllowed(target)) throw new Error('path outside MONKII_FS_ROOTS');
     const st = fs.statSync(target);
     if (p.attachments.some(a => a.path === target)) return res.json(p);
     p.attachments.push({ id: newId(), path: target, type: st.isDirectory() ? 'dir' : 'file' });

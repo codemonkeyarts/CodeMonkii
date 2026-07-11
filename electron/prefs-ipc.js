@@ -1,7 +1,7 @@
 /**
  * prefs-ipc.js — the Preferences panel's IPC surface.
  *
- * The web UI reaches these through the preload bridge (window.codemonkii).
+ * The web UI reaches these through the preload bridge (window.monkii).
  * Every handler validates that the call originates from the app's own pages:
  * if the renderer were ever tricked into showing foreign content, that page
  * must not be able to reach the folder pickers or settings.
@@ -27,10 +27,10 @@ function prefsSummary() {
     envOverride: process.env.OLLAMA_MODELS || null,
     dataDir: eff.dataDir,
     dataDirCustom: Boolean(s.dataDir),
-    dataDirEnv: process.env.CODEMONKII_DATA_DIR || null,
+    dataDirEnv: process.env.MONKII_DATA_DIR || null,
     skillsDir: eff.skillsDir,
     skillsDirCustom: Boolean(s.skillsDir),
-    skillsDirEnv: process.env.CODEMONKII_SKILLS_DIR || null,
+    skillsDirEnv: process.env.MONKII_SKILLS_DIR || null,
   };
 }
 

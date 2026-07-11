@@ -1,7 +1,7 @@
 /**
  * menu.js — the application menu, including live Projects & Skills submenus.
  *
- * The CodeMonkii menu mirrors app data: its Projects and Skills submenus are
+ * The Monkii menu mirrors app data: its Projects and Skills submenus are
  * built from the server's own API, so the menu is rebuilt whenever the window
  * regains focus (wired in main.js) and after boot or a server restart.
  * Item clicks are forwarded to the web UI over the 'menu:action' IPC channel
@@ -71,7 +71,7 @@ async function buildMenu() {
 
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     {
-      label: 'CodeMonkii',
+      label: 'Monkii',
       submenu: [
         {
           label: 'Open in Browser',
@@ -86,7 +86,7 @@ async function buildMenu() {
           label: 'Ollama Models Folder…',
           click: () => askModelsDir({
             allowCancel: true,
-            detail: 'Takes effect the next time CodeMonkii starts Ollama (quit Ollama and relaunch the app).',
+            detail: 'Takes effect the next time Monkii starts Ollama (quit Ollama and relaunch the app).',
           }),
         },
         { type: 'separator' },
