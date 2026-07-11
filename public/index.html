@@ -69,6 +69,7 @@
         </div>
         <div class="chat-header-controls">
           <select id="model-select" title="Model"></select>
+          <button id="btn-model-settings" class="icon-btn" title="Model settings">⚙</button>
           <button id="btn-toggle-inspector" class="icon-btn wide" title="Project settings">Project ⚙</button>
         </div>
       </header>
@@ -162,6 +163,58 @@
         <div id="skills-mode-note"></div>
         <em id="skills-dir-hint"></em>
       </footer>
+    </div>
+  </div>
+
+  <!-- ===== model settings modal ===== -->
+  <div id="model-settings-backdrop" class="modal-backdrop" hidden>
+    <div id="model-settings-panel" class="modal-panel">
+      <header>
+        <h3>Model settings</h3>
+        <button id="btn-close-model-settings" class="icon-btn" title="Close">×</button>
+      </header>
+      <div class="ms-scroll">
+        <label class="ms-field">
+          <span>Model <em>which model answers in this project</em></span>
+          <select id="ms-model"></select>
+        </label>
+
+        <label class="ms-field">
+          <span>Context length <em id="ms-ctx-out">4k</em></span>
+          <input id="ms-num_ctx" type="range" min="12" max="18" step="1" value="12">
+          <div class="ms-scale"><span>4k</span><span>16k</span><span>64k</span><span>256k</span></div>
+          <em class="ms-hint">How much conversation the model can remember. Bigger uses more memory.</em>
+        </label>
+
+        <label class="ms-field">
+          <span>Temperature <em id="ms-temp-out">1.00</em></span>
+          <input id="ms-temperature" type="range" min="0" max="2" step="0.05" value="1">
+          <em class="ms-hint">Lower is more predictable; higher is more creative.</em>
+        </label>
+
+        <details id="ms-advanced">
+          <summary>Advanced settings</summary>
+          <div id="ms-advanced-fields"></div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== skill detail modal ===== -->
+  <div id="skill-detail-backdrop" class="modal-backdrop" hidden>
+    <div id="skill-detail-panel" class="modal-panel">
+      <header>
+        <h3 id="sd-title"></h3>
+        <button id="btn-close-skill-detail" class="icon-btn" title="Close">×</button>
+      </header>
+      <div class="sd-scroll">
+        <p id="sd-desc" class="sd-desc"></p>
+        <div id="sd-path" class="prefs-path"></div>
+        <div class="sd-label">Instructions</div>
+        <div id="sd-body" class="sd-body"></div>
+        <div class="sd-label">References <em id="sd-refs-count"></em></div>
+        <ul id="sd-refs"></ul>
+      </div>
     </div>
   </div>
 

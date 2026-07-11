@@ -11,6 +11,7 @@
 const express = require('express');
 const { OLLAMA, HISTORY_LIMIT } = require('../lib/config');
 const { loadProject, saveProject } = require('../lib/store');
+const { sanitizeOptions } = require('../lib/options');
 const { buildSystem } = require('../lib/prompt');
 const ollama = require('../lib/ollama');
 
@@ -62,9 +63,15 @@ router.post('/chat', async (req, res) => {
   // fires when the client disconnects mid-stream (req 'close' fires too early in modern Node)
   res.on('close', () => { if (!res.writableEnded) ac.abort(); });
 
+  // options come from the project's model settings; keep_alive is a top-level
+  // Ollama chat param, not an option, so split it out after sanitizing
+  const clean = sanitizeOptions(options);
+  const keepAlive = clean.keep_alive;
+  delete clean.keep_alive;
+
   let upstream;
   try {
-    upstream = await ollama.streamChat({ model, messages, options, signal: ac.signal });
+    upstream = await ollama.streamChat({ model, messages, options: clean, keepAlive, signal: ac.signal });
   } catch {
     return res.status(502).json({ error: `Cannot reach Ollama at ${OLLAMA}. Is it running?` });
   }

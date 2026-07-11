@@ -9,7 +9,7 @@
 import { $, autoGrow } from './util.js';
 import { state } from './state.js';
 import { checkHealth, loadModels, checkOllamaUpdate } from './status.js';
-import { loadSkills, updateSkillPopup, pickSkill, renderSkillToggles } from './skills.js';
+import { loadSkills, updateSkillPopup, pickSkill, renderSkillToggles, handleSkillPopupKey } from './skills.js';
 import { initSkillCreate, showSkillCreateForm, importSkillFlow } from './skill-create.js';
 import { createProject, openProject, saveProjectMeta, deleteProject, showProjectsPage, quickChat } from './projects.js';
 import { openBrowser, browseTo, closeBrowser, pickCurrentDir } from './attachments.js';
@@ -17,6 +17,7 @@ import { newChat, send } from './chat.js';
 import { initModal } from './modal.js';
 import { initPrefs } from './prefs.js';
 import { initContextMenus } from './ctxmenu.js';
+import { initModelSettings } from './model-settings.js';
 
 function wireNavigation() {
   $('#btn-new-project').addEventListener('click', createProject);
@@ -34,6 +35,7 @@ function wireSkillsModal() {
   const open = () => { renderSkillToggles(); modal.open(); };
   $('#btn-open-skills').addEventListener('click', open);
   $('#btn-skills-page').addEventListener('click', open);
+  initModal('#skill-detail-backdrop', '#btn-close-skill-detail'); // detail view (opened from a skill name)
   initSkillCreate();
   return open;
 }
@@ -48,6 +50,11 @@ function wireDesktopMenu(openSkillsModal) {
     else if (type === 'new-skill') { openSkillsModal(); showSkillCreateForm(); }
     else if (type === 'import-skill') { openSkillsModal(); importSkillFlow(); }
   });
+}
+
+function wireModelSettings() {
+  const modal = initModal('#model-settings-backdrop', '#btn-close-model-settings');
+  initModelSettings(modal.open);
 }
 
 function wireInspector() {
@@ -75,21 +82,7 @@ function wireComposer() {
   const input = $('#input');
   input.addEventListener('input', () => { autoGrow(input); updateSkillPopup(); });
   input.addEventListener('keydown', (e) => {
-    const pop = $('#skill-popup');
-    if (!pop.hidden && (e.key === 'Tab' || e.key === 'Enter')) {
-      const sel = pop.querySelector('.sp-item.selected') || pop.querySelector('.sp-item');
-      if (sel) { e.preventDefault(); pickSkill(sel.dataset.skill); return; }
-    }
-    if (!pop.hidden && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
-      e.preventDefault();
-      const items = [...pop.querySelectorAll('.sp-item')];
-      const idx = items.findIndex(i => i.classList.contains('selected'));
-      items.forEach(i => i.classList.remove('selected'));
-      const next = e.key === 'ArrowDown' ? (idx + 1) % items.length : (idx - 1 + items.length) % items.length;
-      items[next].classList.add('selected');
-      return;
-    }
-    if (e.key === 'Escape') pop.hidden = true;
+    if (handleSkillPopupKey(e)) return; // "/" popup owns Tab/Enter/arrows/Esc while open
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
   });
 }
@@ -99,6 +92,7 @@ async function init() {
   initContextMenus();
   wireNavigation();
   wireDesktopMenu(wireSkillsModal());
+  wireModelSettings();
   wireInspector();
   wireFileBrowser();
   wireComposer();

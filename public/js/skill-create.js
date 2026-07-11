@@ -89,13 +89,13 @@ async function submitNewSkill(generate) {
 
 export function importSkillFlow() {
   openBrowser({
-    title: 'Import a skill folder',
+    title: 'Import a skill folder or .skill file',
     verb: 'import',
     dirLabel: 'Import this folder',
     onPick: async (p) => {
       try {
         const s = await api('/api/skills/import', { method: 'POST', body: { path: p } });
-        await skillAdded(`Skill /${s.id} imported`);
+        await skillAdded(s.already ? `Skill /${s.id} is already in your skills folder` : `Skill /${s.id} imported`);
       } catch (e) { toast(e.message, true); }
     },
   });

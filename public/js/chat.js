@@ -15,6 +15,15 @@ import { md } from './markdown.js';
 import { skillNames, renderSkillChips } from './skills.js';
 import { showView } from './views.js';
 
+const THINKING_DOTS = '<span class="thinking-dots"><i></i><i></i><i></i></span>';
+
+/** Toggle streaming state and the send/stop button pair together. */
+function setStreaming(on) {
+  state.streaming = on;
+  $('#btn-send').hidden = on;
+  $('#btn-stop').hidden = !on;
+}
+
 export function currentChat() {
   return state.project.chats.find(c => c.id === state.chatId);
 }
@@ -130,14 +139,12 @@ export async function send() {
   const box = $('#messages');
   const bubble = document.createElement('div');
   bubble.className = 'msg msg-assistant';
-  bubble.innerHTML = `<div class="msg-role">${esc(model)}</div><div class="msg-body"><span class="thinking-dots"><i></i><i></i><i></i></span></div>`;
+  bubble.innerHTML = `<div class="msg-role">${esc(model)}</div><div class="msg-body">${THINKING_DOTS}</div>`;
   box.appendChild(bubble);
   box.scrollTop = box.scrollHeight;
   const body = bubble.querySelector('.msg-body');
 
-  state.streaming = true;
-  $('#btn-send').hidden = true;
-  $('#btn-stop').hidden = false;
+  setStreaming(true);
   state.abort = new AbortController();
 
   let acc = '';
@@ -145,7 +152,7 @@ export async function send() {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId: state.project.id, chatId: state.chatId, message: text, model, skillIds }),
+      body: JSON.stringify({ projectId: state.project.id, chatId: state.chatId, message: text, model, skillIds, options: state.project.options || {} }),
       signal: state.abort.signal,
     });
     if (!res.ok) {
@@ -173,7 +180,7 @@ export async function send() {
       }
       const now = performance.now();
       if (now - lastRender > 80) {  // throttle markdown re-render
-        body.innerHTML = md(acc) || '<span class="thinking-dots"><i></i><i></i><i></i></span>';
+        body.innerHTML = md(acc) || THINKING_DOTS;
         const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 160;
         if (nearBottom) box.scrollTop = box.scrollHeight;
         lastRender = now;
@@ -188,9 +195,7 @@ export async function send() {
     }
   }
   box.scrollTop = box.scrollHeight;
-  state.streaming = false;
-  $('#btn-send').hidden = false;
-  $('#btn-stop').hidden = true;
+  setStreaming(false);
   chat.messages.push({ role: 'assistant', content: acc, model });
   chat.model = model;
 }

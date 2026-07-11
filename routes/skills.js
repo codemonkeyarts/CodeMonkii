@@ -10,7 +10,7 @@
  */
 const express = require('express');
 const { SKILLS_DIR } = require('../lib/config');
-const { scanSkills, skillBody, createSkill, generateSkill, importSkill } = require('../lib/skills');
+const { scanSkills, skillDetail, skillFile, createSkill, generateSkill, importSkill } = require('../lib/skills');
 const { pathAllowed } = require('../lib/security');
 
 const router = express.Router();
@@ -50,9 +50,16 @@ router.post('/skills/generate', async (req, res) => {
   } catch (e) { res.status(502).json({ error: String(e.message || e) }); }
 });
 
+/* Full skill info for the detail view: frontmatter, body, reference files. */
 router.get('/skills/:sid', (req, res) => {
-  try { res.json(skillBody(req.params.sid)); }
+  try { res.json(skillDetail(req.params.sid)); }
   catch { res.status(404).json({ error: 'skill not found' }); }
+});
+
+/* One reference file's text content, for inline preview in the detail view. */
+router.get('/skills/:sid/file', (req, res) => {
+  try { res.json(skillFile(req.params.sid, req.query.path)); }
+  catch (e) { res.status(400).json({ error: String(e.message || e) }); }
 });
 
 module.exports = router;

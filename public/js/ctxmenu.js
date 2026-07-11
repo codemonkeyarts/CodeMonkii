@@ -14,6 +14,7 @@
 import { $, copyText, toast } from './util.js';
 import { openChat, renameChat, deleteChat } from './chat.js';
 import { openProject, deleteProjectById } from './projects.js';
+import { openSkillDetail } from './skills.js';
 
 let menu = null;
 
@@ -80,6 +81,7 @@ function menuFor(target) {
   if (skillLi) {
     const sid = skillLi.dataset.skill;
     return [
+      { label: 'Show details', action: () => openSkillDetail(sid) },
       { label: `Copy /${sid}`, action: () => { copyText('/' + sid); toast(`/${sid} copied`); } },
     ];
   }

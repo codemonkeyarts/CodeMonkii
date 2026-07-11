@@ -10,6 +10,7 @@ const fs = require('fs');
 const express = require('express');
 const { newId, loadProject, saveProject, deleteProject, listProjects } = require('../lib/store');
 const { pathAllowed } = require('../lib/security');
+const { sanitizeOptions } = require('../lib/options');
 
 const router = express.Router();
 
@@ -31,6 +32,7 @@ router.post('/projects', (req, res) => {
     createdAt: Date.now(),
     skills: [],        // skill ids always loaded for this project
     attachments: [],   // { id, path, type: 'file'|'dir' }
+    options: {},       // Ollama generation options (num_ctx, temperature, …)
     chats: [],         // { id, title, model, createdAt, messages: [{role, content, ts}] }
   };
   saveProject(p);
@@ -51,6 +53,9 @@ router.put('/projects/:pid', (req, res) => {
       p.skills = req.body.skills
         .filter(s => typeof s === 'string' && !/[\\/]|\.\./.test(s))
         .slice(0, 200);
+    }
+    if (req.body.options && typeof req.body.options === 'object') {
+      p.options = sanitizeOptions(req.body.options);
     }
     saveProject(p);
     res.json(p);
