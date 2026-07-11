@@ -370,6 +370,19 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .skill-chip button { background: none; border: none; color: inherit; font-size: 13px; opacity: .7; }
 .skill-chip button:hover { opacity: 1; color: var(--red-bright); }
 
+/* per-chat attachments */
+#chat-attach-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+#chat-attach-chips:not(:empty) { margin-bottom: 8px; }
+.chat-att-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 13px;
+  background: rgba(0, 255, 224, .06); border: 1px solid rgba(0, 255, 224, .35);
+  color: var(--cyan); border-radius: 2px; padding: 2px 10px; max-width: 320px;
+}
+.chat-att-chip .att-icon { color: var(--cyan); }
+.chat-att-chip button { background: none; border: none; color: inherit; font-size: 13px; opacity: .7; }
+.chat-att-chip button:hover { opacity: 1; color: var(--red-bright); }
+
 #skill-popup {
   position: absolute; bottom: 100%; left: 26px; right: 26px; margin-bottom: 6px;
   background: var(--obsidian); border: 1px solid var(--line); border-radius: 2px;

@@ -69,6 +69,7 @@
         </div>
         <div class="chat-header-controls">
           <select id="model-select" title="Model"></select>
+          <button id="btn-attach-chat" class="icon-btn" title="Add files or folders to this chat">📎</button>
           <button id="btn-model-settings" class="icon-btn" title="Model settings">⚙</button>
           <button id="btn-toggle-inspector" class="icon-btn wide" title="Project settings">Project ⚙</button>
         </div>
@@ -78,6 +79,7 @@
 
       <div id="composer">
         <div id="skill-popup" hidden></div>
+        <div id="chat-attach-chips"></div>
         <div id="active-skill-chips"></div>
         <div class="composer-box">
           <textarea id="input" rows="1" placeholder="Message your model… ( / to invoke a skill )"></textarea>

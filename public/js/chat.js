@@ -16,6 +16,7 @@ import { skillNames, renderSkillChips } from './skills.js';
 import { showView } from './views.js';
 import { refreshContext, clearContext, willOverflow, cannotCompact } from './context-meter.js';
 import { openOverflowDialog } from './overflow.js';
+import { renderChatAttachments } from './attachments.js';
 
 const THINKING_DOTS = '<span class="thinking-dots"><i></i><i></i><i></i></span>';
 
@@ -105,6 +106,7 @@ export function openChat(cid) {
   }
   renderChatList();
   renderMessages();
+  renderChatAttachments();
   $('#input').focus();
   refreshContext();
 }

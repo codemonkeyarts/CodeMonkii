@@ -8,6 +8,7 @@
 import { $, esc, toast } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
+import { refreshContext } from './context-meter.js';
 
 export function renderAttachments() {
   const ul = $('#attachment-list');
@@ -35,6 +36,54 @@ export async function attachPath(p) {
     renderAttachments();
     toast(`Attached: ${p}`);
   } catch (e) { toast(e.message, true); }
+}
+
+/* ---- per-chat attachments (knowledge for a single chat) ---- */
+
+const currentChat = () => state.project?.chats.find(c => c.id === state.chatId);
+
+/** Render the current chat's attachment chips above the composer. */
+export function renderChatAttachments() {
+  const wrap = $('#chat-attach-chips');
+  if (!wrap) return;
+  const atts = (currentChat() || {}).attachments || [];
+  wrap.innerHTML = atts.map(a => `
+    <span class="chat-att-chip" title="${esc(a.path)}">
+      <span class="att-icon">${a.type === 'dir' ? '▣' : '▤'}</span>${esc(a.path.split(/[\\/]/).pop())}
+      <button data-chatatt="${a.id}" title="Remove from this chat">×</button>
+    </span>`).join('');
+  wrap.querySelectorAll('[data-chatatt]').forEach(b =>
+    b.addEventListener('click', async () => {
+      const chat = await api(`/api/projects/${state.project.id}/chats/${state.chatId}/attachments/${b.dataset.chatatt}`, { method: 'DELETE' });
+      syncChat(chat);
+      renderChatAttachments();
+      refreshContext();
+    }));
+}
+
+/** Merge the server's updated chat back into local state (attachments only). */
+function syncChat(chat) {
+  const c = currentChat();
+  if (c && chat) c.attachments = chat.attachments || [];
+}
+
+/** Attach a file/folder to the current chat via the file browser. */
+export function attachToChat() {
+  if (!state.project || !state.chatId) { toast('Open a chat first', true); return; }
+  openBrowser({
+    title: 'Add files or folders to this chat',
+    verb: 'add',
+    dirLabel: 'Add this folder',
+    onPick: async (p) => {
+      try {
+        const chat = await api(`/api/projects/${state.project.id}/chats/${state.chatId}/attachments`, { method: 'POST', body: { path: p } });
+        syncChat(chat);
+        renderChatAttachments();
+        refreshContext();
+        toast(`Added to this chat: ${p}`);
+      } catch (e) { toast(e.message, true); }
+    },
+  });
 }
 
 /* ---- file browser modal ----

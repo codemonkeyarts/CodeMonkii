@@ -12,7 +12,7 @@ import { checkHealth, loadModels, checkOllamaUpdate } from './status.js';
 import { loadSkills, updateSkillPopup, pickSkill, renderSkillToggles, handleSkillPopupKey } from './skills.js';
 import { initSkillCreate, showSkillCreateForm, importSkillFlow } from './skill-create.js';
 import { createProject, openProject, saveProjectMeta, deleteProject, showProjectsPage, quickChat } from './projects.js';
-import { openBrowser, browseTo, closeBrowser, pickCurrentDir } from './attachments.js';
+import { openBrowser, browseTo, closeBrowser, pickCurrentDir, attachToChat } from './attachments.js';
 import { newChat, send } from './chat.js';
 import { initOverflowDialog } from './overflow.js';
 import { initModal } from './modal.js';
@@ -84,6 +84,7 @@ function wireFileBrowser() {
 }
 
 function wireComposer() {
+  $('#btn-attach-chat').addEventListener('click', attachToChat);
   $('#btn-send').addEventListener('click', () => send()); // no event arg — it would be read as bypassOverflow
   $('#btn-stop').addEventListener('click', () => state.abort && state.abort.abort());
 

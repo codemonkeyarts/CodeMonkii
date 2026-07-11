@@ -90,7 +90,7 @@ router.post('/context', (req, res) => {
     const project = loadProject(projectId);
     const chat = project.chats.find(c => c.id === chatId);
     if (!chat) throw new Error('chat not found');
-    const system = buildSystem(project, skillIds);
+    const system = buildSystem(project, skillIds, chat);
     const history = chat.messages.slice(-HISTORY_LIMIT).map(m => m.content).join('\n');
     const systemTokens = estimateTokens(system);
     const baseTokens = systemTokens + estimateTokens(history);
@@ -119,7 +119,7 @@ router.post('/chat', async (req, res) => {
   chat.model = model;
   saveProject(project);
 
-  const system = buildSystem(project, skillIds);
+  const system = buildSystem(project, skillIds, chat);
   const history = chat.messages.slice(-HISTORY_LIMIT).map(m => ({ role: m.role, content: m.content }));
 
   // Compact to fit the context: drop the oldest history messages until the

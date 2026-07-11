@@ -132,6 +132,10 @@ $env:MONKII_SKILLS_DIR = "$HOME\.claude\skills"; npm start
 ### File & directory knowledge
 Attach any file or folder via the built-in browser. Contents are **re-read from disk on every message**, so your latest edits are always what the model sees. Directories are walked recursively (skipping `node_modules`, `.git`, build output, binaries) with size budgets so you don't blow out the context window.
 
+Attach at **two levels**:
+- **Project knowledge** (the inspector's Knowledge panel) — shared by every chat in the project.
+- **Chat knowledge** (the 📎 in the chat header) — scoped to just that one chat. Great for a quick chat where you want to drop in a few files without setting up a project; shown as chips above the composer and counted in the token meter.
+
 ### Ollama
 - Auto-detects Ollama at `http://localhost:11434` (override with `OLLAMA_HOST`; bind-style values like `0.0.0.0` are normalized automatically)
 - Model picker per chat, streaming responses, stop button

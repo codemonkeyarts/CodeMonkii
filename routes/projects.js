@@ -72,7 +72,7 @@ router.delete('/projects/:pid', (req, res) => {
 router.post('/projects/:pid/chats', (req, res) => {
   try {
     const p = loadProject(req.params.pid);
-    const chat = { id: newId(), title: 'New chat', model: req.body.model || '', createdAt: Date.now(), messages: [] };
+    const chat = { id: newId(), title: 'New chat', model: req.body.model || '', createdAt: Date.now(), attachments: [], messages: [] };
     p.chats.unshift(chat);
     saveProject(p);
     res.json(chat);
@@ -99,17 +99,23 @@ router.put('/projects/:pid/chats/:cid', (req, res) => {
   } catch { res.status(404).json({ error: 'project not found' }); }
 });
 
-/* ---- attachments ---- */
+/* ---- attachments (knowledge) ----
+ * Attachments live at two levels: the project's (shared by all its chats) and
+ * a single chat's own (for ad-hoc context, e.g. a quick chat). Both go through
+ * the same validation and are merged into the prompt at request time. */
+
+/** Validate a path and return a new attachment entry, or throw. */
+function makeAttachment(target) {
+  if (typeof target !== 'string' || !target.trim()) throw new Error('missing path');
+  if (!pathAllowed(target)) throw new Error('path outside MONKII_FS_ROOTS');
+  const st = fs.statSync(target);
+  return { id: newId(), path: target, type: st.isDirectory() ? 'dir' : 'file' };
+}
 
 router.post('/projects/:pid/attachments', (req, res) => {
   try {
     const p = loadProject(req.params.pid);
-    const target = req.body.path;
-    if (typeof target !== 'string' || !target.trim()) throw new Error('missing path');
-    if (!pathAllowed(target)) throw new Error('path outside MONKII_FS_ROOTS');
-    const st = fs.statSync(target);
-    if (p.attachments.some(a => a.path === target)) return res.json(p);
-    p.attachments.push({ id: newId(), path: target, type: st.isDirectory() ? 'dir' : 'file' });
+    if (!p.attachments.some(a => a.path === req.body.path)) p.attachments.push(makeAttachment(req.body.path));
     saveProject(p);
     res.json(p);
   } catch (e) { res.status(400).json({ error: String(e.message || e) }); }
@@ -121,6 +127,30 @@ router.delete('/projects/:pid/attachments/:aid', (req, res) => {
     p.attachments = p.attachments.filter(a => a.id !== req.params.aid);
     saveProject(p);
     res.json(p);
+  } catch { res.status(404).json({ error: 'project not found' }); }
+});
+
+/* per-chat attachments — return the updated chat */
+router.post('/projects/:pid/chats/:cid/attachments', (req, res) => {
+  try {
+    const p = loadProject(req.params.pid);
+    const c = p.chats.find(c => c.id === req.params.cid);
+    if (!c) return res.status(404).json({ error: 'chat not found' });
+    if (!c.attachments) c.attachments = [];
+    if (!c.attachments.some(a => a.path === req.body.path)) c.attachments.push(makeAttachment(req.body.path));
+    saveProject(p);
+    res.json(c);
+  } catch (e) { res.status(400).json({ error: String(e.message || e) }); }
+});
+
+router.delete('/projects/:pid/chats/:cid/attachments/:aid', (req, res) => {
+  try {
+    const p = loadProject(req.params.pid);
+    const c = p.chats.find(c => c.id === req.params.cid);
+    if (!c) return res.status(404).json({ error: 'chat not found' });
+    c.attachments = (c.attachments || []).filter(a => a.id !== req.params.aid);
+    saveProject(p);
+    res.json(c);
   } catch { res.status(404).json({ error: 'project not found' }); }
 });
 
