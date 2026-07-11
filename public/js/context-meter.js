@@ -19,20 +19,33 @@ const fmt = (n) => n.toLocaleString();
 /** Token count as a compact "16k" / "512" label. */
 export const fmtK = (n) => (n >= 1024 ? `${Math.round(n / 1024)}k` : `${n}`);
 
-/** Re-estimate the fixed cost of the current chat and repaint the meter. */
+/** Blank the meter immediately — used when switching chats so the previous
+ *  chat's count doesn't linger while the new estimate loads. */
+export function clearContext() {
+  state.baseTokens = null;
+  updateMeter();
+}
+
+/** Re-estimate the fixed cost of the current chat and repaint the meter.
+ *  Guarded against races: if a different chat is opened while the request is
+ *  in flight, its (now stale) result is dropped rather than clobbering the
+ *  newer chat's count. */
 export async function refreshContext() {
-  const meter = $('#context-meter');
-  if (!state.project || !state.chatId) { meter.textContent = ''; return; }
+  if (!state.project || !state.chatId) { clearContext(); return; }
+  const forChat = state.chatId;
   try {
     const { baseTokens, systemTokens, limit } = await api('/api/context', {
       method: 'POST',
-      body: { projectId: state.project.id, chatId: state.chatId, skillIds: state.invokedSkills },
+      body: { projectId: state.project.id, chatId: forChat, skillIds: state.invokedSkills },
     });
+    if (state.chatId !== forChat) return; // a newer chat opened — drop this result
     state.baseTokens = baseTokens;
     state.systemTokens = systemTokens || 0;
     state.contextLimit = limit;
-  } catch { state.baseTokens = null; }
-  updateMeter();
+  } catch {
+    if (state.chatId === forChat) state.baseTokens = null;
+  }
+  if (state.chatId === forChat) updateMeter();
 }
 
 /** Would this request still overflow even with all history dropped? Then

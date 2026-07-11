@@ -14,7 +14,7 @@ import { state } from './state.js';
 import { md } from './markdown.js';
 import { skillNames, renderSkillChips } from './skills.js';
 import { showView } from './views.js';
-import { refreshContext, willOverflow, cannotCompact } from './context-meter.js';
+import { refreshContext, clearContext, willOverflow, cannotCompact } from './context-meter.js';
 import { openOverflowDialog } from './overflow.js';
 
 const THINKING_DOTS = '<span class="thinking-dots"><i></i><i></i><i></i></span>';
@@ -94,6 +94,7 @@ export async function newChat() {
 
 export function openChat(cid) {
   state.chatId = cid;
+  clearContext(); // blank the meter now; refreshContext fills it for this chat
   const chat = currentChat();
   showView('chat');
   $('#chat-title').textContent = chat.title;
