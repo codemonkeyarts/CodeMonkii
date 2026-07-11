@@ -130,6 +130,16 @@ router.post('/chat', async (req, res) => {
   const fits = (msgs) => sysTokens + msgs.reduce((n, m) => n + estimateTokens(m.content), 0) <= limit;
   while (history.length > 1 && !fits(history)) history.shift();
 
+  // Safety net: if even the system prompt + one message can't fit (usually a
+  // large attachment), don't hand Ollama a doomed request — return a clear,
+  // actionable error instead of its cryptic "exceeds context size" one.
+  if (!fits(history)) {
+    const needK = Math.max(1, Math.round((sysTokens + estimateTokens(history[history.length - 1]?.content || '')) / 1000));
+    return res.status(413).json({
+      error: `This request needs about ${needK}k tokens but the context length is set to ${limit >= 1024 ? Math.round(limit / 1024) + 'k' : limit}. Raise the context length in Model settings, use a model with a larger context, or attach less.`,
+    });
+  }
+
   const messages = [{ role: 'system', content: system }, ...history];
 
   const ac = new AbortController();

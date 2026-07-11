@@ -132,9 +132,14 @@ export async function send(bypassOverflow = false) {
   // can compact it (drop old history) or — if even the system prompt alone is
   // too big — we ask the user what to do. bypassOverflow skips this after they
   // pick a remedy.
-  if (!bypassOverflow && willOverflow()) {
-    if (cannotCompact(text)) { openOverflowDialog(text); return; }
-    toast('This chat is long — older messages will be trimmed to fit the context.');
+  if (!bypassOverflow) {
+    // make sure we have a token estimate before deciding — with a large
+    // attachment the initial estimate can still be loading when Send is hit
+    if (state.baseTokens == null) await refreshContext();
+    if (willOverflow()) {
+      if (cannotCompact(text)) { openOverflowDialog(text); return; }
+      toast('This chat is long — older messages will be trimmed to fit the context.');
+    }
   }
 
   const skillIds = [...state.invokedSkills];
