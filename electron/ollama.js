@@ -11,9 +11,28 @@
 const { dialog } = require('electron');
 const { spawn, execFile } = require('child_process');
 const fs = require('fs');
+const path = require('path');
 const runtime = require('./runtime');
 const { loadSettings, saveSettings } = require('./settings');
 const { pickFolder } = require('./dialogs');
+
+/**
+ * Locate the Ollama desktop app, if installed. Its background mode runs the
+ * server so model-runner subprocesses are hidden — unlike a bare, detached
+ * `ollama serve`, whose runners each pop a console window on Windows.
+ */
+function ollamaAppPath() {
+  if (!runtime.IS_WINDOWS) return null;
+  const roots = [process.env.LOCALAPPDATA, process.env.ProgramFiles, process.env['ProgramFiles(x86)']];
+  for (const root of roots) {
+    if (!root) continue;
+    const exe = path.join(root, 'Programs', 'Ollama', 'ollama app.exe');
+    if (fs.existsSync(exe)) return exe;
+    const exe2 = path.join(root, 'Ollama', 'ollama app.exe');
+    if (fs.existsSync(exe2)) return exe2;
+  }
+  return null;
+}
 
 /** True if an `ollama` process appears to be running (best-effort, Windows). */
 function ollamaRunning() {
@@ -79,12 +98,23 @@ async function ensureOllama() {
     const env = { ...process.env };
     if (modelsDir) env.OLLAMA_MODELS = modelsDir;
 
-    const proc = spawn('ollama', ['serve'], {
-      env,
-      detached: true,
-      stdio: 'ignore',
-      windowsHide: true,
-    });
+    const appExe = ollamaAppPath();
+    if (appExe) {
+      // Preferred: let the Ollama desktop app host the server. It keeps model
+      // runners hidden (no pop-up console windows) and stays up after Monkii
+      // quits — the same "leave it running" behavior we already relied on.
+      const proc = spawn(appExe, [], { env, detached: true, stdio: 'ignore', windowsHide: true });
+      proc.on('error', () => {});
+      proc.unref();
+      return;
+    }
+
+    // Fallback (no desktop app): start `ollama serve` with a HIDDEN console via
+    // windowsHide (→ CREATE_NO_WINDOW). Deliberately NOT `detached`, because on
+    // Windows detached = DETACHED_PROCESS gives serve *no* console, so every
+    // model runner it spawns allocates its own visible console window. With a
+    // hidden console the runners inherit it and stay silent.
+    const proc = spawn('ollama', ['serve'], { env, stdio: 'ignore', windowsHide: true });
     proc.on('error', () => {}); // ollama not on PATH — the app still runs
     proc.unref();
   } catch { /* non-fatal: the app still runs, just without a local model server */ }
