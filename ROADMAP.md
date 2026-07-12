@@ -31,6 +31,8 @@ Have an idea? Open an issue — local-first, private-by-default proposals move t
 - [ ] **Version check off by default** — the daily Ollama-release ping to GitHub is the *only* thing that leaves the machine (it sends no data). Make it opt-in so "nothing leaves" is literally true on a fresh install
 - [ ] **Self-contained Ollama** — run (and ideally ship) the Ollama runtime so Monkii works without a separate Ollama install. It already auto-starts Ollama when it's installed (via the desktop app when present, else a hidden `ollama serve`); the gap is when it isn't installed at all. Tradeoff from investigation: the `ollama` binary is only ~34 MB, but the GPU runtimes (CUDA/ROCm) are ~2.8 GB, so full bundling would balloon the installer — likely path is to ship the small binary + CPU backend and fetch the GPU runtime on first run, with models still stored separately
 - [ ] **First-run chat-model bootstrap** — offer a one-click pull of a small default *chat* model so a clean install can start chatting immediately instead of showing "no models" (the embedding model is already offered automatically — see Shipped)
+- [ ] **Background indexing with progress** — the first embed of a very large attachment blocks the first message (~90 s for a ~2 MB manuscript on an RTX 3070). Index on attach, in the background, with a visible progress indicator, so the chat is never held up
+- [ ] **Compact the embedding index** — vectors are currently stored as JSON floats, making the on-disk index ~12–17× the source text (34 MB for a 2 MB doc). Store them as binary Float32 to cut that roughly 10×
 
 ## More secure
 

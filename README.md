@@ -136,11 +136,50 @@ Attach at **two levels**:
 - **Project knowledge** (the inspector's Knowledge panel) — shared by every chat in the project.
 - **Chat knowledge** (the 📎 in the chat header) — scoped to just that one chat. Great for a quick chat where you want to drop in a few files without setting up a project; shown as chips above the composer and counted in the token meter.
 
+### Large attachments: retrieval instead of overflow
+
+Attach something big — a whole manuscript, a codebase — and Monkii embeds it **on-device** (via an Ollama embedding model such as `nomic-embed-text`) and injects only the passages relevant to your question, instead of dumping the entire file into every prompt. Small attachments (< 64 KB) are still included whole; anything larger is searched. The index is cached on disk by file signature, so a file is embedded once and reused until it changes. Entirely offline — and if no embedding model is installed, Monkii offers to pull the recommended one on first run, or simply falls back to including the file as before.
+
+#### Benchmarks
+
+Measured end-to-end against a live Ollama on a sample laptop — **i9-11900H (8C/16T) · 64 GB · RTX 3070 Laptop (8 GB)**, Ollama 0.31.2, `nomic-embed-text` + `qwen2.5:7b`. Timings come from Ollama's own `prompt_eval_duration`.
+
+**Retrieval by file size** — chunk + embed once, then rank per question:
+
+| Attachment | Chunks | Index build (one-time) | Warm query | Prompt vs full dump | Fact buried at 92% depth |
+|---|--:|--:|--:|--:|:--|
+| 128 KB (~32k tok) | 154 | 9.4 s | 105 ms | **−88%** | ✓ found |
+| 512 KB (~128k tok) | 768 | 20.8 s | 191 ms | **−88%** | ✓ found |
+| 2 MB (~500k tok, a whole novel) | 3,219 | 91 s | 381 ms | **−88%** | ✓ found |
+
+The old behavior caps a file at 120 KB, so on the 2 MB novel it only ever saw the first ~6% — and would miss a fact sitting at 92% depth. Retrieval indexes the whole file and found it every time, injecting ~3.6k tokens instead of ~30k.
+
+**Time to first token** — qwen2.5:7b, 32k context:
+
+| Prompt | Tokens | Prefill |
+|---|--:|--:|
+| Retrieved passages | 3,544 | **1.6 s** |
+| Full dump (120 KB cap) | 26,694 | 17.3 s |
+
+Retrieval reaches the first token **~10.7× sooner**. And a full manuscript (500k+ tokens) is ~15× over a 32k window and can't be sent at all — retrieval is what makes it fit.
+
+**Long chats stay open** — 512 KB attachment; retrieval holds the system prompt flat while history grows:
+
+| Turns | System tok | History tok | Total | of 32k context |
+|--:|--:|--:|--:|--:|
+| 5 | 3,627 | 529 | 4,156 | 13% |
+| 20 | 3,627 | 2,118 | 5,745 | 18% |
+| 60 | 3,627 | 6,358 | 9,985 | 30% |
+
+The system prompt stays constant as the conversation grows, leaving ~70% of the window for history. With the old dump it would pin the system at ~30k tokens, so by 60 turns the request (37k) overflows the 32k window and older messages get trimmed.
+
+> **Caveats.** The *first* index of a huge file scales with size (~91 s for a 2 MB novel; one-time, cached until the file changes), and the on-disk index is currently ~12–17× the source (768-dim vectors stored as JSON floats — 34 MB for the 2 MB doc). Both are tracked as follow-ups in the [roadmap](ROADMAP.md). Warm-SSD read caching saves only sub-millisecond per message; the cache that matters is the index.
+
 ### Ollama
 - Auto-detects Ollama at `http://localhost:11434` (override with `OLLAMA_HOST`; bind-style values like `0.0.0.0` are normalized automatically)
 - Model picker per chat, streaming responses, stop button
 - Health indicator in the sidebar
-- Update check on startup (cached daily): when a newer Ollama release exists, the server logs it and the sidebar shows a download pill — disable with `MONKII_UPDATE_CHECK=off`
+- Update check on startup (cached daily): when a newer Ollama release exists, the sidebar shows a download pill and (in the desktop app) a popup offers to download it — disable with `MONKII_UPDATE_CHECK=off`
 
 ## Configuration
 
@@ -151,6 +190,9 @@ Attach at **two levels**:
 | `MONKII_SKILLS_DIR` | `./skills` | Where to scan for skills |
 | `MONKII_FS_ROOTS` | *(unset — whole disk)* | Semicolon-separated list of directories the file browser and attachments are restricted to, e.g. `C:\projects;D:\writing` |
 | `MONKII_UPDATE_CHECK` | `on` | Set to `off` to disable the daily Ollama update check |
+| `MONKII_RETRIEVAL` | `on` | Set to `off` to always include attachments whole (no embedding/retrieval) |
+| `MONKII_EMBED_MODEL` | *(auto-detect)* | Force a specific Ollama embedding model; otherwise the first installed embed model is used |
+| `MONKII_EMBED_DIR` | *(beside data dir)* | Where the on-disk embedding indexes are stored |
 
 ## Security
 
@@ -171,7 +213,7 @@ The desktop shell adds its own hardening: sandboxed renderer with context isolat
 
 Monkii's plans live in **[ROADMAP.md](ROADMAP.md)** — grouped by the promise each item serves: keeping it **local**, **secure**, and **yours**. The guiding rule for everything there: it never requires an account, a cloud service, or sending your data off the machine.
 
-A few of what's next: version-check-off by default, self-contained Ollama, local retrieval over big attachments, theming, and export/import. See the [full roadmap →](ROADMAP.md)
+A few of what's next: version-check-off by default, self-contained Ollama, theming, search across chats, and export/import. (Local retrieval over big attachments already shipped — see the [benchmarks](#benchmarks) above.) See the [full roadmap →](ROADMAP.md)
 
 ## Layout
 
@@ -182,9 +224,11 @@ lib/
   security.js           Host/Origin validation, CSP, fs allowlist
   store.js              project JSON persistence
   skills.js             SKILL.md discovery + frontmatter parsing
-  attachments.js        reading knowledge from disk under byte budgets
+  attachments.js        reading knowledge from disk (cached by size+mtime)
+  knowledge.js          per-attachment dump-vs-retrieve orchestration
+  retrieval.js          on-device embeddings + persisted index + top-K search
   prompt.js             system prompt assembly
-  ollama.js             Ollama HTTP client + release update check
+  ollama.js             Ollama HTTP client + embeddings + release update check
   stream.js             NDJSON tee helper (chat + pull share it)
   tokens.js             rough token estimate
   options.js            Ollama generation-option sanitizer
@@ -216,6 +260,7 @@ public/
     context-meter.js    live token/context estimate in the composer
     model-manager.js    pull / delete / disk usage for Ollama models
     model-info.js       selected-model size, specs + usage recommendation
+    embed-model.js      first-run bootstrap for the retrieval embedding model
     prefs.js            preferences panel (storage folders; desktop app only)
 skills/                 your skills (3 samples included)
 data/projects/          project + chat storage (JSON, gitignored)
