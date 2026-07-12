@@ -20,14 +20,17 @@ Have an idea? Open an issue — local-first, private-by-default proposals move t
 - [x] Rebrand to Monkii (`appId` `com.codalanguez.monkii`) with a one-time data migration from the old install
 - [x] **Local retrieval over big knowledge** — a large attachment (manuscript or codebase) is embedded on-device (via Ollama) and only the passages relevant to your question are injected; small attachments are still included whole, an embed model is auto-detected, and it all runs offline (falls back to the plain dump when no embed model is present)
 - [x] **Attachment reads cached** by size + modified-time, so unchanged knowledge isn't re-read from disk on every message
+- [x] **Embedding-model bootstrap** — on first run, if no embed model is installed, Monkii offers to download the recommended one (`nomic-embed-text`) via Ollama, so large-attachment search works out of the box
+- [x] **Quiet, self-managing Ollama** — Monkii starts Ollama through its desktop app (or a hidden-console `ollama serve`), so loading a model no longer pops terminal windows on Windows
+- [x] **Ollama update prompt** — a native "a newer Ollama is available" popup (with a per-version "don't remind me"), alongside the status-bar pill
 
 ## More local
 
 *Install it, and it works and stays entirely on your machine — no separate installs, no calls out, no dependency you didn't choose.*
 
 - [ ] **Version check off by default** — the daily Ollama-release ping to GitHub is the *only* thing that leaves the machine (it sends no data). Make it opt-in so "nothing leaves" is literally true on a fresh install
-- [ ] **Self-contained Ollama** — run (and ideally ship) the Ollama runtime so Monkii works without a separate Ollama install. It already auto-starts `ollama serve` when Ollama is present; the gap is when it isn't. Tradeoff from investigation: the `ollama` binary is only ~34 MB, but the GPU runtimes (CUDA/ROCm) are ~2.8 GB, so full bundling would balloon the installer — likely path is to ship the small binary + CPU backend and fetch the GPU runtime on first run, with models still stored separately
-- [ ] **First-run model bootstrap** — offer a one-click pull of a small default model so a clean install can chat immediately instead of showing "no models"
+- [ ] **Self-contained Ollama** — run (and ideally ship) the Ollama runtime so Monkii works without a separate Ollama install. It already auto-starts Ollama when it's installed (via the desktop app when present, else a hidden `ollama serve`); the gap is when it isn't installed at all. Tradeoff from investigation: the `ollama` binary is only ~34 MB, but the GPU runtimes (CUDA/ROCm) are ~2.8 GB, so full bundling would balloon the installer — likely path is to ship the small binary + CPU backend and fetch the GPU runtime on first run, with models still stored separately
+- [ ] **First-run chat-model bootstrap** — offer a one-click pull of a small default *chat* model so a clean install can start chatting immediately instead of showing "no models" (the embedding model is already offered automatically — see Shipped)
 
 ## More secure
 
