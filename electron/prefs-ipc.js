@@ -9,7 +9,7 @@
  * Data & skills changes restart the forked server (it reads config once at
  * boot) and rebuild the menu, whose folder shortcuts reflect the new paths.
  */
-const { ipcMain } = require('electron');
+const { ipcMain, dialog, shell } = require('electron');
 const runtime = require('./runtime');
 const { loadSettings, saveSettings, effectiveStorage } = require('./settings');
 const { pickFolder } = require('./dialogs');
@@ -40,6 +40,32 @@ function handleUI(channel, fn) {
     if (!runtime.isAppUrl(event.senderFrame?.url || '')) throw new Error('unauthorized sender');
     return fn(...args);
   });
+}
+
+/**
+ * Native "update Ollama" popup, driven by the renderer's daily update check.
+ * Shows Download / Later, plus a checkbox that mutes this specific version so
+ * we never nag about a release the user chose to skip. Returns the choice.
+ */
+async function promptOllamaUpdate({ current, latest, url } = {}) {
+  if (!latest) return 'noop';
+  if (loadSettings().dismissedOllamaUpdate === latest) return 'dismissed';
+  const safeUrl = /^https:\/\//i.test(url || '') ? url : 'https://ollama.com/download';
+  const { response, checkboxChecked } = await dialog.showMessageBox(runtime.win, {
+    type: 'info',
+    title: 'Monkii — Ollama update available',
+    message: `A newer Ollama is available: ${latest}`,
+    detail: `You have ${current || 'an older version'}. Updating is recommended — recent releases also fix the stray console windows that can appear on Windows when a model loads.`,
+    buttons: ['Download', 'Later'],
+    defaultId: 0,
+    cancelId: 1,
+    checkboxLabel: "Don't remind me about this version",
+    checkboxChecked: false,
+    noLink: true,
+  });
+  if (checkboxChecked) saveSettings({ dismissedOllamaUpdate: latest });
+  if (response === 0) { shell.openExternal(safeUrl); return 'download'; }
+  return 'later';
 }
 
 /** Save a storage patch, restart the server on it, refresh dependent UI. */
@@ -78,6 +104,8 @@ function registerPrefsIpc() {
   });
 
   handleUI('prefs:reset-skills-dir', () => applyStorageChange({ skillsDir: undefined }));
+
+  handleUI('ollama:update-prompt', (info) => promptOllamaUpdate(info));
 }
 
 module.exports = { registerPrefsIpc };

@@ -40,6 +40,8 @@ export async function loadModels() {
   }
 }
 
+let updatePrompted = false; // one native popup per session
+
 export async function checkOllamaUpdate() {
   try {
     const u = await api('/api/update-check');
@@ -47,7 +49,15 @@ export async function checkOllamaUpdate() {
     if (u.updateAvailable) {
       pill.textContent = `↑ Ollama ${u.latest} available`;
       pill.title = `You have ${u.current}. Click to download ${u.latest}.`;
+      if (u.url) pill.href = u.url;
       pill.hidden = false;
+      // In the desktop app, nudge with a native popup (the pill alone is easy to
+      // miss). Once per session here; the main process also mutes any version
+      // the user asked not to be reminded about.
+      if (!updatePrompted && window.monkii?.ollamaUpdatePrompt) {
+        updatePrompted = true;
+        window.monkii.ollamaUpdatePrompt({ current: u.current, latest: u.latest, url: u.url });
+      }
     } else pill.hidden = true;
   } catch { /* non-essential */ }
 }

@@ -23,6 +23,9 @@ contextBridge.exposeInMainWorld('monkii', {
   /** Menu-bar actions (open project, new project, invoke skill) → UI. */
   onMenuAction: (cb) => ipcRenderer.on('menu:action', (_e, msg) => cb(msg)),
 
+  /** Native "update Ollama" popup. Returns 'download' | 'later' | 'dismissed'. */
+  ollamaUpdatePrompt: (info) => ipcRenderer.invoke('ollama:update-prompt', info),
+
   /** Data & skills folders — these restart the server and reload the UI. */
   chooseDataDir: () => ipcRenderer.invoke('prefs:choose-data-dir'),
   resetDataDir: () => ipcRenderer.invoke('prefs:reset-data-dir'),
