@@ -776,6 +776,15 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .prefs-actions button[disabled] { opacity: .4; pointer-events: none; }
 .prefs-note { font-size: 11.5px; color: var(--bone-dim); line-height: 1.5; }
 .prefs-note b { color: var(--gold-deep); }
+.prefs-fs-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.prefs-fs-list li {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 12.5px; color: var(--bone);
+  padding: 4px 10px; border: 1px solid var(--line-soft); border-radius: 2px; background: #060605;
+}
+.prefs-fs-list li .att-path { flex: 1; overflow-x: auto; white-space: nowrap; }
+.prefs-fs-list li button { background: none; border: none; color: var(--bone-dim); cursor: pointer; font-size: 14px; }
+.prefs-fs-list li button:hover { color: var(--red-bright); }
 
 /* ============ context menu ============ */
 #ctx-menu {

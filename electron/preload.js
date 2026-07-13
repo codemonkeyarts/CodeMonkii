@@ -37,4 +37,10 @@ contextBridge.exposeInMainWorld('monkii', {
   resetDataDir: () => ipcRenderer.invoke('prefs:reset-data-dir'),
   chooseSkillsDir: () => ipcRenderer.invoke('prefs:choose-skills-dir'),
   resetSkillsDir: () => ipcRenderer.invoke('prefs:reset-skills-dir'),
+
+  /** File-access allowlist — each restarts the server and reloads the UI. */
+  addFsRoot: () => ipcRenderer.invoke('prefs:fs-add-root'),
+  removeFsRoot: (p) => ipcRenderer.invoke('prefs:fs-remove-root', p),
+  fsWholeDisk: () => ipcRenderer.invoke('prefs:fs-whole-disk'),
+  fsResetHome: () => ipcRenderer.invoke('prefs:fs-reset-home'),
 });

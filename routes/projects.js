@@ -123,7 +123,7 @@ router.put('/projects/:pid/chats/:cid', (req, res) => {
 /** Validate a path and return a new attachment entry, or throw. */
 function makeAttachment(target) {
   if (typeof target !== 'string' || !target.trim()) throw new Error('missing path');
-  if (!pathAllowed(target)) throw new Error('path outside MONKII_FS_ROOTS');
+  if (!pathAllowed(target)) throw new Error('That location is outside Monkii’s allowed folders. Widen access in Preferences → File access.');
   const st = fs.statSync(target);
   return { id: newId(), path: target, type: st.isDirectory() ? 'dir' : 'file' };
 }

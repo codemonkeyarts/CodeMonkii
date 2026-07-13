@@ -319,6 +319,21 @@
           </div>
           <div class="prefs-note">Point this at an existing library (e.g. <b>~\.claude\skills</b>) to use your Claude Code skills as-is.</div>
         </div>
+
+        <div class="field">
+          <span>File access <em>which folders the browser and attachments can read</em></span>
+          <div id="prefs-fs-summary" class="prefs-path"></div>
+          <ul id="prefs-fs-list" class="prefs-fs-list"></ul>
+          <div class="prefs-actions">
+            <button id="btn-prefs-fs-add" class="btn btn-ghost">Add folder…</button>
+            <button id="btn-prefs-fs-all" class="btn btn-ghost">Allow whole disk</button>
+            <button id="btn-prefs-fs-home" class="btn btn-ghost">Reset to home folder</button>
+          </div>
+          <div id="prefs-fs-env-note" class="prefs-note" hidden>
+            Set by the <b>MONKII_FS_ROOTS</b> environment variable — it overrides this preference.
+          </div>
+          <div class="prefs-note">By default Monkii can only read inside your home folder. Add a folder to allow attachments from elsewhere (e.g. a projects drive), or allow the whole disk. Changing this restarts the app view.</div>
+        </div>
       </div>
     </div>
   </div>

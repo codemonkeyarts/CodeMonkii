@@ -17,6 +17,7 @@
 const { app } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const runtime = require('./runtime');
 
 const settingsPath = () => path.join(app.getPath('userData'), 'settings.json');
@@ -56,6 +57,32 @@ function logDir() {
   return process.env.MONKII_LOG_DIR || path.join(base, 'logs');
 }
 
+/* Filesystem allowlist (MONKII_FS_ROOTS). The desktop app fences browsing and
+ * attachment reads to your home folder by default; widen it in Preferences.
+ * The `fsRoots` setting is either an array of allowed folders, the string 'all'
+ * (whole disk), or absent (default = home). The ambient env var always wins. */
+function fsRootsSetting() { return loadSettings().fsRoots; }
+
+/** Effective allowed folders. An empty array means the whole disk (no fence). */
+function fsRootsList() {
+  const env = process.env.MONKII_FS_ROOTS;
+  if (env !== undefined) return env.split(';').map(s => s.trim()).filter(Boolean);
+  const s = fsRootsSetting();
+  if (s === 'all') return [];
+  if (Array.isArray(s) && s.length) return s;
+  return [os.homedir()];
+}
+const fsWholeDisk = () => fsRootsList().length === 0;
+
+/** The MONKII_FS_ROOTS value handed to the forked server. */
+function fsRootsEnvValue() {
+  if (process.env.MONKII_FS_ROOTS !== undefined) return process.env.MONKII_FS_ROOTS;
+  const s = fsRootsSetting();
+  if (s === 'all') return '';
+  if (Array.isArray(s) && s.length) return s.join(';');
+  return os.homedir();
+}
+
 /** Env block handed to the forked server. Seeds the bundled sample skills
  *  into a fresh skills folder when packaged (never overwriting files). */
 function storageEnv() {
@@ -71,7 +98,11 @@ function storageEnv() {
     MONKII_DATA_DIR: dataDir,
     MONKII_SKILLS_DIR: skillsDir,
     MONKII_LOG_DIR: logDir(),
+    MONKII_FS_ROOTS: fsRootsEnvValue(),
   };
 }
 
-module.exports = { loadSettings, saveSettings, defaultStorage, effectiveStorage, storageEnv, logDir };
+module.exports = {
+  loadSettings, saveSettings, defaultStorage, effectiveStorage, storageEnv, logDir,
+  fsRootsList, fsWholeDisk,
+};

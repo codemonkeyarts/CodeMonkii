@@ -8,11 +8,10 @@ Have an idea? Open an issue — local-first, private-by-default proposals move t
 
 The current focus, in priority order (details in the sections below):
 
-1. **Fence the file browser by default** — default `MONKII_FS_ROOTS` to your user profile with a one-click widen
-2. **Version check off by default** — make the daily Ollama-release ping opt-in so "nothing leaves" is literally true on a fresh install
-3. **Untrusted-attachment awareness** — mark attachment/retrieved content as untrusted data to blunt prompt injection
+1. **Version check off by default** — make the daily Ollama-release ping opt-in so "nothing leaves" is literally true on a fresh install
+2. **Untrusted-attachment awareness** — mark attachment/retrieved content as untrusted data to blunt prompt injection
 
-*(Shipped from this list: first-run chat-model bootstrap, background indexing with progress.)*
+*(Shipped from this list: first-run chat-model bootstrap, background indexing with progress, file browser fenced by default.)*
 
 ## Shipped
 
@@ -36,6 +35,7 @@ The current focus, in priority order (details in the sections below):
 - [x] **Retrieval index is private & self-cleaning** — the on-disk embedding index (which holds chunked attachment text in plaintext) is deleted when you detach the attachment or delete the project, the index directory is size-capped with least-recently-used eviction, and it's gitignored; `MONKII_RETRIEVAL=off` writes none at all
 - [x] **First-run chat-model bootstrap** — on a clean install with no models, Monkii offers to pull a small default chat model (`llama3.2`) so you can start chatting immediately (mirrors the embedding-model bootstrap; both share one flow)
 - [x] **Background indexing with progress** — a large attachment starts embedding in the background the moment you attach it, with an "indexing %" badge on the attachment, so the first message no longer waits on the (~90 s for a 2 MB manuscript) build; if you send before it's ready, that send still reuses the same in-flight build
+- [x] **File browser fenced by default** — the desktop app confines the file browser and attachment reads to your **home folder** out of the box; widen it in **Preferences → File access** (add folders, or allow the whole disk). `MONKII_FS_ROOTS` still overrides, symlink/junction escapes are blocked, and a repo checkout (`npm start`) stays whole-disk unless you set the env var
 
 ## More local
 
@@ -49,7 +49,6 @@ The current focus, in priority order (details in the sections below):
 
 *The base is already strong — loopback-only, Host/Origin checks, CSP, a sandboxed renderer, path confinement. These push from "safe by design" to "safe by default, and defensible to hand to someone else."*
 
-- [ ] **Fence the file browser by default** — the `MONKII_FS_ROOTS` allowlist exists but is opt-in, so browsing and attachments can currently reach the whole disk. Default it to your user profile with a one-click widen. *(Symlink/junction escapes inside an allowed folder are already blocked when the allowlist is set — this item is just about making the fence the default.)*
 - [ ] **Encryption at rest** — chats, projects, and the retrieval indexes (which hold chunked attachment text) are plaintext JSON (great for inspection, less so on an unencrypted disk). Add an optional encrypted data folder, or surface a clear "enable device encryption" note in Preferences
 - [ ] **CA-signed certificate** — the installer is signed but self-signed, so other machines still see "unknown publisher." A CA cert (e.g. Azure Trusted Signing) removes the SmartScreen warning for anyone you share it with
 - [ ] **Untrusted-attachment awareness** — attached files and imported skills feed straight into the prompt, so a hostile document could steer the model. Wrap attachment content as clearly-marked untrusted data and flag skills/files that read like instructions

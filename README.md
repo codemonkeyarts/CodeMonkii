@@ -192,7 +192,7 @@ The system prompt stays constant as the conversation grows. With the old dump it
 | `PORT` | `8113` | Web UI port |
 | `OLLAMA_HOST` | `http://localhost:11434` | Ollama server address |
 | `MONKII_SKILLS_DIR` | `./skills` | Where to scan for skills |
-| `MONKII_FS_ROOTS` | *(unset — whole disk)* | Semicolon-separated list of directories the file browser and attachments are restricted to, e.g. `C:\projects;D:\writing` |
+| `MONKII_FS_ROOTS` | *(unset)* | Semicolon-separated list of directories the file browser and attachments are restricted to, e.g. `C:\projects;D:\writing`. When unset, the **desktop app fences to your home folder** by default (manage it in Preferences → File access); a repo checkout (`npm start`) is whole-disk unless you set this. |
 | `MONKII_UPDATE_CHECK` | `on` | Set to `off` to disable the daily Ollama update check |
 | `MONKII_RETRIEVAL` | `on` | Set to `off` to always include attachments whole (no embedding/retrieval) |
 | `MONKII_EMBED_MODEL` | *(auto-detect)* | Force a specific Ollama embedding model; otherwise the first installed embed model is used |
@@ -206,7 +206,7 @@ Monkii is a single-user local app, hardened accordingly:
 - **DNS-rebinding protection** — requests with a `Host` header other than `localhost`/`127.0.0.1` are rejected, so a malicious website that points its own domain at your loopback address gets a 403.
 - **CSRF protection** — cross-origin requests (any `Origin` other than the app's own) are rejected.
 - **Content Security Policy** — scripts run from the app's own origin only; no eval, no inline scripts, no third-party script sources. Plus `nosniff`, `no-referrer`, and a locked-down `Permissions-Policy`.
-- **Filesystem scoping** — set `MONKII_FS_ROOTS` to fence browsing *and* attachment reads into specific directories; the check runs both when attaching and again on every read.
+- **Filesystem scoping** — the desktop app fences browsing *and* attachment reads to your **home folder by default** (widen it in Preferences → File access: add folders or allow the whole disk). `MONKII_FS_ROOTS` overrides it; the check runs both when attaching and again on every read, and resolves realpath so a symlink/junction can't escape the allowlist.
 - **Input validation** — project/skill ids are strictly validated (no path traversal), all model output is HTML-escaped before rendering, and errors return generic JSON with no stack traces.
 - **On-disk retrieval cache** — when a large attachment is searched (see [retrieval](#large-attachments-retrieval-instead-of-overflow)), its embedding index is written under `EMBED_DIR` (default beside your data dir; `%APPDATA%\Monkii\embeddings` for the installed app). That index contains the chunked source **text in plaintext**, like your chats — so it's gitignored, deleted when you detach the attachment or delete the project, and size-capped (least-recently-used eviction). `MONKII_RETRIEVAL=off` disables it entirely, and directory junctions inside an attached folder can't escape `MONKII_FS_ROOTS`.
 

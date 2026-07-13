@@ -9,7 +9,7 @@
  * Each can be overridden by its env var, in which case it renders read-only.
  * In plain browser mode the global is absent and the gear stays hidden.
  */
-import { $, toast } from './util.js';
+import { $, esc, toast } from './util.js';
 import { initModal } from './modal.js';
 
 const bridge = window.monkii;
@@ -35,6 +35,35 @@ function render(prefs) {
   renderLocation('#prefs-skills-dir', '#prefs-skills-env-note',
     ['#btn-prefs-choose-skills', '#btn-prefs-default-skills'],
     prefs.skillsDir + (prefs.skillsDirCustom ? '' : '  (default)'), prefs.skillsDirEnv);
+
+  renderFsAccess(prefs);
+}
+
+/** The file-access allowlist: whole-disk banner, or a removable list of folders. */
+function renderFsAccess(prefs) {
+  const env = prefs.fsRootsEnv;
+  $('#prefs-fs-env-note').hidden = !env;
+  for (const id of ['#btn-prefs-fs-add', '#btn-prefs-fs-all', '#btn-prefs-fs-home']) $(id).disabled = Boolean(env);
+
+  const summary = $('#prefs-fs-summary');
+  const list = $('#prefs-fs-list');
+  if (prefs.fsWholeDisk) {
+    summary.textContent = 'Whole disk — Monkii can read anywhere on this computer.';
+    list.innerHTML = '';
+    return;
+  }
+  const roots = prefs.fsRoots || [];
+  summary.textContent = (roots.length === 1 && roots[0] === prefs.fsHome)
+    ? 'Your home folder only (default)'
+    : `${roots.length} allowed folder${roots.length === 1 ? '' : 's'}`;
+  list.innerHTML = roots.map(r => `
+    <li><span class="att-path" title="${esc(r)}">${esc(r)}</span>${
+      env ? '' : `<button data-fsroot="${encodeURIComponent(r)}" title="Remove">×</button>`}</li>`).join('');
+  if (!env) list.querySelectorAll('[data-fsroot]').forEach(b =>
+    b.addEventListener('click', async () => {
+      const next = await bridge.removeFsRoot(decodeURIComponent(b.dataset.fsroot));
+      if (next) render(next);
+    }));
 }
 
 /* Data/skills changes restart the server and reload the page, so the toast
@@ -67,4 +96,8 @@ export function initPrefs() {
   wireAction('#btn-prefs-default-data', () => bridge.resetDataDir());
   wireAction('#btn-prefs-choose-skills', () => bridge.chooseSkillsDir());
   wireAction('#btn-prefs-default-skills', () => bridge.resetSkillsDir());
+
+  wireAction('#btn-prefs-fs-add', () => bridge.addFsRoot());
+  wireAction('#btn-prefs-fs-all', () => bridge.fsWholeDisk());
+  wireAction('#btn-prefs-fs-home', () => bridge.fsResetHome());
 }

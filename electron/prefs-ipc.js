@@ -10,8 +10,9 @@
  * boot) and rebuild the menu, whose folder shortcuts reflect the new paths.
  */
 const { ipcMain, dialog, shell } = require('electron');
+const os = require('os');
 const runtime = require('./runtime');
-const { loadSettings, saveSettings, effectiveStorage } = require('./settings');
+const { loadSettings, saveSettings, effectiveStorage, fsRootsList, fsWholeDisk } = require('./settings');
 const { pickFolder } = require('./dialogs');
 const { restartServer } = require('./server');
 const { buildMenu } = require('./menu');
@@ -31,6 +32,11 @@ function prefsSummary() {
     skillsDir: eff.skillsDir,
     skillsDirCustom: Boolean(s.skillsDir),
     skillsDirEnv: process.env.MONKII_SKILLS_DIR || null,
+    // file-access allowlist
+    fsRoots: fsRootsList(),
+    fsWholeDisk: fsWholeDisk(),
+    fsHome: os.homedir(),
+    fsRootsEnv: process.env.MONKII_FS_ROOTS ?? null,
   };
 }
 
@@ -167,6 +173,21 @@ function registerPrefsIpc() {
   });
 
   handleUI('prefs:reset-skills-dir', () => applyStorageChange({ skillsDir: undefined }));
+
+  // file-access allowlist — each change restarts the server (config reads it at boot)
+  handleUI('prefs:fs-add-root', async () => {
+    const p = await pickFolder('Allow Monkii to read this folder');
+    if (!p) return null;
+    const cur = loadSettings().fsRoots;
+    const base = Array.isArray(cur) && cur.length ? cur : [os.homedir()]; // default & whole-disk start from home
+    return applyStorageChange({ fsRoots: [...new Set([...base, p])] });
+  });
+  handleUI('prefs:fs-remove-root', (p) => {
+    const roots = fsRootsList().filter(r => r !== p);
+    return applyStorageChange({ fsRoots: roots.length ? roots : undefined }); // empty → back to default home
+  });
+  handleUI('prefs:fs-whole-disk', () => applyStorageChange({ fsRoots: 'all' }));
+  handleUI('prefs:fs-reset-home', () => applyStorageChange({ fsRoots: undefined }));
 
   handleUI('ollama:update-prompt', (info) => promptOllamaUpdate(info));
   handleUI('ollama:embed-prompt', (info) => promptEmbedModel(info));
