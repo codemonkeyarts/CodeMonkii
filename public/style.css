@@ -388,6 +388,17 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .chat-att-chip button { background: none; border: none; color: inherit; font-size: 13px; opacity: .7; }
 .chat-att-chip button:hover { opacity: 1; color: var(--red-bright); }
 
+/* background-indexing progress badge on an attachment */
+.att-indexing {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em;
+  color: var(--gold); background: rgba(255, 212, 0, .1);
+  border: 1px solid rgba(255, 212, 0, .35); border-radius: 2px;
+  padding: 0 6px; white-space: nowrap; animation: att-pulse 1.4s ease-in-out infinite;
+}
+#attachment-list .att-indexing { margin-left: 6px; }
+@keyframes att-pulse { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .att-indexing { animation: none; } }
+
 #skill-popup {
   position: absolute; bottom: 100%; left: 26px; right: 26px; margin-bottom: 6px;
   background: var(--obsidian); border: 1px solid var(--line); border-radius: 2px;

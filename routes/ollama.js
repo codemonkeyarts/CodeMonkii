@@ -17,7 +17,7 @@ const { estimateTokens } = require('../lib/tokens');
 const { logError } = require('../lib/log');
 const { pipeNdjson } = require('../lib/stream');
 const ollama = require('../lib/ollama');
-const { embedStatus, isEmbedName } = require('../lib/retrieval');
+const { embedStatus, isEmbedName, indexStatusFor } = require('../lib/retrieval');
 
 const router = express.Router();
 
@@ -96,6 +96,13 @@ router.get('/chat-status', async (req, res) => {
     const names = (await ollama.listModels()).map(m => m.name);
     res.json({ hasChatModel: names.some(n => !isEmbedName(n)), recommended: CHAT_MODEL_DEFAULT, size: CHAT_MODEL_SIZE });
   } catch { res.json({ hasChatModel: false, recommended: CHAT_MODEL_DEFAULT, size: CHAT_MODEL_SIZE }); }
+});
+
+/* Background-indexing progress for a set of attachment paths (for the UI badge).
+ * POST because Windows paths don't survive query strings cleanly. */
+router.post('/index-status', (req, res) => {
+  const paths = Array.isArray(req.body.paths) ? req.body.paths.filter(p => typeof p === 'string') : [];
+  res.json({ statuses: indexStatusFor(paths) });
 });
 
 /* Estimated token cost of the fixed part of a request (system prompt +

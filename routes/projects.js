@@ -12,6 +12,7 @@ const { newId, loadProject, saveProject, deleteProject, listProjects } = require
 const { pathAllowed } = require('../lib/security');
 const { sanitizeOptions } = require('../lib/options');
 const { dropIndex } = require('../lib/retrieval');
+const { warmAttachment } = require('../lib/knowledge');
 
 const router = express.Router();
 
@@ -130,8 +131,10 @@ function makeAttachment(target) {
 router.post('/projects/:pid/attachments', (req, res) => {
   try {
     const p = loadProject(req.params.pid);
-    if (!p.attachments.some(a => a.path === req.body.path)) p.attachments.push(makeAttachment(req.body.path));
+    let att = p.attachments.find(a => a.path === req.body.path);
+    if (!att) { att = makeAttachment(req.body.path); p.attachments.push(att); }
     saveProject(p);
+    warmAttachment(att); // background index build so the first message doesn't hang
     res.json(p);
   } catch (e) { res.status(400).json({ error: String(e.message || e) }); }
 });
@@ -154,8 +157,10 @@ router.post('/projects/:pid/chats/:cid/attachments', (req, res) => {
     const c = p.chats.find(c => c.id === req.params.cid);
     if (!c) return res.status(404).json({ error: 'chat not found' });
     if (!c.attachments) c.attachments = [];
-    if (!c.attachments.some(a => a.path === req.body.path)) c.attachments.push(makeAttachment(req.body.path));
+    let att = c.attachments.find(a => a.path === req.body.path);
+    if (!att) { att = makeAttachment(req.body.path); c.attachments.push(att); }
     saveProject(p);
+    warmAttachment(att); // background index build so the first message doesn't hang
     res.json(c);
   } catch (e) { res.status(400).json({ error: String(e.message || e) }); }
 });
