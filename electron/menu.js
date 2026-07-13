@@ -79,6 +79,11 @@ async function buildMenu() {
         },
         { type: 'separator' },
         {
+          label: 'Preferences…',
+          accelerator: 'CmdOrCtrl+,',
+          click: () => sendToUI('preferences'),
+        },
+        {
           label: 'Manage Models…',
           click: () => sendToUI('manage-models'),
         },

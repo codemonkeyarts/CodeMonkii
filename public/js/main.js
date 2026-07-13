@@ -55,6 +55,7 @@ function wireDesktopMenu(openSkillsModal, openModelManager) {
     else if (type === 'new-skill') { openSkillsModal(); showSkillCreateForm(); }
     else if (type === 'import-skill') { openSkillsModal(); importSkillFlow(); }
     else if (type === 'manage-models') openModelManager();
+    else if (type === 'preferences') $('#btn-prefs').click();
     else if (type === 'help') $('#btn-help').click();
     else if (type === 'about') $('#btn-about').click();
   });
