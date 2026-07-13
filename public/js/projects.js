@@ -12,6 +12,7 @@ import { api } from './api.js';
 import { state } from './state.js';
 import { renderSkillToggles, renderSkillChips } from './skills.js';
 import { renderAttachments } from './attachments.js';
+import { confirmDialog } from './confirm.js';
 import { renderChatList, openChat, newChat } from './chat.js';
 import { showView } from './views.js';
 
@@ -106,7 +107,8 @@ export async function deleteProject() {
 /** Delete any project (inspector button or a project card's context menu). */
 export async function deleteProjectById(pid) {
   const name = (state.projects.find(p => p.id === pid) || state.project || {}).name || 'this project';
-  if (!confirm(`Delete project "${name}" and all its chats? This cannot be undone.`)) return;
+  if (!await confirmDialog(`Delete project "${name}" and all its chats? This cannot be undone.`,
+    { confirmLabel: 'Delete', danger: true })) return;
   await api(`/api/projects/${pid}`, { method: 'DELETE' });
   if (state.project && state.project.id === pid) {
     state.project = null;

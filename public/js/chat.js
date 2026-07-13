@@ -15,6 +15,7 @@ import { md } from './markdown.js';
 import { skillNames, renderSkillChips } from './skills.js';
 import { showView } from './views.js';
 import { refreshContext, clearContext, willOverflow, cannotCompact } from './context-meter.js';
+import { confirmDialog } from './confirm.js';
 import { openOverflowDialog } from './overflow.js';
 import { renderChatAttachments } from './attachments.js';
 
@@ -59,12 +60,13 @@ export async function clearChat(cid = state.chatId) {
   if (!cid || state.streaming) return;
   const chat = state.project.chats.find(c => c.id === cid);
   if (!chat || !chat.messages.length) return; // nothing to clear
-  if (!confirm('Clear this conversation? Its messages are removed — the chat, its model, and attachments stay.')) return;
+  if (!await confirmDialog('Clear this conversation? Its messages are removed — the chat, its model, and attachments stay.',
+    { confirmLabel: 'Clear', danger: true })) return;
   try {
     await api(`/api/projects/${state.project.id}/chats/${cid}/messages`, { method: 'DELETE' });
   } catch (e) { toast(e.message, true); return; }
   chat.messages = [];
-  if (cid === state.chatId) { renderMessages(); clearContext(); refreshContext(); }
+  if (cid === state.chatId) { renderMessages(); clearContext(); refreshContext(); $('#input').focus(); }
   toast('Conversation cleared');
 }
 

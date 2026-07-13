@@ -23,6 +23,7 @@ import { initModelManager, openModelManager } from './model-manager.js';
 import { updateMeter } from './context-meter.js';
 import { checkModels } from './model-bootstrap.js';
 import { initHelpAbout } from './about.js';
+import { initConfirm } from './confirm.js';
 
 function wireNavigation() {
   $('#btn-new-project').addEventListener('click', createProject);
@@ -104,6 +105,7 @@ function wireComposer() {
 }
 
 async function init() {
+  initConfirm();
   initPrefs();
   initContextMenus();
   wireNavigation();

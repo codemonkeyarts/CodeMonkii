@@ -10,6 +10,7 @@
 import { $, esc, toast, fmtBytes, readNdjson } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
+import { confirmDialog } from './confirm.js';
 import { loadModels } from './status.js';
 
 const fmtSize = (n) => fmtBytes(n, '—');
@@ -36,7 +37,8 @@ async function renderList() {
 }
 
 async function del(name) {
-  if (!confirm(`Delete model "${name}"? This frees its disk space and cannot be undone.`)) return;
+  if (!await confirmDialog(`Delete model "${name}"? This frees its disk space and cannot be undone.`,
+    { confirmLabel: 'Delete', danger: true })) return;
   try {
     await api(`/api/models?name=${encodeURIComponent(name)}`, { method: 'DELETE' });
     toast(`Deleted ${name}`);

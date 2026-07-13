@@ -364,6 +364,11 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 }
 .btn-danger-ghost:hover { background: rgba(90, 10, 18, .25); border-color: var(--red); }
 
+#confirm-panel { width: min(420px, 90vw); }
+.confirm-body { padding: 22px; display: flex; flex-direction: column; gap: 20px; }
+.confirm-body p { margin: 0; color: var(--bone); font-size: 14px; line-height: 1.55; }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
 /* skill invocation */
 #active-skill-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
 .skill-chip {
