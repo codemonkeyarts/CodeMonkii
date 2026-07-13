@@ -1,6 +1,6 @@
 {
   "name": "monkii",
-  "version": "1.3.10",
+  "version": "1.3.11",
   "description": "Monkii — local LLM studio for Ollama: projects, Claude-style skills, and live file knowledge",
   "main": "electron/main.js",
   "scripts": {

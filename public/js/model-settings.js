@@ -53,6 +53,17 @@ function fillModels() {
   $('#ms-model').value = header.value;
 }
 
+/** Warn when the context length is set beyond what a typical GPU can hold — a
+ * too-high value makes the model's KV cache exceed VRAM and fail to load/crash. */
+function updateCtxWarn(pow) {
+  const warn = $('#ms-ctx-warn');
+  if (pow < 16) { warn.hidden = true; return; } // ≤ 32k is fine on most GPUs
+  warn.hidden = false;
+  warn.textContent = pow >= 17
+    ? `⚠ ${ctxLabel(pow)} needs many GB of VRAM for the KV cache — on most GPUs the model will fail to load or crash. Lower it unless you have the memory to spare.`
+    : `⚠ ${ctxLabel(pow)} is memory-hungry and can exceed a typical GPU, making the model fail to load. With on-device retrieval, large attachments don't need a big context.`;
+}
+
 /** Load the current project's saved options into the controls. */
 function load() {
   fillModels();
@@ -63,6 +74,7 @@ function load() {
   const clamped = Math.min(18, Math.max(12, pow));
   $('#ms-num_ctx').value = clamped;
   $('#ms-ctx-out').textContent = ctxLabel(clamped);
+  updateCtxWarn(clamped);
 
   const temp = o.temperature != null ? o.temperature : 1;
   $('#ms-temperature').value = temp;
@@ -109,7 +121,9 @@ export function initModelSettings(openModal) {
   });
 
   $('#ms-num_ctx').addEventListener('input', () => {
-    $('#ms-ctx-out').textContent = ctxLabel(Number($('#ms-num_ctx').value));
+    const pow = Number($('#ms-num_ctx').value);
+    $('#ms-ctx-out').textContent = ctxLabel(pow);
+    updateCtxWarn(pow);
   });
   $('#ms-temperature').addEventListener('input', () => {
     $('#ms-temp-out').textContent = Number($('#ms-temperature').value).toFixed(2);

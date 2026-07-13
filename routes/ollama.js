@@ -195,7 +195,20 @@ router.post('/chat', async (req, res) => {
   try {
     upstream = await ollama.streamChat({ model, messages, options: clean, keepAlive, signal: ac.signal });
   } catch (e) {
-    logError(`chat "${model}" — Ollama unreachable`, e);
+    logError(`chat "${model}" — request failed`, e);
+    // Distinguish "Ollama is down" from "the request failed while Ollama is up"
+    // — a dropped connection usually means the model runner crashed, most often
+    // out of memory from too high a context length for the GPU.
+    let reachable = false;
+    try { await ollama.getVersion(); reachable = true; } catch { /* really down */ }
+    if (reachable) {
+      const n = clean.num_ctx;
+      const ctxNote = n ? ` (context length is ${n >= 1024 ? Math.round(n / 1024) + 'k' : n})` : '';
+      return res.status(502).json({
+        error: `${model} failed to respond — the model likely ran out of memory or timed out loading${ctxNote}. ` +
+          `Lower the context length in Model settings, or pick a smaller model.`,
+      });
+    }
     return res.status(502).json({ error: `Cannot reach Ollama at ${OLLAMA}. Is it running?` });
   }
   if (!upstream.ok) {
