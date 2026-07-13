@@ -113,6 +113,16 @@ async function buildMenu() {
       ],
     },
     { role: 'editMenu' },
+    {
+      label: 'Help',
+      submenu: [
+        { label: 'Help & FAQ', click: () => sendToUI('help') },
+        { label: 'About Monkii', click: () => sendToUI('about') },
+        { type: 'separator' },
+        { label: 'GitHub Repository', click: () => shell.openExternal('https://github.com/codalanguez/Monkii') },
+        { label: 'Read the README', click: () => shell.openExternal('https://github.com/codalanguez/Monkii#readme') },
+      ],
+    },
   ]));
 }
 

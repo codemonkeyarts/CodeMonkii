@@ -22,6 +22,7 @@ import { initModelSettings } from './model-settings.js';
 import { initModelManager, openModelManager } from './model-manager.js';
 import { updateMeter } from './context-meter.js';
 import { checkModels } from './model-bootstrap.js';
+import { initHelpAbout } from './about.js';
 
 function wireNavigation() {
   $('#btn-new-project').addEventListener('click', createProject);
@@ -54,6 +55,8 @@ function wireDesktopMenu(openSkillsModal, openModelManager) {
     else if (type === 'new-skill') { openSkillsModal(); showSkillCreateForm(); }
     else if (type === 'import-skill') { openSkillsModal(); importSkillFlow(); }
     else if (type === 'manage-models') openModelManager();
+    else if (type === 'help') $('#btn-help').click();
+    else if (type === 'about') $('#btn-about').click();
   });
 }
 
@@ -106,6 +109,7 @@ async function init() {
   wireInspector();
   wireFileBrowser();
   wireComposer();
+  initHelpAbout();
   initOverflowDialog(send, newChat);
 
   await Promise.all([checkHealth(), loadModels(), loadSkills()]);

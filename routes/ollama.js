@@ -18,8 +18,20 @@ const { logError } = require('../lib/log');
 const { pipeNdjson } = require('../lib/stream');
 const ollama = require('../lib/ollama');
 const { embedStatus, isEmbedName, indexStatusFor } = require('../lib/retrieval');
+const pkg = require('../package.json');
 
 const router = express.Router();
+
+/* App metadata for the About dialog. `buildDate` is baked into the packaged
+ * package.json by scripts/build-info.js; absent in a dev checkout. */
+router.get('/about', (req, res) => {
+  res.json({
+    name: 'Monkii',
+    version: pkg.version,
+    buildDate: pkg.buildDate || null,
+    repo: 'https://github.com/codalanguez/Monkii',
+  });
+});
 
 router.get('/health', async (req, res) => {
   try {

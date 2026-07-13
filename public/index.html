@@ -38,6 +38,8 @@
 
     <footer id="rail-foot">
       <span>local · private · yours</span>
+      <button id="btn-help" class="icon-btn" title="Help &amp; FAQ">?</button>
+      <button id="btn-about" class="icon-btn" title="About Monkii">ⓘ</button>
       <button id="btn-prefs" class="icon-btn" title="Preferences" hidden>⚙</button>
     </footer>
   </aside>
@@ -345,6 +347,71 @@
             Set by the <b>MONKII_UPDATE_CHECK</b> environment variable — it overrides this preference.
           </div>
           <div class="prefs-note"><b>Off by default.</b> This is the only thing Monkii ever sends off your machine — a version check to GitHub, with no data about you or your chats. Enable it to get update notifications. Changing this restarts the app view.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="help-backdrop" class="modal-backdrop" hidden>
+    <div id="help-panel" class="modal-panel">
+      <header>
+        <h3>Help &amp; FAQ</h3>
+        <button id="btn-close-help" class="icon-btn" title="Close">×</button>
+      </header>
+      <div class="help-body">
+        <div class="faq">
+          <h4>Getting started</h4>
+          <p>Open a <b>Project</b> (or hit <b>Quick chat</b>), pick a model at the top, and type. <b>Enter</b> sends; <b>Shift+Enter</b> makes a newline.</p>
+
+          <h4>Attach knowledge</h4>
+          <p>Add files or folders with the <b>📎</b> in the chat header (just this chat) or the <b>Knowledge</b> panel (the whole project). Attachments are re-read from disk every message, so your latest edits always show up.</p>
+
+          <h4>Big files &amp; long documents</h4>
+          <p>A large attachment — a manuscript, a codebase — is embedded on-device, and only the passages relevant to your question are added to the prompt. You'll see an <b>“indexing %”</b> badge while it prepares. It needs a small embedding model, which Monkii offers to download on first run.</p>
+
+          <h4>Skills</h4>
+          <p>Drop a <code>SKILL.md</code> folder into your skills directory, or use <b>✦ Skills → New / Import</b>. Toggle a skill on for a whole project, or invoke one for a single message by typing <b>/</b> in the composer.</p>
+
+          <h4>Models</h4>
+          <p>Pick a model per chat. <b>Manage models…</b> pulls, deletes, and shows disk usage; the <b>⚙</b> next to the model opens <b>Model settings</b> (context length, temperature, and more).</p>
+
+          <h4>File access</h4>
+          <p>By default Monkii can only read inside your home folder. To attach from elsewhere, widen it in <b>Preferences → File access</b>.</p>
+
+          <h4>Privacy</h4>
+          <p>Nothing leaves your machine. The only optional outbound call — a daily check for newer Ollama releases — is <b>off by default</b> (turn it on in Preferences → Update check).</p>
+
+          <h4>Tips</h4>
+          <ul>
+            <li><b>Right-click</b> chats, projects, messages, and skills for quick actions.</li>
+            <li>Type <b>/</b> in the composer to invoke a skill for one message.</li>
+            <li>If a chat gets long, Monkii trims old messages to fit — or start a new chat, or raise the context length in Model settings.</li>
+          </ul>
+        </div>
+        <div class="help-links">
+          <a href="https://github.com/codalanguez/Monkii" target="_blank" rel="noopener">GitHub repository ↗</a>
+          <a href="https://github.com/codalanguez/Monkii#readme" target="_blank" rel="noopener">Read the README ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="about-backdrop" class="modal-backdrop" hidden>
+    <div id="about-panel" class="modal-panel">
+      <header>
+        <h3>About Monkii</h3>
+        <button id="btn-close-about" class="icon-btn" title="Close">×</button>
+      </header>
+      <div class="about-body">
+        <div class="about-mark">🐒 <span>MON<b>KII</b></span></div>
+        <p>A <b>local, private LLM studio</b> for <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> — projects, Claude-style skills, and live file knowledge. Everything runs on your own machine; nothing about you or your chats ever leaves it.</p>
+        <p>Built by <b>Coda Languez</b> as a desktop home for local AI: it began as a ComfyUI-style wrapper around Ollama and grew into a full studio for writing and coding with models that never phone home.</p>
+        <dl class="about-meta">
+          <div><dt>Version</dt><dd id="about-version">—</dd></div>
+          <div><dt>Built</dt><dd id="about-build">—</dd></div>
+        </dl>
+        <div class="help-links">
+          <a href="https://github.com/codalanguez/Monkii" target="_blank" rel="noopener">github.com/codalanguez/Monkii ↗</a>
         </div>
       </div>
     </div>
