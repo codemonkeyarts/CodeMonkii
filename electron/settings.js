@@ -74,13 +74,10 @@ function fsRootsList() {
 }
 const fsWholeDisk = () => fsRootsList().length === 0;
 
-/** The MONKII_FS_ROOTS value handed to the forked server. */
+/** The MONKII_FS_ROOTS value handed to the forked server (ambient env wins;
+ * otherwise the effective list, where [] means whole disk → empty string). */
 function fsRootsEnvValue() {
-  if (process.env.MONKII_FS_ROOTS !== undefined) return process.env.MONKII_FS_ROOTS;
-  const s = fsRootsSetting();
-  if (s === 'all') return '';
-  if (Array.isArray(s) && s.length) return s.join(';');
-  return os.homedir();
+  return (process.env.MONKII_FS_ROOTS !== undefined) ? process.env.MONKII_FS_ROOTS : fsRootsList().join(';');
 }
 
 /* Daily Ollama update check — opt-in, off unless the user enables it (or the

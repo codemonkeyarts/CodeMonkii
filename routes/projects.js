@@ -11,16 +11,15 @@ const express = require('express');
 const { newId, loadProject, saveProject, deleteProject, listProjects } = require('../lib/store');
 const { pathAllowed } = require('../lib/security');
 const { sanitizeOptions } = require('../lib/options');
-const { dropIndex } = require('../lib/retrieval');
-const { warmAttachment } = require('../lib/knowledge');
+const { warmAttachment, forgetAttachment } = require('../lib/knowledge');
 
 const router = express.Router();
 
-/** Every attachment path in a project (its own + all its chats'). */
-function attachmentPaths(p) {
-  const paths = (p.attachments || []).map(a => a.path);
-  for (const c of p.chats || []) for (const a of c.attachments || []) paths.push(a.path);
-  return paths;
+/** Every attachment in a project (its own + all its chats'). */
+function allAttachments(p) {
+  const atts = [...(p.attachments || [])];
+  for (const c of p.chats || []) atts.push(...(c.attachments || []));
+  return atts;
 }
 
 /* ---- projects ---- */
@@ -73,10 +72,10 @@ router.put('/projects/:pid', (req, res) => {
 
 router.delete('/projects/:pid', (req, res) => {
   try {
-    let paths = [];
-    try { paths = attachmentPaths(loadProject(req.params.pid)); } catch { /* gone already */ }
+    let atts = [];
+    try { atts = allAttachments(loadProject(req.params.pid)); } catch { /* gone already */ }
     deleteProject(req.params.pid);
-    paths.forEach(dropIndex); // remove cached embeddings for this project's attachments
+    atts.forEach(forgetAttachment); // remove cached embeddings for this project's attachments
     res.json({ ok: true });
   } catch { res.status(404).json({ error: 'project not found' }); }
 });
@@ -99,7 +98,7 @@ router.delete('/projects/:pid/chats/:cid', (req, res) => {
     const gone = p.chats.find(c => c.id === req.params.cid);
     p.chats = p.chats.filter(c => c.id !== req.params.cid);
     saveProject(p);
-    if (gone) (gone.attachments || []).forEach(a => dropIndex(a.path));
+    if (gone) (gone.attachments || []).forEach(forgetAttachment);
     res.json({ ok: true });
   } catch { res.status(404).json({ error: 'project not found' }); }
 });
@@ -145,7 +144,7 @@ router.delete('/projects/:pid/attachments/:aid', (req, res) => {
     const gone = p.attachments.find(a => a.id === req.params.aid);
     p.attachments = p.attachments.filter(a => a.id !== req.params.aid);
     saveProject(p);
-    if (gone) dropIndex(gone.path); // remove its cached embeddings copy
+    if (gone) forgetAttachment(gone); // remove its cached embeddings copy
     res.json(p);
   } catch { res.status(404).json({ error: 'project not found' }); }
 });
@@ -173,7 +172,7 @@ router.delete('/projects/:pid/chats/:cid/attachments/:aid', (req, res) => {
     const gone = (c.attachments || []).find(a => a.id === req.params.aid);
     c.attachments = (c.attachments || []).filter(a => a.id !== req.params.aid);
     saveProject(p);
-    if (gone) dropIndex(gone.path);
+    if (gone) forgetAttachment(gone);
     res.json(c);
   } catch { res.status(404).json({ error: 'project not found' }); }
 });

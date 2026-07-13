@@ -32,6 +32,7 @@ function attachedPaths() {
 export async function pollIndexing() {
   if (polling) return;
   polling = true;
+  let idle = 0; // indexing starts async on the server, so wait a few rounds for it to appear
   try {
     for (;;) {
       const paths = attachedPaths();
@@ -45,7 +46,7 @@ export async function pollIndexing() {
       }
       if (state.project) renderAttachments();
       renderChatAttachments();
-      if (!building) break;
+      if (building) idle = 0; else if (++idle >= 4) break; // ~5s grace before giving up
       await new Promise(r => setTimeout(r, 1200));
     }
   } finally { polling = false; }

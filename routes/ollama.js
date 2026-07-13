@@ -101,7 +101,7 @@ router.get('/chat-status', async (req, res) => {
 /* Background-indexing progress for a set of attachment paths (for the UI badge).
  * POST because Windows paths don't survive query strings cleanly. */
 router.post('/index-status', (req, res) => {
-  const paths = Array.isArray(req.body.paths) ? req.body.paths.filter(p => typeof p === 'string') : [];
+  const paths = Array.isArray(req.body.paths) ? req.body.paths.filter(p => typeof p === 'string').slice(0, 500) : [];
   res.json({ statuses: indexStatusFor(paths) });
 });
 
