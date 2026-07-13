@@ -761,7 +761,9 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 #skills-panel > footer em { font-style: normal; font-family: var(--font-mono); font-size: 13px; color: var(--gold-deep); }
 
 /* ============ preferences modal (desktop app only) ============ */
-#rail-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#rail-foot { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.rail-tag { font-size: 11px; letter-spacing: .12em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.rail-actions { display: flex; gap: 6px; }
 
 #prefs-panel { width: min(560px, 92vw); max-height: 86vh; }
 .prefs-body { padding: 20px; display: flex; flex-direction: column; gap: 18px; flex: 1; min-height: 0; overflow-y: auto; }
