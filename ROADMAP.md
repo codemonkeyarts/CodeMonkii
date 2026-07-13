@@ -6,11 +6,7 @@ Have an idea? Open an issue — local-first, private-by-default proposals move t
 
 ## Next up
 
-The current focus, in priority order (details in the sections below):
-
-1. **Untrusted-attachment awareness** — mark attachment/retrieved content as untrusted data to blunt prompt injection
-
-*(Shipped from this list: first-run chat-model bootstrap, background indexing with progress, file browser fenced by default, version check off by default.)*
+All five priorities from the last round shipped — see the top of **Shipped**. Time to pick the next focus from the buckets below; the **CA-signed certificate** is the biggest lever for sharing beyond your own machine, and **theming** / **search** are the most-requested "yours" items.
 
 ## Shipped
 
@@ -36,6 +32,7 @@ The current focus, in priority order (details in the sections below):
 - [x] **Background indexing with progress** — a large attachment starts embedding in the background the moment you attach it, with an "indexing %" badge on the attachment, so the first message no longer waits on the (~90 s for a 2 MB manuscript) build; if you send before it's ready, that send still reuses the same in-flight build
 - [x] **File browser fenced by default** — the desktop app confines the file browser and attachment reads to your **home folder** out of the box; widen it in **Preferences → File access** (add folders, or allow the whole disk). `MONKII_FS_ROOTS` still overrides, symlink/junction escapes are blocked, and a repo checkout (`npm start`) stays whole-disk unless you set the env var
 - [x] **Update check off by default** — the daily Ollama-release ping to GitHub is now opt-in (off on a fresh install), so out of the box nothing leaves your machine at all; enable it in **Preferences → Update check** (or `MONKII_UPDATE_CHECK=on`)
+- [x] **Untrusted-attachment awareness** — attached files and retrieved passages are wrapped as clearly-marked *untrusted reference data* with an explicit instruction to treat them as content, never commands; content that reads like a prompt injection ("ignore previous instructions", forged `System:`/`Assistant:` turns) is flagged in the prompt's attachment notes
 
 ## More local
 
@@ -50,7 +47,6 @@ The current focus, in priority order (details in the sections below):
 
 - [ ] **Encryption at rest** — chats, projects, and the retrieval indexes (which hold chunked attachment text) are plaintext JSON (great for inspection, less so on an unencrypted disk). Add an optional encrypted data folder, or surface a clear "enable device encryption" note in Preferences
 - [ ] **CA-signed certificate** — the installer is signed but self-signed, so other machines still see "unknown publisher." A CA cert (e.g. Azure Trusted Signing) removes the SmartScreen warning for anyone you share it with
-- [ ] **Untrusted-attachment awareness** — attached files and imported skills feed straight into the prompt, so a hostile document could steer the model. Wrap attachment content as clearly-marked untrusted data and flag skills/files that read like instructions
 - [ ] **Backup & wipe controls** — one-click "export a backup" (zip the data dir), a clear "erase everything," and a visible data-location shortcut. Ownership includes being able to take it and to leave cleanly
 - [ ] **Auto-update** for the desktop app (`electron-updater`) — with pinned signature verification when it lands
 
