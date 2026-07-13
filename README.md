@@ -265,7 +265,7 @@ public/
     context-meter.js    live token/context estimate in the composer
     model-manager.js    pull / delete / disk usage for Ollama models
     model-info.js       selected-model size, specs + usage recommendation
-    embed-model.js      first-run bootstrap for the retrieval embedding model
+    model-bootstrap.js  first-run offers to pull a chat model + the retrieval embed model
     prefs.js            preferences panel (storage folders; desktop app only)
 skills/                 your skills (3 samples included)
 data/projects/          project + chat storage (JSON, gitignored)

@@ -29,6 +29,9 @@ contextBridge.exposeInMainWorld('monkii', {
   /** First-run "download embedding model?" popup. Returns 'download' | 'later' | 'dismissed'. */
   embedModelPrompt: (info) => ipcRenderer.invoke('ollama:embed-prompt', info),
 
+  /** First-run "download a chat model?" popup. Returns 'download' | 'later' | 'dismissed'. */
+  chatModelPrompt: (info) => ipcRenderer.invoke('ollama:chat-prompt', info),
+
   /** Data & skills folders — these restart the server and reload the UI. */
   chooseDataDir: () => ipcRenderer.invoke('prefs:choose-data-dir'),
   resetDataDir: () => ipcRenderer.invoke('prefs:reset-data-dir'),

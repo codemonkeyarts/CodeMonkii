@@ -21,7 +21,7 @@ import { initContextMenus } from './ctxmenu.js';
 import { initModelSettings } from './model-settings.js';
 import { initModelManager, openModelManager } from './model-manager.js';
 import { updateMeter } from './context-meter.js';
-import { checkEmbedModel } from './embed-model.js';
+import { checkModels } from './model-bootstrap.js';
 
 function wireNavigation() {
   $('#btn-new-project').addEventListener('click', createProject);
@@ -111,7 +111,7 @@ async function init() {
   await Promise.all([checkHealth(), loadModels(), loadSkills()]);
   await showProjectsPage(); // land on the all-projects page (welcome if none)
   checkOllamaUpdate();
-  checkEmbedModel(); // offer the retrieval embedding model on first run if missing
+  checkModels(); // first-run: offer a chat model and the retrieval embed model if missing
   setInterval(checkHealth, 15000);
   setInterval(checkOllamaUpdate, 6 * 60 * 60 * 1000); // server caches for 24h anyway
 }

@@ -9,7 +9,7 @@
  * if the user hit Stop mid-generation.
  */
 const express = require('express');
-const { OLLAMA, HISTORY_LIMIT, DEFAULT_CONTEXT, EMBED_MODEL_DEFAULT, EMBED_MODEL_SIZE } = require('../lib/config');
+const { OLLAMA, HISTORY_LIMIT, DEFAULT_CONTEXT, EMBED_MODEL_DEFAULT, EMBED_MODEL_SIZE, CHAT_MODEL_DEFAULT, CHAT_MODEL_SIZE } = require('../lib/config');
 const { loadProject, saveProject } = require('../lib/store');
 const { sanitizeOptions } = require('../lib/options');
 const { buildSystem } = require('../lib/prompt');
@@ -17,7 +17,7 @@ const { estimateTokens } = require('../lib/tokens');
 const { logError } = require('../lib/log');
 const { pipeNdjson } = require('../lib/stream');
 const ollama = require('../lib/ollama');
-const { embedStatus } = require('../lib/retrieval');
+const { embedStatus, isEmbedName } = require('../lib/retrieval');
 
 const router = express.Router();
 
@@ -87,6 +87,15 @@ router.get('/update-check', async (req, res) => res.json(await ollama.checkOllam
 router.get('/embed-status', async (req, res) => {
   try { res.json(await embedStatus()); }
   catch { res.json({ installed: false, name: null, recommended: EMBED_MODEL_DEFAULT, size: EMBED_MODEL_SIZE }); }
+});
+
+/* Whether any chat model (a non-embedding model) is installed, plus the small
+ * default to pull if not — so a clean install can start chatting immediately. */
+router.get('/chat-status', async (req, res) => {
+  try {
+    const names = (await ollama.listModels()).map(m => m.name);
+    res.json({ hasChatModel: names.some(n => !isEmbedName(n)), recommended: CHAT_MODEL_DEFAULT, size: CHAT_MODEL_SIZE });
+  } catch { res.json({ hasChatModel: false, recommended: CHAT_MODEL_DEFAULT, size: CHAT_MODEL_SIZE }); }
 });
 
 /* Estimated token cost of the fixed part of a request (system prompt +

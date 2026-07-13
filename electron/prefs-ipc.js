@@ -105,6 +105,32 @@ async function promptEmbedModel({ recommended, size } = {}) {
   return response === 0 ? 'download' : 'later';
 }
 
+/**
+ * First-run offer to download a small default chat model so a clean install can
+ * chat right away. Returns 'download' | 'later' | 'dismissed'; "Don't ask again"
+ * is remembered.
+ */
+async function promptChatModel({ recommended, size } = {}) {
+  if (loadSettings().dismissedChatPrompt) return 'dismissed';
+  const model = recommended || 'llama3.2';
+  const { response, checkboxChecked } = await dialog.showMessageBox(runtime.win, {
+    type: 'question',
+    title: 'Monkii — get started',
+    message: 'Download a model to chat with?',
+    detail: `Monkii talks to models running locally through Ollama, and none are installed yet. ` +
+      `Download a small, capable default — ${model}${size ? ` (${size})` : ''} — to start chatting right away? ` +
+      `You can pull other models any time from Manage models.`,
+    buttons: ['Download', 'Not now'],
+    defaultId: 0,
+    cancelId: 1,
+    checkboxLabel: "Don't ask again",
+    checkboxChecked: false,
+    noLink: true,
+  });
+  if (checkboxChecked) saveSettings({ dismissedChatPrompt: true });
+  return response === 0 ? 'download' : 'later';
+}
+
 /** Save a storage patch, restart the server on it, refresh dependent UI. */
 async function applyStorageChange(patch) {
   saveSettings(patch);
@@ -144,6 +170,7 @@ function registerPrefsIpc() {
 
   handleUI('ollama:update-prompt', (info) => promptOllamaUpdate(info));
   handleUI('ollama:embed-prompt', (info) => promptEmbedModel(info));
+  handleUI('ollama:chat-prompt', (info) => promptChatModel(info));
 }
 
 module.exports = { registerPrefsIpc };
