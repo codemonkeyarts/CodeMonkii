@@ -53,6 +53,21 @@ export async function deleteChat(cid) {
   } else renderChatList();
 }
 
+/** Wipe a chat's messages (keeps the chat, model, and attachments), resetting
+ * the context it had built up. Confirms first, since it's not undoable. */
+export async function clearChat(cid = state.chatId) {
+  if (!cid || state.streaming) return;
+  const chat = state.project.chats.find(c => c.id === cid);
+  if (!chat || !chat.messages.length) return; // nothing to clear
+  if (!confirm('Clear this conversation? Its messages are removed — the chat, its model, and attachments stay.')) return;
+  try {
+    await api(`/api/projects/${state.project.id}/chats/${cid}/messages`, { method: 'DELETE' });
+  } catch (e) { toast(e.message, true); return; }
+  chat.messages = [];
+  if (cid === state.chatId) { renderMessages(); clearContext(); refreshContext(); }
+  toast('Conversation cleared');
+}
+
 /** Swap a chat's rail entry for an inline input; Enter/blur saves, Esc cancels. */
 export function renameChat(cid) {
   const li = document.querySelector(`#chat-list li[data-id="${cid}"]`);

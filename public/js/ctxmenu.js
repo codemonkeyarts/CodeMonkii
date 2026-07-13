@@ -12,7 +12,7 @@
  * editing menu (provided by the desktop shell) can appear.
  */
 import { $, copyText, toast } from './util.js';
-import { openChat, renameChat, deleteChat } from './chat.js';
+import { openChat, renameChat, deleteChat, clearChat } from './chat.js';
 import { openProject, deleteProjectById } from './projects.js';
 import { openSkillDetail } from './skills.js';
 
@@ -52,6 +52,7 @@ function menuFor(target) {
     return [
       { label: 'Open chat', action: () => openChat(cid) },
       { label: 'Rename chat…', action: () => renameChat(cid) },
+      { label: 'Clear messages', action: () => clearChat(cid) },
       'sep',
       { label: 'Delete chat', danger: true, action: () => deleteChat(cid) },
     ];

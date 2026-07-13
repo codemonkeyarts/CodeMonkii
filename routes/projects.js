@@ -114,6 +114,19 @@ router.put('/projects/:pid/chats/:cid', (req, res) => {
   } catch { res.status(404).json({ error: 'project not found' }); }
 });
 
+/* Clear a chat's messages — keeps the chat, its model, and attachments, but
+ * wipes the conversation (and so the context it was building up). */
+router.delete('/projects/:pid/chats/:cid/messages', (req, res) => {
+  try {
+    const p = loadProject(req.params.pid);
+    const c = p.chats.find(c => c.id === req.params.cid);
+    if (!c) return res.status(404).json({ error: 'chat not found' });
+    c.messages = [];
+    saveProject(p);
+    res.json(c);
+  } catch { res.status(404).json({ error: 'project not found' }); }
+});
+
 /* ---- attachments (knowledge) ----
  * Attachments live at two levels: the project's (shared by all its chats) and
  * a single chat's own (for ad-hoc context, e.g. a quick chat). Both go through

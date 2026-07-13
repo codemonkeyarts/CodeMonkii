@@ -13,7 +13,7 @@ import { loadSkills, updateSkillPopup, pickSkill, renderSkillToggles, handleSkil
 import { initSkillCreate, showSkillCreateForm, importSkillFlow } from './skill-create.js';
 import { createProject, openProject, saveProjectMeta, deleteProject, showProjectsPage, quickChat } from './projects.js';
 import { openBrowser, browseTo, closeBrowser, pickCurrentDir, attachToChat } from './attachments.js';
-import { newChat, send } from './chat.js';
+import { newChat, send, clearChat } from './chat.js';
 import { initOverflowDialog } from './overflow.js';
 import { initModal } from './modal.js';
 import { initPrefs } from './prefs.js';
@@ -32,6 +32,7 @@ function wireNavigation() {
   $('#btn-quick-chat').addEventListener('click', quickChat);
   $('#btn-welcome-quick').addEventListener('click', quickChat);
   $('#btn-new-chat').addEventListener('click', newChat);
+  $('#btn-clear-chat').addEventListener('click', () => clearChat());
 }
 
 /** Skills modal, opened from the inspector, the rail, or the desktop menu. */
