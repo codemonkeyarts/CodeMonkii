@@ -39,7 +39,7 @@ Have an idea? Open an issue — local-first, private-by-default proposals move t
 *The base is already strong — loopback-only, Host/Origin checks, CSP, a sandboxed renderer, path confinement. These push from "safe by design" to "safe by default, and defensible to hand to someone else."*
 
 - [ ] **Fence the file browser by default** — the `MONKII_FS_ROOTS` allowlist exists but is opt-in, so browsing and attachments can currently reach the whole disk. Default it to your user profile with a one-click widen
-- [ ] **Encryption at rest** — chats and projects are plaintext JSON (great for inspection, less so on an unencrypted disk). Add an optional encrypted data folder, or surface a clear "enable device encryption" note in Preferences
+- [ ] **Encryption at rest** — chats, projects, and the retrieval indexes (which hold chunked attachment text) are plaintext JSON (great for inspection, less so on an unencrypted disk). Add an optional encrypted data folder, or surface a clear "enable device encryption" note in Preferences
 - [ ] **CA-signed certificate** — the installer is signed but self-signed, so other machines still see "unknown publisher." A CA cert (e.g. Azure Trusted Signing) removes the SmartScreen warning for anyone you share it with
 - [ ] **Untrusted-attachment awareness** — attached files and imported skills feed straight into the prompt, so a hostile document could steer the model. Wrap attachment content as clearly-marked untrusted data and flag skills/files that read like instructions
 - [ ] **Backup & wipe controls** — one-click "export a backup" (zip the data dir), a clear "erase everything," and a visible data-location shortcut. Ownership includes being able to take it and to leave cleanly

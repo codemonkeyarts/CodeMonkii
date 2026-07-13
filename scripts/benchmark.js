@@ -46,7 +46,7 @@ const { readForIndex } = require(path.join(REPO, 'lib', 'attachments'));
 const { estimateTokens } = require(path.join(REPO, 'lib', 'tokens'));
 const { FILE_LIMIT, RETRIEVAL_MIN_CHARS } = require(path.join(REPO, 'lib', 'config'));
 const ollama = require(path.join(REPO, 'lib', 'ollama'));
-const { embedStatus } = require(path.join(REPO, 'lib', 'retrieval'));
+const { embedStatus, isEmbedName } = require(path.join(REPO, 'lib', 'retrieval'));
 
 // --- helpers ---
 const ms = (f) => { const t = performance.now(); const r = f(); return { r, ms: performance.now() - t }; };
@@ -96,10 +96,18 @@ function embIndexStats() {
 async function prefill(model, system, user) {
   const body = { model, stream: false, options: { num_ctx: CTX, num_predict: 1 },
     messages: [{ role: 'system', content: system }, { role: 'user', content: user }] };
-  const r = await fetch(`${OLLAMA}/api/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  if (!r.ok) throw new Error(`Ollama ${r.status}: ${(await r.text()).slice(0, 120)}`);
-  const d = await r.json();
-  return { tokens: d.prompt_eval_count, ms: d.prompt_eval_duration ? d.prompt_eval_duration / 1e6 : null };
+  // Loading a chat model right after heavy embedding can transiently reset the
+  // Ollama runner (VRAM contention) — retry a couple of times, letting it settle.
+  let lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const r = await fetch(`${OLLAMA}/api/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (!r.ok) throw new Error(`Ollama ${r.status}: ${(await r.text()).slice(0, 120)}`);
+      const d = await r.json();
+      return { tokens: d.prompt_eval_count, ms: d.prompt_eval_duration ? d.prompt_eval_duration / 1e6 : null };
+    } catch (e) { lastErr = e; await new Promise(res => setTimeout(res, 3000)); }
+  }
+  throw lastErr;
 }
 
 async function run() {
@@ -112,11 +120,10 @@ async function run() {
   // pick a representative chat model: prefer a common GPU-friendly instruct
   // family (7–8B), else the first non-embedding model. Override with --chat-model.
   const models = (await ollama.listModels()).map(m => m.name);
-  const isEmbed = (n) => /embed|minilm|\bbge\b|nomic|gte-/i.test(n);
   const PREFER = ['qwen2.5:7b', 'llama3.2', 'qwen2.5', 'llama3.1', 'llama3', 'mistral:latest', 'mistral', 'gemma2', 'phi'];
   const chatModel = opt('chat-model',
-    PREFER.map(p => models.find(n => n.toLowerCase().includes(p) && !isEmbed(n))).find(Boolean)
-    || models.find(n => !isEmbed(n)) || '');
+    PREFER.map(p => models.find(n => n.toLowerCase().includes(p) && !isEmbedName(n))).find(Boolean)
+    || models.find(n => !isEmbedName(n)) || '');
 
   console.log(`embed: ${embedModel}  chat: ${chatModel || '(none — skipping prefill)'}  sizes: ${SIZES.map(s => (s / 1024) + 'KB').join(', ')}\n`);
 
@@ -172,6 +179,13 @@ async function run() {
     const nonce = () => `[bench ${Date.now()}-${Math.random().toString(36).slice(2)}]\n`;
     const retrSys = await buildSystem(proj, [], emptyChat, 'Who was the lighthouse keeper?');
     const dumpSys = 'Ground answers in this document:\n' + fs.readFileSync(bigFile, 'utf8').slice(0, FILE_LIMIT);
+    // free the embed model from VRAM (keep_alive:0) so the chat-model prefill
+    // isn't measured under GPU contention right after heavy embedding
+    try {
+      await fetch(`${OLLAMA}/api/embed`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: embedModel, input: 'x', keep_alive: 0 }) });
+    } catch { /* best effort */ }
+    await new Promise(r => setTimeout(r, 2000));
     await prefill(chatModel, 'hi', 'hi').catch(() => {}); // warm/load the model
     const pr = await prefill(chatModel, nonce() + retrSys, 'Who was the lighthouse keeper?');
     const pd = await prefill(chatModel, nonce() + dumpSys, 'Who was the lighthouse keeper?');
@@ -228,7 +242,7 @@ function renderMarkdown(d) {
   L.push(`The system prompt stays constant as the conversation grows. With the old dump it would pin the system at ~${commas(big.dumpTokens / 1000)}k tokens, so a long chat overflows the ${commas(CTX / 1024)}k window and older messages get trimmed.`);
 
   L.push('');
-  L.push(`> **Caveats.** The *first* index of a huge file scales with size (~${fmtDur(big.buildMs)} for the ${fmtMB(big.size)} file; one-time, cached until it changes), and the on-disk index is currently ~${ratioLo}–${ratioHi}× the source (768-dim vectors stored as JSON floats — ${fmtMB(big.indexBytes)} for the ${fmtMB(big.size)} doc). Both are tracked as follow-ups in the [roadmap](ROADMAP.md). Warm-SSD read caching saves only sub-millisecond per message; the cache that matters is the index.`);
+  L.push(`> **Caveats.** The *first* index of a huge file scales with size (~${fmtDur(big.buildMs)} for the ${fmtMB(big.size)} file; one-time, cached until it changes). The index stores the chunked source **text** (not just vectors) plus the file path in plaintext under the data dir — gitignored, removed when you detach the attachment, and size-capped; \`MONKII_RETRIEVAL=off\` avoids it. It's currently ~${ratioLo}–${ratioHi}× the source (JSON-float vectors — ${fmtMB(big.indexBytes)} for the ${fmtMB(big.size)} doc); a binary vector store is a tracked follow-up. Warm-SSD read caching saves only sub-millisecond per message; the cache that matters is the index.`);
   L.push('');
   L.push(`<sub>Auto-generated by \`npm run bench\` · last measured ${d.when}.</sub>`);
   return L.join('\n');

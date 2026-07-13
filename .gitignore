@@ -1,7 +1,9 @@
 node_modules/
 data/
+embeddings/          # retrieval indexes — contain chunked attachment TEXT; never commit
 logs/
 dist/
 *.log
+.monkii-signing/     # code-signing PFX + password; never commit
 .DS_Store
 Thumbs.db

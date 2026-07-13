@@ -42,6 +42,17 @@ function handleUI(channel, fn) {
   });
 }
 
+/* Only ever open external links to these hosts, whatever the renderer passes —
+ * so a compromised renderer can't turn the update prompt into an open-redirect. */
+const EXTERNAL_HOSTS = new Set(['ollama.com', 'www.ollama.com', 'github.com']);
+function safeExternalUrl(url, fallback) {
+  try {
+    const u = new URL(url);
+    if (u.protocol === 'https:' && EXTERNAL_HOSTS.has(u.hostname)) return u.href;
+  } catch { /* not a URL */ }
+  return fallback;
+}
+
 /**
  * Native "update Ollama" popup, driven by the renderer's daily update check.
  * Shows Download / Later, plus a checkbox that mutes this specific version so
@@ -50,7 +61,7 @@ function handleUI(channel, fn) {
 async function promptOllamaUpdate({ current, latest, url } = {}) {
   if (!latest) return 'noop';
   if (loadSettings().dismissedOllamaUpdate === latest) return 'dismissed';
-  const safeUrl = /^https:\/\//i.test(url || '') ? url : 'https://ollama.com/download';
+  const safeUrl = safeExternalUrl(url, 'https://ollama.com/download');
   const { response, checkboxChecked } = await dialog.showMessageBox(runtime.win, {
     type: 'info',
     title: 'Monkii — Ollama update available',

@@ -9,7 +9,7 @@
  * if the user hit Stop mid-generation.
  */
 const express = require('express');
-const { OLLAMA, HISTORY_LIMIT, DEFAULT_CONTEXT } = require('../lib/config');
+const { OLLAMA, HISTORY_LIMIT, DEFAULT_CONTEXT, EMBED_MODEL_DEFAULT, EMBED_MODEL_SIZE } = require('../lib/config');
 const { loadProject, saveProject } = require('../lib/store');
 const { sanitizeOptions } = require('../lib/options');
 const { buildSystem } = require('../lib/prompt');
@@ -86,7 +86,7 @@ router.get('/update-check', async (req, res) => res.json(await ollama.checkOllam
  * plus the recommended one to pull if not. */
 router.get('/embed-status', async (req, res) => {
   try { res.json(await embedStatus()); }
-  catch { res.json({ installed: false, name: null, recommended: 'nomic-embed-text' }); }
+  catch { res.json({ installed: false, name: null, recommended: EMBED_MODEL_DEFAULT, size: EMBED_MODEL_SIZE }); }
 });
 
 /* Estimated token cost of the fixed part of a request (system prompt +
