@@ -763,8 +763,8 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 /* ============ preferences modal (desktop app only) ============ */
 #rail-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 
-#prefs-panel { width: min(560px, 92vw); }
-.prefs-body { padding: 20px; display: flex; flex-direction: column; gap: 18px; }
+#prefs-panel { width: min(560px, 92vw); max-height: 86vh; }
+.prefs-body { padding: 20px; display: flex; flex-direction: column; gap: 18px; flex: 1; min-height: 0; overflow-y: auto; }
 .prefs-path {
   font-family: var(--font-mono); font-size: 16px; color: var(--cyan);
   text-shadow: 0 0 8px rgba(0, 255, 224, .35);
