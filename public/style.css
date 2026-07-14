@@ -800,6 +800,45 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .prefs-toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13.5px; color: var(--bone); }
 .prefs-toggle input { width: 16px; height: 16px; accent-color: var(--gold); cursor: pointer; }
 .prefs-toggle:has(input:disabled) { opacity: .5; cursor: default; }
+.prefs-key-input {
+  flex: 1; min-width: 0;
+  font-family: var(--font-mono); font-size: 13px; color: var(--bone);
+  padding: 7px 10px; border: 1px solid var(--line-soft); border-radius: 2px;
+  background: #030302; outline: none;
+}
+.prefs-key-input:focus { border-color: var(--gold-deep); }
+.prefs-key-input[disabled] { opacity: .4; }
+
+/* Remote-model chip + OpenRouter browse modal */
+.remote-badge {
+  font-size: 10.5px; letter-spacing: .06em; white-space: nowrap;
+  color: var(--gold); border: 1px solid var(--gold-deep); border-radius: 999px;
+  padding: 2px 8px; cursor: help; background: rgba(255, 200, 60, .07);
+}
+#or-panel { width: min(680px, 94vw); max-height: 86vh; }
+.or-remote-note { font-size: 11px; color: var(--gold-deep); font-weight: normal; margin-left: 10px; letter-spacing: .04em; }
+.or-scroll { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }
+#or-search {
+  font-family: var(--font-mono); font-size: 13px; color: var(--bone);
+  padding: 8px 12px; border: 1px solid var(--line-soft); border-radius: 2px;
+  background: #030302; outline: none;
+}
+#or-search:focus { border-color: var(--gold-deep); }
+.or-hint { font-size: 11.5px; color: var(--bone-dim); }
+#or-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+#or-list li {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border: 1px solid var(--line-soft); border-radius: 2px; background: #060605;
+}
+#or-list li.empty { color: var(--bone-dim); font-size: 13px; border: none; background: none; }
+.or-star { background: none; border: none; font-size: 17px; color: var(--bone-dim); cursor: pointer; padding: 0 2px; }
+.or-star:hover { color: var(--gold); }
+.or-star.faved { color: var(--gold); text-shadow: 0 0 8px rgba(255, 200, 60, .5); }
+.or-meta { flex: 1; min-width: 0; }
+.or-name { font-size: 13px; color: var(--bone); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.or-id { font-family: var(--font-mono); font-size: 11px; color: var(--bone-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.or-specs { font-family: var(--font-mono); font-size: 11px; color: var(--cyan); white-space: nowrap; }
+.or-specs .or-perm { color: var(--bone-dim); }
 
 /* Help & About modals */
 #help-panel, #about-panel { width: min(560px, 92vw); max-height: 86vh; }

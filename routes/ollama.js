@@ -17,6 +17,7 @@ const { estimateTokens } = require('../lib/tokens');
 const { logError } = require('../lib/log');
 const { pipeNdjson } = require('../lib/stream');
 const ollama = require('../lib/ollama');
+const openrouter = require('../lib/openrouter');
 const { embedStatus, isEmbedName, indexStatusFor } = require('../lib/retrieval');
 const pkg = require('../package.json');
 
@@ -114,6 +115,31 @@ router.delete('/models', async (req, res) => {
 
 router.get('/update-check', async (req, res) => res.json(await ollama.checkOllamaUpdate()));
 
+/* ---- optional remote backend (OpenRouter) ---- */
+
+/* Whether a key is configured — the frontend uses this to show/hide all
+ * remote-model UI. The key itself never reaches the browser. */
+router.get('/openrouter/status', (req, res) => res.json({ configured: openrouter.configured() }));
+
+/* The remote catalog (id, name, context length, $/token) for the browse
+ * dialog. 502s with a clear message when unconfigured or unreachable. */
+router.get('/openrouter/models', async (req, res) => {
+  if (!openrouter.configured()) return res.status(400).json({ error: 'No OpenRouter API key configured — add one in Preferences.' });
+  try { res.json({ models: await openrouter.listModels() }); }
+  catch (e) {
+    logError('openrouter models', e);
+    res.status(502).json({ error: 'Cannot reach OpenRouter — check your internet connection and API key.' });
+  }
+});
+
+/* Friendly copy for remote failures: the status codes carry the meaning. */
+function openrouterErrorMessage(status, detail) {
+  if (status === 401) return 'OpenRouter rejected the API key — check it in Preferences.';
+  if (status === 402) return 'Your OpenRouter account is out of credits — top up at openrouter.ai.';
+  if (status === 429) return 'Rate-limited by OpenRouter — wait a moment and try again.';
+  return detail || `OpenRouter error ${status}`;
+}
+
 /* Whether an embedding model (for large-attachment retrieval) is installed,
  * plus the recommended one to pull if not. */
 router.get('/embed-status', async (req, res) => {
@@ -137,6 +163,17 @@ router.post('/index-status', (req, res) => {
   res.json({ statuses: indexStatusFor(paths) });
 });
 
+/* The context limit a request will be compacted against. Local models use the
+ * project's num_ctx; remote models have a fixed per-model context length from
+ * the OpenRouter catalog (128k fallback while the catalog loads). */
+async function contextLimitFor(model, projectOptions) {
+  if (openrouter.isRemote(model)) {
+    if (!openrouter.contextLengthFor(model)) await openrouter.listModels().catch(() => {});
+    return openrouter.contextLengthFor(model) || 131072;
+  }
+  return sanitizeOptions(projectOptions || {}).num_ctx || DEFAULT_CONTEXT;
+}
+
 /* Estimated token cost of the fixed part of a request (system prompt +
  * history), plus the context limit, so the composer can warn before overflow.
  * Cheap heuristic — see lib/tokens. */
@@ -153,7 +190,7 @@ router.post('/context', async (req, res) => {
     const history = chat.messages.slice(-HISTORY_LIMIT).map(m => m.content).join('\n');
     const systemTokens = estimateTokens(system);
     const baseTokens = systemTokens + estimateTokens(history);
-    const limit = sanitizeOptions(project.options || {}).num_ctx || DEFAULT_CONTEXT;
+    const limit = await contextLimitFor(chat.model || '', project.options);
     // systemTokens is the floor: dropping history can't get a request below it,
     // so the client uses it to tell "compact-able" from "can't compact" overflow
     res.json({ baseTokens, systemTokens, limit });
@@ -182,20 +219,24 @@ router.post('/chat', async (req, res) => {
   const history = chat.messages.slice(-HISTORY_LIMIT).map(m => ({ role: m.role, content: m.content }));
 
   // Compact to fit the context: drop the oldest history messages until the
-  // estimated request fits num_ctx, always keeping the system prompt and the
+  // estimated request fits the limit, always keeping the system prompt and the
   // latest message. (Stored history is untouched — only this request is trimmed.)
-  const limit = sanitizeOptions(project.options || {}).num_ctx || DEFAULT_CONTEXT;
+  const remote = openrouter.isRemote(model);
+  const limit = await contextLimitFor(model, project.options);
   const sysTokens = estimateTokens(system);
   const fits = (msgs) => sysTokens + msgs.reduce((n, m) => n + estimateTokens(m.content), 0) <= limit;
   while (history.length > 1 && !fits(history)) history.shift();
 
   // Safety net: if even the system prompt + one message can't fit (usually a
-  // large attachment), don't hand Ollama a doomed request — return a clear,
-  // actionable error instead of its cryptic "exceeds context size" one.
+  // large attachment), don't hand the backend a doomed request — return a
+  // clear, actionable error instead of a cryptic "exceeds context size" one.
   if (!fits(history)) {
     const needK = Math.max(1, Math.round((sysTokens + estimateTokens(history[history.length - 1]?.content || '')) / 1000));
+    const advice = remote
+      ? 'Pick a remote model with a larger context, or attach less.'
+      : 'Raise the context length in Model settings, use a model with a larger context, or attach less.';
     return res.status(413).json({
-      error: `This request needs about ${needK}k tokens but the context length is set to ${fmtCtx(limit)}. Raise the context length in Model settings, use a model with a larger context, or attach less.`,
+      error: `This request needs about ${needK}k tokens but the model's context is ${fmtCtx(limit)}. ${advice}`,
     });
   }
 
@@ -213,9 +254,14 @@ router.post('/chat', async (req, res) => {
 
   let upstream;
   try {
-    upstream = await ollama.streamChat({ model, messages, options: clean, keepAlive, signal: ac.signal });
+    upstream = remote
+      ? await openrouter.streamChat({ model, messages, options: clean, signal: ac.signal })
+      : await ollama.streamChat({ model, messages, options: clean, keepAlive, signal: ac.signal });
   } catch (e) {
     logError(`chat "${model}" — request failed`, e);
+    if (remote) {
+      return res.status(502).json({ error: 'Cannot reach OpenRouter — check your internet connection.' });
+    }
     // Distinguish "Ollama is down" from "the request failed while Ollama is up"
     // — a dropped connection usually means the model runner crashed, most often
     // out of memory from too high a context length for the GPU.
@@ -234,8 +280,15 @@ router.post('/chat', async (req, res) => {
   if (!upstream.ok) {
     const errText = await upstream.text().catch(() => '');
     let detail = errText;
-    try { detail = JSON.parse(errText).error || errText; } catch { /* raw */ }
-    logError(`chat "${model}" — Ollama ${upstream.status}`, detail);
+    // Ollama errors are {error:"..."}; OpenRouter's are {error:{message}}
+    try {
+      const parsed = JSON.parse(errText).error;
+      detail = (parsed && parsed.message) || parsed || errText;
+    } catch { /* raw */ }
+    logError(`chat "${model}" — ${remote ? 'OpenRouter' : 'Ollama'} ${upstream.status}`, detail);
+    if (remote) {
+      return res.status(502).json({ error: openrouterErrorMessage(upstream.status, detail) });
+    }
     // The runner can die during model load (KV cache won't fit the GPU); Ollama
     // reports that as a 500 with raw socket text. Replace it with a clear cause.
     if (looksLikeRunnerCrash(detail)) {

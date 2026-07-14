@@ -61,11 +61,30 @@ function recommend(size, t) {
   return tags.length ? `${base} Also ${tags.join(', ')}.` : base;
 }
 
+/** Remote (OpenRouter) models: specs come from the catalog/favorites, and the
+ * recommendation is honest about where the text goes. */
+function updateRemoteInfo(name) {
+  const id = name.slice('openrouter:'.length);
+  const m = (state.orCatalog || []).find(x => x.id === id)
+    || (JSON.parse(localStorage.getItem('monkii.orFavorites') || '[]')).find(x => x.id === id)
+    || { id };
+  const perM = (p) => (p == null || Number.isNaN(p)) ? null : `$${(p * 1e6).toFixed(2)}`;
+  $('#mi-name').textContent = m.name || id;
+  $('#mi-specs').textContent = [
+    m.contextLength ? fmtCtx(m.contextLength) : '',
+    perM(m.promptPrice) ? `${perM(m.promptPrice)} in / ${perM(m.completionPrice)} out per M tokens` : '',
+  ].filter(Boolean).join(' · ') || 'remote model';
+  const traits = detectTraits(id, []);
+  $('#mi-uses').textContent = `Good for: ${usesFor(traits).join(' · ')}`;
+  $('#mi-rec').textContent = 'Runs on OpenRouter’s servers — this chat’s messages and attachments leave your machine, billed per token.';
+}
+
 /** Populate the info box for `name` (hidden when there's no model). */
 export async function updateModelInfo(name) {
   const box = $('#model-info');
   if (!name) { box.hidden = true; return; }
   box.hidden = false;
+  if (name.startsWith('openrouter:')) return updateRemoteInfo(name);
   const size = (state.models.find(m => m.name === name) || {}).size || 0;
 
   $('#mi-name').textContent = name;

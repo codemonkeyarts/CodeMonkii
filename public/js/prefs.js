@@ -42,6 +42,20 @@ function render(prefs) {
   $('#prefs-update-check').checked = prefs.updateCheck;
   $('#prefs-update-check').disabled = Boolean(upEnv);
   $('#prefs-update-env-note').hidden = !upEnv;
+
+  renderOpenRouter(prefs);
+}
+
+/** OpenRouter key status: the key is write-only, so all we render is whether
+ * one exists and where it came from. */
+function renderOpenRouter(prefs) {
+  $('#prefs-or-status').textContent = prefs.openrouterConfigured
+    ? 'Key saved — remote models are available in the model picker.'
+    : 'No key — Monkii is fully local.';
+  $('#prefs-or-env-note').hidden = !prefs.openrouterKeyEnv;
+  for (const id of ['#prefs-or-key', '#btn-prefs-or-save', '#btn-prefs-or-clear'])
+    $(id).disabled = Boolean(prefs.openrouterKeyEnv);
+  $('#btn-prefs-or-clear').hidden = !prefs.openrouterConfigured || prefs.openrouterKeyEnv;
 }
 
 /** The file-access allowlist: whole-disk banner, or a removable list of folders. */
@@ -108,4 +122,20 @@ export function initPrefs() {
 
   // toggling restarts the server (config reads the flag at boot) and reloads
   $('#prefs-update-check').addEventListener('change', (e) => bridge.setUpdateCheck(e.target.checked));
+
+  // OpenRouter key: sent one-way to the main process (encrypted at rest),
+  // input cleared immediately either way
+  $('#btn-prefs-or-save').addEventListener('click', async () => {
+    const key = $('#prefs-or-key').value.trim();
+    if (!key) { toast('Paste an OpenRouter API key first', true); return; }
+    $('#prefs-or-key').value = '';
+    try {
+      const prefs = await bridge.setOpenRouterKey(key);
+      if (prefs) { render(prefs); toast('OpenRouter key saved'); }
+    } catch { toast('Could not save the key (OS encryption unavailable)', true); }
+  });
+  $('#btn-prefs-or-clear').addEventListener('click', async () => {
+    const prefs = await bridge.setOpenRouterKey('');
+    if (prefs) { render(prefs); toast('OpenRouter key removed — fully local again'); }
+  });
 }

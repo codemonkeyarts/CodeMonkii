@@ -9,6 +9,7 @@
  */
 import { toast, readNdjson } from './util.js';
 import { api } from './api.js';
+import { state } from './state.js';
 import { loadModels } from './status.js';
 
 /** Run both first-run checks — chat first, since it's the one you can't work without. */
@@ -24,6 +25,7 @@ async function checkChatModel() {
   let status;
   try { status = await api('/api/chat-status'); } catch { return; }
   if (status.hasChatModel) return;                 // already have something to chat with
+  if (state.orConfigured) return;                  // remote models cover chatting — don't nag
   if (!window.monkii?.chatModelPrompt) return;     // browser mode: stay silent
   const choice = await window.monkii.chatModelPrompt({ recommended: status.recommended, size: status.size });
   if (choice === 'download') {

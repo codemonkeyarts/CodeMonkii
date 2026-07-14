@@ -1,6 +1,6 @@
 # 🐒 Monkii
 
-A local, private LLM studio for [Ollama](https://ollama.com) — projects, Claude-style skills, and live file knowledge. Nothing ever leaves your machine.
+A local, private LLM studio for [Ollama](https://ollama.com) — projects, Claude-style skills, and live file knowledge. Local by default: out of the box, nothing ever leaves your machine. When your hardware can't carry the model you need, an **optional** [OpenRouter](https://openrouter.ai) key adds remote models — per chat, clearly badged, never implicit.
 
 ![Chat with a project, skill, and live token count](docs/screenshots/chat.png)
 
@@ -185,6 +185,17 @@ The system prompt stays constant as the conversation grows. With the old dump it
 - Health indicator in the sidebar
 - Update check (**off by default, opt-in**): when enabled, a cached daily check notices a newer Ollama release and shows a download pill plus (in the desktop app) a popup offering to download it. Turn it on in Preferences → Update check, or `MONKII_UPDATE_CHECK=on`
 
+### Optional: remote models (OpenRouter)
+
+If your machine can't run the model your work needs, add an [OpenRouter](https://openrouter.ai) API key in **Preferences → Remote models** and the model picker grows an "OpenRouter — remote" group next to your local models. Browse the full catalog (☁ next to the picker) with context lengths and per-token prices, ★ the ones you want, and pick them per chat like any local model.
+
+The trust model is explicit, not fine print:
+
+- **Nothing goes remote unless you pick a remote model for a chat.** Local chats are untouched, and a fresh install has no key and makes no remote calls at all.
+- Chats using a remote model send that chat's messages, project instructions, and attachments to openrouter.ai and the model's provider — a **☁ remote** badge sits beside the picker whenever that's the case.
+- Retrieval embeddings stay **local-only**: large attachments are indexed on-device via Ollama even when the chat model is remote.
+- The API key is stored OS-encrypted (DPAPI via Electron `safeStorage`), is only handed to the local server process, and never reaches the browser UI.
+
 ## Configuration
 
 | Env var | Default | Purpose |
@@ -197,6 +208,7 @@ The system prompt stays constant as the conversation grows. With the old dump it
 | `MONKII_RETRIEVAL` | `on` | Set to `off` to always include attachments whole (no embedding/retrieval) |
 | `MONKII_EMBED_MODEL` | *(auto-detect)* | Force a specific Ollama embedding model; otherwise the first installed embed model is used |
 | `MONKII_EMBED_DIR` | *(beside data dir)* | Where the on-disk embedding indexes are stored |
+| `MONKII_OPENROUTER_KEY` | *(unset)* | OpenRouter API key enabling optional remote models. In the desktop app, set it in Preferences → Remote models instead (stored OS-encrypted); the env var overrides that. Unset = fully local. |
 
 ## Security
 
@@ -211,13 +223,13 @@ Monkii is a single-user local app, hardened accordingly:
 - **Untrusted attachments** — attached files and retrieved passages are wrapped as clearly-marked *untrusted reference data*, with an explicit instruction to the model to treat them as content and never obey instructions found inside them; content that reads like an injection (e.g. "ignore previous instructions", forged `System:`/`Assistant:` turns) is flagged in the prompt's attachment notes.
 - **On-disk retrieval cache** — when a large attachment is searched (see [retrieval](#large-attachments-retrieval-instead-of-overflow)), its embedding index is written under `EMBED_DIR` (default beside your data dir; `%APPDATA%\Monkii\embeddings` for the installed app). That index contains the chunked source **text in plaintext**, like your chats — so it's gitignored, deleted when you detach the attachment or delete the project, and size-capped (least-recently-used eviction). `MONKII_RETRIEVAL=off` disables it entirely, and directory junctions inside an attached folder can't escape `MONKII_FS_ROOTS`.
 
-Your chats and project data stay on your disk. UI fonts are bundled locally (no Google Fonts requests), so out of the box the **only** outbound connection is to your local Ollama — nothing leaves your machine. The one optional exception is a daily Ollama-version check to GitHub, which is **off by default** (no data sent even when on); enable it in Preferences → Update check or with `MONKII_UPDATE_CHECK=on`.
+Your chats and project data stay on your disk. UI fonts are bundled locally (no Google Fonts requests), so out of the box the **only** outbound connection is to your local Ollama — nothing leaves your machine. Two opt-ins can change that, both off until you act: a daily Ollama-version check to GitHub (**off by default**, no data sent even when on; Preferences → Update check or `MONKII_UPDATE_CHECK=on`), and [remote models via OpenRouter](#optional-remote-models-openrouter), which only ever affect chats where you explicitly picked a remote model — and say so with a badge.
 
 The desktop shell adds its own hardening: sandboxed renderer with context isolation, a navigation guard (the window can only ever display the app — external links open in your real browser), all web permission requests (camera, mic, location…) denied, and preferences IPC that only accepts calls from the app's own pages.
 
 ## Roadmap
 
-Monkii's plans live in **[ROADMAP.md](ROADMAP.md)** — grouped by the promise each item serves: keeping it **local**, **secure**, and **yours**. The guiding rule for everything there: it never requires an account, a cloud service, or sending your data off the machine.
+Monkii's plans live in **[ROADMAP.md](ROADMAP.md)** — grouped by the promise each item serves: keeping it **local**, **secure**, and **yours**. The guiding rule for everything there: nothing ever *requires* an account, a cloud service, or sending your data off the machine — anything remote is opt-in, per chat, and labeled.
 
 A few of what's next: version-check-off by default, self-contained Ollama, theming, search across chats, and export/import. (Local retrieval over big attachments already shipped — see the [benchmarks](#benchmarks) above.) See the [full roadmap →](ROADMAP.md)
 

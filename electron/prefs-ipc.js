@@ -12,7 +12,7 @@
 const { ipcMain, dialog, shell } = require('electron');
 const os = require('os');
 const runtime = require('./runtime');
-const { loadSettings, saveSettings, effectiveStorage, fsRootsList, fsWholeDisk, updateCheckEnabled } = require('./settings');
+const { loadSettings, saveSettings, effectiveStorage, fsRootsList, fsWholeDisk, updateCheckEnabled, setOpenRouterKey, openrouterConfigured } = require('./settings');
 const { pickFolder } = require('./dialogs');
 const { restartServer } = require('./server');
 const { buildMenu } = require('./menu');
@@ -40,6 +40,10 @@ function prefsSummary() {
     // daily Ollama update check (opt-in)
     updateCheck: updateCheckEnabled(),
     updateCheckEnv: process.env.MONKII_UPDATE_CHECK ?? null,
+    // remote backend: only whether a key exists — the key itself never
+    // crosses into the renderer
+    openrouterConfigured: openrouterConfigured(),
+    openrouterKeyEnv: process.env.MONKII_OPENROUTER_KEY !== undefined,
   };
 }
 
@@ -193,6 +197,15 @@ function registerPrefsIpc() {
   handleUI('prefs:fs-reset-home', () => applyStorageChange({ fsRoots: undefined }));
 
   handleUI('prefs:set-update-check', (on) => applyStorageChange({ updateCheck: Boolean(on) }));
+
+  // OpenRouter key: save (encrypted) or clear, then restart the server so it
+  // picks the key up from its env. The renderer sends the key one way and
+  // only ever reads back a boolean.
+  handleUI('prefs:set-openrouter-key', async (key) => {
+    setOpenRouterKey(key);
+    await restartServer();
+    return prefsSummary();
+  });
 
   handleUI('ollama:update-prompt', (info) => promptOllamaUpdate(info));
   handleUI('ollama:embed-prompt', (info) => promptEmbedModel(info));

@@ -8,6 +8,7 @@
 import { $, esc } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
+import { orFavorites } from './openrouter.js';
 
 export async function checkHealth() {
   const el = $('#ollama-status');
@@ -23,21 +24,42 @@ export async function checkHealth() {
     el.querySelector('span').textContent = 'Ollama offline';
     const hint = $('#welcome-hint');
     hint.hidden = false;
-    hint.textContent = 'Ollama is not reachable at its default address. Start it with "ollama serve" (or launch the Ollama app), then this light turns green.';
+    hint.textContent = state.orConfigured
+      ? 'Ollama is not reachable, so local models are unavailable — remote (OpenRouter) models still work.'
+      : 'Ollama is not reachable at its default address. Start it with "ollama serve" (or launch the Ollama app), then this light turns green.';
   }
+}
+
+/** "☁ remote" chip beside the picker — visible when the selected model runs
+ * off-machine, so it's always obvious where a chat's text goes. */
+export function updateRemoteBadge() {
+  $('#remote-badge').hidden = !($('#model-select').value || '').startsWith('openrouter:');
 }
 
 export async function loadModels() {
   const sel = $('#model-select');
+  const prev = sel.value;
+  let local = [];
+  let ollamaUp = true;
   try {
-    const { models } = await api('/api/models');
-    state.models = models;
-    sel.innerHTML = models.length
-      ? models.map(m => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join('')
-      : '<option value="">no models — try: ollama pull llama3.2</option>';
-  } catch {
-    sel.innerHTML = '<option value="">Ollama offline</option>';
+    local = (await api('/api/models')).models;
+  } catch { ollamaUp = false; }
+  state.models = local;
+
+  const favs = state.orConfigured ? orFavorites() : [];
+  if (!local.length && !favs.length) {
+    sel.innerHTML = ollamaUp
+      ? '<option value="">no models — try: ollama pull llama3.2</option>'
+      : '<option value="">Ollama offline</option>';
+  } else {
+    const localOpts = local.map(m => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join('');
+    const remoteOpts = favs.map(f => `<option value="openrouter:${esc(f.id)}">☁ ${esc(f.name || f.id)}</option>`).join('');
+    sel.innerHTML =
+      (local.length ? `<optgroup label="On this machine">${localOpts}</optgroup>` : '') +
+      (favs.length ? `<optgroup label="OpenRouter — remote">${remoteOpts}</optgroup>` : '');
+    if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
   }
+  updateRemoteBadge();
 }
 
 let updatePrompted = false; // one native popup per session

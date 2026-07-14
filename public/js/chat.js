@@ -15,6 +15,7 @@ import { md } from './markdown.js';
 import { skillNames, renderSkillChips } from './skills.js';
 import { showView } from './views.js';
 import { refreshContext, clearContext, willOverflow, cannotCompact } from './context-meter.js';
+import { updateRemoteBadge } from './status.js';
 import { confirmDialog } from './confirm.js';
 import { openOverflowDialog } from './overflow.js';
 import { renderChatAttachments } from './attachments.js';
@@ -131,6 +132,7 @@ export function openChat(cid) {
     const opt = [...$('#model-select').options].find(o => o.value === chat.model);
     if (opt) $('#model-select').value = chat.model;
   }
+  updateRemoteBadge();
   renderChatList();
   renderMessages();
   renderChatAttachments();

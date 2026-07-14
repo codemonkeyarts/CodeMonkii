@@ -8,7 +8,8 @@
  */
 import { $, autoGrow } from './util.js';
 import { state } from './state.js';
-import { checkHealth, loadModels, checkOllamaUpdate } from './status.js';
+import { checkHealth, loadModels, checkOllamaUpdate, updateRemoteBadge } from './status.js';
+import { initOpenRouter, refreshOrStatus } from './openrouter.js';
 import { loadSkills, updateSkillPopup, pickSkill, renderSkillToggles, handleSkillPopupKey } from './skills.js';
 import { initSkillCreate, showSkillCreateForm, importSkillFlow } from './skill-create.js';
 import { createProject, openProject, saveProjectMeta, deleteProject, showProjectsPage, quickChat } from './projects.js';
@@ -69,6 +70,9 @@ function wireModelSettings() {
   initModal('#model-manager-backdrop', '#btn-close-model-manager');
   initModelManager();
   $('#btn-open-model-manager').addEventListener('click', openModelManager);
+  initOpenRouter();
+  // keep the "☁ remote" chip honest whenever the model choice changes
+  $('#model-select').addEventListener('change', updateRemoteBadge);
   return openModelManager;
 }
 
@@ -116,7 +120,9 @@ async function init() {
   initHelpAbout();
   initOverflowDialog(send, newChat);
 
-  await Promise.all([checkHealth(), loadModels(), loadSkills()]);
+  // orStatus first: loadModels needs to know whether remote favorites belong
+  // in the picker
+  await Promise.all([checkHealth(), refreshOrStatus().then(loadModels), loadSkills()]);
   await showProjectsPage(); // land on the all-projects page (welcome if none)
   checkOllamaUpdate();
   checkModels(); // first-run: offer a chat model and the retrieval embed model if missing

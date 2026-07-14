@@ -46,4 +46,8 @@ contextBridge.exposeInMainWorld('monkii', {
 
   /** Daily Ollama update check (opt-in) — restarts the server. */
   setUpdateCheck: (on) => ipcRenderer.invoke('prefs:set-update-check', on),
+
+  /** Save (or clear, with '') the OpenRouter API key — restarts the server.
+   *  Returns the prefs summary; the key itself is never readable back. */
+  setOpenRouterKey: (key) => ipcRenderer.invoke('prefs:set-openrouter-key', key),
 });

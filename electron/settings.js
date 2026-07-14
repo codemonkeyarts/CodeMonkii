@@ -14,7 +14,7 @@
  *      replaced wholesale on every update, so user data can't live there),
  *      repo-local in dev, same as `npm start`.
  */
-const { app } = require('electron');
+const { app, safeStorage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -81,10 +81,31 @@ function fsRootsEnvValue() {
 }
 
 /* Daily Ollama update check — opt-in, off unless the user enables it (or the
- * ambient env var forces it). The one thing that would ever leave the machine. */
+ * ambient env var forces it). */
 const updateCheckEnabled = () => (process.env.MONKII_UPDATE_CHECK !== undefined)
   ? process.env.MONKII_UPDATE_CHECK.toLowerCase() === 'on'
   : Boolean(loadSettings().updateCheck);
+
+/* ---- OpenRouter API key (optional remote backend) ----
+ * Stored OS-encrypted via Electron's safeStorage (DPAPI on Windows) so the
+ * settings file never holds it in plaintext. It is only ever handed to the
+ * forked local server as an env var — never to the renderer. */
+function setOpenRouterKey(key) {
+  const k = (key || '').trim();
+  if (!k) return saveSettings({ openrouterKey: undefined });
+  if (!safeStorage.isEncryptionAvailable()) throw new Error('OS encryption unavailable — key not saved');
+  return saveSettings({ openrouterKey: safeStorage.encryptString(k).toString('base64') });
+}
+
+function openrouterKey() {
+  if (process.env.MONKII_OPENROUTER_KEY !== undefined) return process.env.MONKII_OPENROUTER_KEY;
+  const enc = loadSettings().openrouterKey;
+  if (!enc) return '';
+  try { return safeStorage.decryptString(Buffer.from(enc, 'base64')); }
+  catch { return ''; } // settings copied from another machine/user — undecryptable
+}
+
+const openrouterConfigured = () => Boolean(openrouterKey());
 
 /** Env block handed to the forked server. Seeds the bundled sample skills
  *  into a fresh skills folder when packaged (never overwriting files). */
@@ -103,10 +124,12 @@ function storageEnv() {
     MONKII_LOG_DIR: logDir(),
     MONKII_FS_ROOTS: fsRootsEnvValue(),
     MONKII_UPDATE_CHECK: updateCheckEnabled() ? 'on' : 'off',
+    MONKII_OPENROUTER_KEY: openrouterKey(),
   };
 }
 
 module.exports = {
   loadSettings, saveSettings, defaultStorage, effectiveStorage, storageEnv, logDir,
   fsRootsList, fsWholeDisk, updateCheckEnabled,
+  setOpenRouterKey, openrouterConfigured,
 };

@@ -73,6 +73,9 @@
         </div>
         <div class="chat-header-controls">
           <select id="model-select" title="Model"></select>
+          <span id="remote-badge" class="remote-badge" hidden
+            title="This model runs on OpenRouter's servers — this chat's messages and attachments leave your machine.">☁ remote</span>
+          <button id="btn-or-browse" class="icon-btn" title="Browse OpenRouter models" hidden>☁</button>
           <button id="btn-model-settings" class="icon-btn" title="Model settings">⚙</button>
           <button id="btn-clear-chat" class="icon-btn" title="Clear conversation (keeps the chat, resets its context)">🧹</button>
         </div>
@@ -219,6 +222,21 @@
     </div>
   </div>
 
+  <!-- ===== OpenRouter browse modal (remote models — only with an API key) ===== -->
+  <div id="or-backdrop" class="modal-backdrop" hidden>
+    <div id="or-panel" class="modal-panel">
+      <header>
+        <h3>OpenRouter models <span class="or-remote-note">remote — chats using these leave your machine</span></h3>
+        <button id="btn-close-or" class="icon-btn" title="Close">×</button>
+      </header>
+      <div class="or-scroll">
+        <input id="or-search" type="text" placeholder="Search 300+ models — try: deepseek, qwen, claude, mistral…" autocomplete="off" spellcheck="false">
+        <div class="or-hint">★ a model to add it to your model picker. Prices are per million tokens.</div>
+        <ul id="or-list"></ul>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== model settings modal ===== -->
   <div id="model-settings-backdrop" class="modal-backdrop" hidden>
     <div id="model-settings-panel" class="modal-panel">
@@ -342,6 +360,20 @@
         </div>
 
         <div class="field">
+          <span>Remote models — OpenRouter <em>optional; off unless you add a key</em></span>
+          <div id="prefs-or-status" class="prefs-path"></div>
+          <div class="prefs-actions">
+            <input type="password" id="prefs-or-key" class="prefs-key-input" placeholder="sk-or-v1-…" autocomplete="off" spellcheck="false">
+            <button id="btn-prefs-or-save" class="btn btn-ghost">Save key</button>
+            <button id="btn-prefs-or-clear" class="btn btn-ghost">Remove key</button>
+          </div>
+          <div id="prefs-or-env-note" class="prefs-note" hidden>
+            Set by the <b>MONKII_OPENROUTER_KEY</b> environment variable — it overrides this preference.
+          </div>
+          <div class="prefs-note"><b>This changes where your words go.</b> Chats that use an OpenRouter model send that chat's messages, project instructions, and attachments to openrouter.ai and the model's provider — they leave this machine. Local models are never affected, and nothing goes remote unless you pick a remote model for a chat. The key is stored OS-encrypted and never shown again. Saving restarts the app view.</div>
+        </div>
+
+        <div class="field">
           <span>Update check <em>look for newer Ollama releases</em></span>
           <label class="prefs-toggle">
             <input type="checkbox" id="prefs-update-check">
@@ -382,8 +414,11 @@
           <h4>File access</h4>
           <p>By default Monkii can only read inside your home folder. To attach from elsewhere, widen it in <b>Preferences → File access</b>.</p>
 
+          <h4>Remote models (optional)</h4>
+          <p>If your hardware can't run the model you need, add an <b>OpenRouter API key</b> in <b>Preferences → Remote models</b>, then browse the catalog with the <b>☁</b> next to the model picker and ★ models into it. Chats using a remote model show a <b>☁ remote</b> badge — that chat's text goes to OpenRouter and the model's provider. Local chats are never affected.</p>
+
           <h4>Privacy</h4>
-          <p>Nothing leaves your machine. The only optional outbound call — a daily check for newer Ollama releases — is <b>off by default</b> (turn it on in Preferences → Update check).</p>
+          <p>Out of the box, nothing leaves your machine. Two things are opt-in and off by default: the daily Ollama update check (Preferences → Update check), and remote models — which only apply to chats where you picked a <b>☁ remote</b> model.</p>
 
           <h4>Tips</h4>
           <ul>
@@ -408,7 +443,7 @@
       </header>
       <div class="about-body">
         <div class="about-mark">🐒 <span>MON<b>KII</b></span></div>
-        <p>A <b>local, private LLM studio</b> for <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> — projects, Claude-style skills, and live file knowledge. Everything runs on your own machine; nothing about you or your chats ever leaves it.</p>
+        <p>A <b>local, private LLM studio</b> for <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> — projects, Claude-style skills, and live file knowledge. Local by default: nothing about you or your chats leaves your machine unless you deliberately point a chat at a <b>☁ remote</b> model — and Monkii always tells you when the text is leaving the room.</p>
         <p>Built by <b>Coda Languez</b> as a desktop home for local AI: it began as a ComfyUI-style wrapper around Ollama and grew into a full studio for writing and coding with models that never phone home.</p>
         <dl class="about-meta">
           <div><dt>Version</dt><dd id="about-version">—</dd></div>
