@@ -22,7 +22,7 @@ A local, private LLM studio for [Ollama](https://ollama.com) — projects, Claud
         <li>Claude-format <strong>skills</strong> as per-project toggles or <code>/</code> per message</li>
         <li>A live <strong>token / context</strong> readout in the composer</li>
         <li>Per-project <strong>model settings</strong> with a size &amp; use-case recommendation</li>
-        <li>The cyber-deco dark theme (see the roadmap for theming plans)</li>
+        <li>Seven switchable themes — four dark, three light (shown: <strong>Cyber Deco</strong>, the default) — in Preferences → Theme</li>
       </ul>
     </td>
   </tr>
@@ -35,6 +35,7 @@ git clone https://github.com/codalanguez/Monkii.git
 cd Monkii
 npm install        # first time only
 npm start          # then open http://localhost:8113
+npm test           # unit tests for the OpenRouter adapter boundary
 ```
 
 On Windows you can also just double-click **`Start Monkii.cmd`** — it starts Ollama if needed and opens the app.
@@ -182,8 +183,18 @@ The system prompt stays constant as the conversation grows. With the old dump it
 ### Ollama
 - Auto-detects Ollama at `http://localhost:11434` (override with `OLLAMA_HOST`; bind-style values like `0.0.0.0` are normalized automatically)
 - Model picker per chat, streaming responses, stop button
+- **↻ Retry** on the conversation's last reply — re-runs your last prompt (with the same invoked skills) under whatever model is currently selected, so you can switch models and compare takes; available after errors and Stop too
 - Health indicator in the sidebar
 - Update check (**off by default, opt-in**): when enabled, a cached daily check notices a newer Ollama release and shows a download pill plus (in the desktop app) a popup offering to download it. Turn it on in Preferences → Update check, or `MONKII_UPDATE_CHECK=on`
+
+### Themes
+
+Seven presets in **Preferences → Theme**, applied instantly and remembered (no restart, no flash on boot):
+
+- **Dark** — Cyber Deco (default), Speakeasy Noir, Gothic Library, Midnight
+- **Light** — Parchment, Daylight, Porcelain
+
+The whole UI runs on CSS variables (every accent, glow, and surface derives from the theme's tokens), and all seven are contrast-checked to WCAG AA. Custom colors, fonts, a system-follow toggle, and density controls are on the [roadmap](ROADMAP.md).
 
 ### Optional: remote models (OpenRouter)
 
@@ -264,7 +275,7 @@ routes/
   ollama.js             health, models, update check, streaming chat
 public/
   index.html            single-page UI shell
-  style.css             midnight-workshop theme
+  style.css             the seven themes (CSS-variable presets)
   js/                   ES modules, one per feature:
     main.js             wiring + startup
     state.js            shared client state
