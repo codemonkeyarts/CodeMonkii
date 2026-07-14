@@ -39,15 +39,21 @@ const humanizeError = (msg, model) => (isRemoteModel(model) || !RUNNER_CRASH_RE.
 
 /** Collapsible "thinking" block for reasoning models; open while it's all we have. */
 function thinkingHtml(t, open = false) {
-  return t ? `<details class="think"${open ? ' open' : ''}><summary>thinking</summary><div class="think-body">${md(t)}</div></details>` : '';
+  if (typeof t !== 'string' || !t) return ''; // stored files may hold anything
+  return `<details class="think"${open ? ' open' : ''}><summary>thinking</summary><div class="think-body">${md(t)}</div></details>`;
 }
 
-const fmtTok = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n || 0));
+// Token counts come from a remote API and old store files could hold anything —
+// coerce so nothing but digits ever reaches the HTML below. (1000-based on
+// purpose: these are token counts, not 1024-based context windows like fmtCtx.)
+const fmtTok = (n) => { const x = Number(n) || 0; return x >= 1000 ? `${(x / 1000).toFixed(1)}k` : String(x); };
+const fmtUsd = (c) => `$${c < 0.01 ? c.toFixed(4) : c.toFixed(2)}`;
+const validCost = (c) => typeof c === 'number' && Number.isFinite(c);
 
 /** Per-reply usage line: exact cost + token counts (remote replies only). */
 function usageMeta(u) {
   if (!u) return '';
-  const cost = u.cost != null ? `$${u.cost < 0.01 ? u.cost.toFixed(4) : u.cost.toFixed(2)} · ` : '';
+  const cost = validCost(u.cost) ? `${fmtUsd(u.cost)} · ` : '';
   return `<div class="msg-usage">${cost}${fmtTok(u.promptTokens)} in / ${fmtTok(u.completionTokens)} out</div>`;
 }
 
@@ -55,9 +61,9 @@ function usageMeta(u) {
 export function updateChatCost() {
   const el = $('#chat-cost');
   const chat = state.project && currentChat();
-  const total = chat ? chat.messages.reduce((s, m) => s + ((m.usage && m.usage.cost) || 0), 0) : 0;
+  const total = chat ? chat.messages.reduce((s, m) => s + (m.usage && validCost(m.usage.cost) ? m.usage.cost : 0), 0) : 0;
   el.hidden = !total;
-  if (total) el.textContent = `Σ $${total < 0.01 ? total.toFixed(4) : total.toFixed(2)}`;
+  if (total) el.textContent = `Σ ${fmtUsd(total)}`;
 }
 
 /** Toggle streaming state and the send/stop button pair together. */
@@ -223,19 +229,29 @@ export async function send(bypassOverflow = false) {
  */
 export async function retryLast() {
   if (state.streaming || !state.project || !state.chatId) return;
+  const cid = state.chatId;
   const chat = currentChat();
   if (!chat || !chat.messages.some(m => m.role === 'user')) return;
   const model = $('#model-select').value;
   if (!model) { toast('No model available — pull one via Manage models, or add remote models in Preferences.', true); return; }
+  // Pre-check the one /chat rejection that happens before the server would
+  // re-persist the popped message (remote model, no key) — otherwise a failed
+  // retry would drop the turn from disk. Every other failure (overflow 413,
+  // runner crash) occurs after /chat has already saved the user turn again.
+  if (isRemoteModel(model) && !state.orConfigured) {
+    toast('This model needs an OpenRouter key — add one in Preferences, or pick a local model.', true);
+    return;
+  }
 
   let removed;
   try {
-    removed = await api(`/api/projects/${state.project.id}/chats/${state.chatId}/messages/last`, { method: 'DELETE' });
+    removed = await api(`/api/projects/${state.project.id}/chats/${cid}/messages/last`, { method: 'DELETE' });
   } catch (e) { toast(e.message, true); return; }
 
-  // mirror the server: drop trailing assistant replies, then the user message
-  while (chat.messages.length && chat.messages[chat.messages.length - 1].role !== 'user') chat.messages.pop();
-  chat.messages.pop();
+  chat.messages = removed.messages; // the server's trimmed truth — no mirror logic
+  // the user may have switched chats while the pop was in flight — never
+  // resend the prompt into whatever chat is now open
+  if (state.chatId !== cid) return;
   renderMessages();
   await runExchange(removed.message, removed.skillIds || [], model);
 }

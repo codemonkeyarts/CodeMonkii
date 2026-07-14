@@ -17,7 +17,9 @@ const estimate = (text) => Math.ceil((text || '').length / 4);
 const fmt = (n) => n.toLocaleString();
 
 /** Token count as a compact "16k" / "512" label. */
-export const fmtK = (n) => (n >= 1024 ? `${Math.round(n / 1024)}k` : `${n}`);
+// context-length formatting lives in util.js; re-exported under the name the
+// meter's consumers (overflow, model-settings) historically import
+export { fmtCtx as fmtK } from './util.js';
 
 /** Blank the meter immediately — used when switching chats so the previous
  *  chat's count doesn't linger while the new estimate loads. */

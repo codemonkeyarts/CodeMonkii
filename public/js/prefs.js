@@ -63,16 +63,22 @@ function renderOpenRouter(prefs) {
   $('#prefs-or-logging').disabled = Boolean(prefs.orDataCollectionEnv);
   $('#prefs-or-logging-env-note').hidden = !prefs.orDataCollectionEnv;
 
-  // live spend on the key, appended once the (async) check returns
+  // live spend on the key, filled in once the (async) check returns. The
+  // generation counter keeps a slow response from a previous open from
+  // appending to (or duplicating on) a newer render.
   if (prefs.openrouterConfigured) {
+    const base = $('#prefs-or-status').textContent;
+    const gen = ++keyStatusGen;
     api('/api/openrouter/key-status').then(k => {
+      if (gen !== keyStatusGen) return; // a newer render superseded this fetch
       const spent = k.usage != null ? `$${k.usage.toFixed(2)} used` : '';
       const cap = k.limit != null ? ` of $${k.limit.toFixed(2)}` : '';
       const tier = k.isFreeTier ? ' (free tier)' : '';
-      if (spent) $('#prefs-or-status').textContent += ` · ${spent}${cap}${tier}`;
+      if (spent) $('#prefs-or-status').textContent = `${base} · ${spent}${cap}${tier}`;
     }).catch(() => { /* offline — the static line stands */ });
   }
 }
+let keyStatusGen = 0;
 
 /** The file-access allowlist: whole-disk banner, or a removable list of folders. */
 function renderFsAccess(prefs) {

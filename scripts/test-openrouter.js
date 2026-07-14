@@ -1,0 +1,104 @@
+/**
+ * test-openrouter.js — unit tests for the OpenRouter adapter boundary.
+ *
+ * `npm test`. No framework, no network: exercises buildChatPayload (privacy
+ * routing, option remapping, routing variants, cache markers) and sseToNdjson
+ * (delta/reasoning/usage/error translation, keepalives, split chunks, type
+ * coercion) — the two pieces most likely to break silently against a remote
+ * API. Exits non-zero on any failure.
+ */
+const assert = require('assert');
+const { buildChatPayload, sseToNdjson } = require('../lib/openrouter');
+
+let failures = 0;
+function test(name, fn) {
+  Promise.resolve().then(fn).then(
+    () => console.log(`  ok  ${name}`),
+    (e) => { failures++; console.error(`FAIL  ${name}\n      ${e.message}`); },
+  );
+}
+
+const sys = [{ role: 'system', content: 'You edit manuscripts.' }, { role: 'user', content: 'hi' }];
+
+test('privacy routing: data_collection deny is on by default', () => {
+  const p = buildChatPayload({ model: 'openrouter:deepseek/deepseek-chat', messages: sys, options: {} });
+  assert.deepStrictEqual(p.provider, { data_collection: 'deny' });
+  assert.deepStrictEqual(p.usage, { include: true });
+});
+
+test('options remap: num_predict→max_tokens, repeat_penalty→repetition_penalty, local knobs dropped', () => {
+  const p = buildChatPayload({
+    model: 'openrouter:x/y', messages: sys,
+    options: { num_predict: 512, repeat_penalty: 1.1, num_ctx: 16384, keep_alive: '5m', mirostat: 2, temperature: 0.8 },
+  });
+  assert.strictEqual(p.max_tokens, 512);
+  assert.strictEqual(p.repetition_penalty, 1.1);
+  assert.strictEqual(p.temperature, 0.8);
+  for (const k of ['num_ctx', 'keep_alive', 'mirostat', 'num_predict', 'repeat_penalty', 'or_route']) {
+    assert.ok(!(k in p), `${k} must not reach the API body`);
+  }
+});
+
+test('or_route appends a variant suffix, but never onto an existing variant', () => {
+  const a = buildChatPayload({ model: 'openrouter:mistralai/mistral-large', messages: sys, options: { or_route: 'floor' } });
+  const b = buildChatPayload({ model: 'openrouter:deepseek/deepseek-chat:free', messages: sys, options: { or_route: 'floor' } });
+  assert.strictEqual(a.model, 'mistralai/mistral-large:floor');
+  assert.strictEqual(b.model, 'deepseek/deepseek-chat:free');
+});
+
+test('cache markers only on cacheable providers, system content preserved byte-for-byte', () => {
+  const a = buildChatPayload({ model: 'openrouter:anthropic/claude-sonnet-4.5', messages: sys, options: {} });
+  const b = buildChatPayload({ model: 'openrouter:deepseek/deepseek-chat', messages: sys, options: {} });
+  assert.deepStrictEqual(a.messages[0].content[0].cache_control, { type: 'ephemeral' });
+  assert.strictEqual(a.messages[0].content[0].text, sys[0].content);
+  assert.strictEqual(typeof b.messages[0].content, 'string');
+});
+
+function streamOf(chunks) {
+  const enc = new TextEncoder();
+  return new ReadableStream({ start(c) { for (const ch of chunks) c.enqueue(enc.encode(ch)); c.close(); } });
+}
+
+async function collect(chunks) {
+  const reader = sseToNdjson(streamOf(chunks)).getReader();
+  const dec = new TextDecoder();
+  let out = '';
+  for (;;) { const { done, value } = await reader.read(); if (done) break; out += dec.decode(value); }
+  return out.trim().split('\n').map(l => JSON.parse(l));
+}
+
+test('stream: deltas, reasoning, keepalives, split chunks, DONE', async () => {
+  const events = await collect([
+    ': OPENROUTER PROCESSING\n\n',
+    'data: {"choices":[{"delta":{"reasoning":"think. "}}]}\n\n',
+    'data: {"choices":[{"delta":{"cont',                       // split mid-JSON
+    'ent":"Hel"}}]}\n\n',
+    'data: {"choices":[{"delta":{"content":"lo"}}]}\n\ndata: [DONE]\n\n',
+  ]);
+  assert.deepStrictEqual(events, [
+    { message: { thinking: 'think. ' } },
+    { message: { content: 'Hel' } },
+    { message: { content: 'lo' } },
+    { done: true },
+  ]);
+});
+
+test('stream: usage is emitted with hard numeric coercion', async () => {
+  const events = await collect([
+    'data: {"choices":[{"delta":{}}],"usage":{"prompt_tokens":"<img onerror=x>","completion_tokens":"12","total_tokens":12,"cost":"0.5"}}\n\n',
+    'data: [DONE]\n\n',
+  ]);
+  const usage = events.find(e => e.or_usage)?.or_usage;
+  assert.deepStrictEqual(usage, { promptTokens: 0, completionTokens: 12, cost: null },
+    'provider-supplied strings must never survive the boundary');
+});
+
+test('stream: provider errors become Ollama-shaped {error} lines', async () => {
+  const events = await collect(['data: {"error":{"message":"provider hiccup"}}\n\ndata: [DONE]\n\n']);
+  assert.deepStrictEqual(events[0], { error: 'provider hiccup' });
+});
+
+process.on('beforeExit', () => {
+  if (failures) { console.error(`\n${failures} test(s) failed`); process.exit(1); }
+  console.log('\nall openrouter adapter tests passed');
+});

@@ -19,12 +19,12 @@
   --bone: #f6f1de;        /* text */
   --bone-dim: #b3ad98;    /* secondary text — raised contrast for readability */
 
-  --line: rgba(255, 212, 0, .18);       /* gold hairlines */
-  --line-soft: rgba(255, 212, 0, .09);
+  --line: color-mix(in srgb, var(--gold) 18%, transparent);       /* gold hairlines */
+  --line-soft: color-mix(in srgb, var(--gold) 09%, transparent);
 
   /* atmosphere glow colors (see body::before) */
-  --glow-a: rgba(255, 212, 0, .05);
-  --glow-b: rgba(229, 9, 20, .04);
+  --glow-a: color-mix(in srgb, var(--gold) 05%, transparent);
+  --glow-b: color-mix(in srgb, var(--red) 04%, transparent);
 
   /* deep surfaces + effects — tokenized so light themes can flip them */
   --field: #030302;                     /* inputs / terminal readouts */
@@ -32,7 +32,7 @@
   --code-bg: #000;                      /* code blocks */
   --on-accent: #000;                    /* text sitting on the accent color */
   --scanline: rgba(0, 0, 0, .28);       /* CRT scanline layer */
-  --scanband: rgba(0, 255, 224, .5);    /* traveling scan band */
+  --scanband: color-mix(in srgb, var(--cyan) 50%, transparent);    /* traveling scan band */
 
   --font-display: 'Forum', Georgia, serif;
   --font-body: 'Inter', 'Segoe UI', sans-serif;
@@ -250,17 +250,17 @@ button { font-family: inherit; cursor: pointer; }
 input, textarea, select { font-family: inherit; font-size: inherit; color: var(--bone); }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: rgba(255, 212, 0, .25); border-radius: 0; border: 3px solid var(--void); }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--gold) 25%, transparent); border-radius: 0; border: 3px solid var(--void); }
 ::-webkit-scrollbar-track { background: transparent; }
 
 ::selection { background: var(--gold); color: var(--on-accent); }
 
 /* glitch tear on the brand + welcome headline (theme signature) */
 @keyframes glitchTear {
-  0%, 91%, 100% { text-shadow: 0 0 14px rgba(255, 212, 0, .35); transform: none; }
-  92% { text-shadow: -2px 0 var(--red), 2px 0 var(--cyan), 0 0 14px rgba(255, 212, 0, .35); transform: translateX(1px); }
-  94% { text-shadow: 2px 0 var(--red), -2px 0 var(--cyan), 0 0 14px rgba(255, 212, 0, .35); transform: translateX(-1px); }
-  96% { text-shadow: -1px 0 var(--cyan), 1px 0 var(--red), 0 0 14px rgba(255, 212, 0, .35); transform: none; }
+  0%, 91%, 100% { text-shadow: 0 0 14px color-mix(in srgb, var(--gold) 35%, transparent); transform: none; }
+  92% { text-shadow: -2px 0 var(--red), 2px 0 var(--cyan), 0 0 14px color-mix(in srgb, var(--gold) 35%, transparent); transform: translateX(1px); }
+  94% { text-shadow: 2px 0 var(--red), -2px 0 var(--cyan), 0 0 14px color-mix(in srgb, var(--gold) 35%, transparent); transform: translateX(-1px); }
+  96% { text-shadow: -1px 0 var(--cyan), 1px 0 var(--red), 0 0 14px color-mix(in srgb, var(--gold) 35%, transparent); transform: none; }
 }
 
 /* ============ left rail ============ */
@@ -284,12 +284,12 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 }
 .brand-mark {
   width: 34px; height: 34px; border-radius: 7px;
-  filter: drop-shadow(0 0 10px rgba(255, 212, 0, .6));
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--gold) 60%, transparent));
   animation: markPulse 4s ease-in-out infinite;
 }
 @keyframes markPulse {
-  0%, 100% { filter: drop-shadow(0 0 6px rgba(255, 212, 0, .35)); }
-  50%      { filter: drop-shadow(0 0 14px rgba(255, 212, 0, .8)); }
+  0%, 100% { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--gold) 35%, transparent)); }
+  50%      { filter: drop-shadow(0 0 14px color-mix(in srgb, var(--gold) 80%, transparent)); }
 }
 #brand h1 {
   font-family: var(--font-display);
@@ -311,11 +311,11 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   display: inline-block; margin-top: 6px;
   font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
   color: var(--gold); text-decoration: none;
-  background: rgba(255, 212, 0, .08); border: 1px solid rgba(255, 212, 0, .45);
+  background: color-mix(in srgb, var(--gold) 08%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
   border-radius: 2px; padding: 2px 9px;
   transition: all .15s;
 }
-.update-pill:hover { color: var(--on-accent); background: var(--gold); box-shadow: 0 0 14px rgba(255, 212, 0, .5); }
+.update-pill:hover { color: var(--on-accent); background: var(--gold); box-shadow: 0 0 14px color-mix(in srgb, var(--gold) 50%, transparent); }
 
 .rail-section { padding: 14px 10px 6px; overflow-y: auto; }
 #chat-section { flex: 1; border-top: 1px solid var(--line-soft); margin-top: 6px; }
@@ -333,7 +333,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   width: 22px; height: 22px; border-radius: 2px; line-height: 1;
   transition: all .15s;
 }
-.icon-btn:hover { color: var(--gold); border-color: var(--gold); box-shadow: 0 0 8px rgba(255, 212, 0, .25); }
+.icon-btn:hover { color: var(--gold); border-color: var(--gold); box-shadow: 0 0 8px color-mix(in srgb, var(--gold) 25%, transparent); }
 .icon-btn.wide { width: auto; padding: 0 10px; height: 30px; font-size: 13px; }
 
 #chat-list { list-style: none; }
@@ -349,7 +349,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 #chat-list li.active::before {
   content: ''; position: absolute; left: -10px; top: 18%; bottom: 18%;
   width: 3px; background: var(--gold);
-  box-shadow: 0 0 8px rgba(255, 212, 0, .8);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--gold) 80%, transparent);
 }
 #chat-list li .del {
   visibility: hidden; font-size: 14px; flex-shrink: 0;
@@ -378,7 +378,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .welcome-ember {
   width: 84px; height: 84px; border-radius: 17px;
   display: inline-block; margin-bottom: 22px;
-  filter: drop-shadow(0 0 14px rgba(255, 212, 0, .6));
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--gold) 60%, transparent));
   animation: markPulse 4s ease-in-out infinite;
 }
 .welcome h2 {
@@ -391,8 +391,8 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .welcome p { color: var(--bone-dim); margin-bottom: 26px; font-size: 15px; }
 .welcome-hint {
   margin-top: 22px; font-size: 13px; color: var(--red-bright);
-  border: 1px solid rgba(229, 9, 20, .4); border-radius: 2px; padding: 12px 16px;
-  background: rgba(90, 10, 18, .18);
+  border: 1px solid color-mix(in srgb, var(--red) 40%, transparent); border-radius: 2px; padding: 12px 16px;
+  background: color-mix(in srgb, var(--red-deep) 18%, transparent);
 }
 
 /* ============ chat ============ */
@@ -401,7 +401,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 #chat-header {
   display: flex; justify-content: space-between; align-items: center; gap: 16px;
   padding: 14px 26px; border-bottom: 1px solid var(--line);
-  background: rgba(5, 4, 3, .7); backdrop-filter: blur(6px);
+  background: color-mix(in srgb, var(--onyx) 72%, transparent); backdrop-filter: blur(6px);
 }
 .chat-title-wrap { min-width: 0; }
 #chat-title {
@@ -430,7 +430,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 }
 .msg-user .msg-role { color: var(--gold); }
 .msg-user .msg-body {
-  background: var(--panel); border: 1px solid rgba(255, 212, 0, .22);
+  background: var(--panel); border: 1px solid color-mix(in srgb, var(--gold) 22%, transparent);
   padding: 12px 16px; border-radius: 2px; white-space: pre-wrap;
 }
 .msg-assistant .msg-role { color: var(--gold-deep); }
@@ -446,7 +446,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .msg-body p { margin: 8px 0; }
 .msg-body ul, .msg-body ol { margin: 8px 0 8px 22px; }
 .msg-body li { margin: 3px 0; }
-.msg-body a { color: var(--gold); text-decoration-color: rgba(255, 212, 0, .4); }
+.msg-body a { color: var(--gold); text-decoration-color: color-mix(in srgb, var(--gold) 40%, transparent); }
 .msg-body a:hover { color: var(--red-bright); text-decoration-color: var(--red); }
 .msg-body blockquote {
   border-left: 2px solid var(--gold-deep); padding: 2px 14px; margin: 10px 0;
@@ -462,7 +462,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .msg-body pre {
   background: var(--field); border: 1px solid var(--line); border-radius: 2px;
   padding: 14px 16px; overflow-x: auto; margin: 12px 0;
-  box-shadow: inset 0 0 30px rgba(0, 255, 224, .03);
+  box-shadow: inset 0 0 30px color-mix(in srgb, var(--cyan) 03%, transparent);
 }
 .msg-body pre code { background: none; border: none; padding: 0; font-size: 16px; line-height: 1.4; color: var(--cyan); }
 
@@ -494,7 +494,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .composer-attach:hover { color: var(--gold); border: none; box-shadow: none; }
 .composer-box:focus-within {
   border-color: var(--gold);
-  box-shadow: 0 0 0 1px rgba(255, 212, 0, .25), 0 0 24px rgba(255, 212, 0, .08), 0 8px 30px rgba(0, 0, 0, .5);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 25%, transparent), 0 0 24px color-mix(in srgb, var(--gold) 08%, transparent), 0 8px 30px rgba(0, 0, 0, .5);
 }
 #input {
   flex: 1; background: none; border: none; resize: none; outline: none;
@@ -519,9 +519,9 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .btn-primary {
   background: linear-gradient(160deg, var(--gold-bright), var(--gold));
   color: var(--on-accent); border-color: var(--gold-deep);
-  box-shadow: 0 0 14px rgba(255, 212, 0, .25);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--gold) 25%, transparent);
 }
-.btn-primary:hover { filter: brightness(1.08); box-shadow: 0 0 22px rgba(255, 212, 0, .5); }
+.btn-primary:hover { filter: brightness(1.08); box-shadow: 0 0 22px color-mix(in srgb, var(--gold) 50%, transparent); }
 .btn-primary:disabled { opacity: .45; cursor: default; filter: none; }
 .btn-stop { background: var(--red); color: var(--bone); border-color: var(--red-deep); }
 .btn-stop:hover { background: var(--red-bright); }
@@ -531,10 +531,10 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 }
 .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
 .btn-danger-ghost {
-  background: none; border-color: rgba(229, 9, 20, .35); color: var(--red-bright);
+  background: none; border-color: color-mix(in srgb, var(--red) 35%, transparent); color: var(--red-bright);
   font-weight: 400; text-transform: none; letter-spacing: 0; margin-top: auto;
 }
-.btn-danger-ghost:hover { background: rgba(90, 10, 18, .25); border-color: var(--red); }
+.btn-danger-ghost:hover { background: color-mix(in srgb, var(--red-deep) 25%, transparent); border-color: var(--red); }
 
 #confirm-panel { width: min(420px, 90vw); }
 .confirm-body { padding: 22px; display: flex; flex-direction: column; gap: 20px; }
@@ -546,7 +546,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .skill-chip {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--font-mono); font-size: 15px;
-  background: rgba(255, 212, 0, .08); border: 1px solid rgba(255, 212, 0, .45);
+  background: color-mix(in srgb, var(--gold) 08%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
   color: var(--gold); border-radius: 2px; padding: 1px 10px;
 }
 .skill-chip button { background: none; border: none; color: inherit; font-size: 13px; opacity: .7; }
@@ -558,7 +558,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .chat-att-chip {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--font-mono); font-size: 13px;
-  background: rgba(0, 255, 224, .06); border: 1px solid rgba(0, 255, 224, .35);
+  background: color-mix(in srgb, var(--cyan) 06%, transparent); border: 1px solid color-mix(in srgb, var(--cyan) 35%, transparent);
   color: var(--cyan); border-radius: 2px; padding: 2px 10px; max-width: 320px;
 }
 .chat-att-chip .att-icon { color: var(--cyan); }
@@ -568,8 +568,8 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 /* background-indexing progress badge on an attachment */
 .att-indexing {
   font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em;
-  color: var(--gold); background: rgba(255, 212, 0, .1);
-  border: 1px solid rgba(255, 212, 0, .35); border-radius: 2px;
+  color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent); border-radius: 2px;
   padding: 0 6px; white-space: nowrap; animation: att-pulse 1.4s ease-in-out infinite;
 }
 #attachment-list .att-indexing { margin-left: 6px; }
@@ -580,7 +580,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   position: absolute; bottom: 100%; left: 26px; right: 26px; margin-bottom: 6px;
   background: var(--obsidian); border: 1px solid var(--line); border-radius: 2px;
   max-height: 260px; overflow-y: auto; z-index: 30;
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, .6), 0 0 20px rgba(255, 212, 0, .06);
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, .6), 0 0 20px color-mix(in srgb, var(--gold) 06%, transparent);
 }
 #skill-popup .sp-item { padding: 10px 16px; cursor: pointer; border-bottom: 1px solid var(--line-soft); }
 #skill-popup .sp-item:last-child { border-bottom: none; }
@@ -613,7 +613,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0;
   transition: max-width .22s ease, opacity .18s ease;
 }
-#inspector-tab:hover { background: var(--panel); box-shadow: -4px 0 18px rgba(255, 212, 0, .14); }
+#inspector-tab:hover { background: var(--panel); box-shadow: -4px 0 18px color-mix(in srgb, var(--gold) 14%, transparent); }
 #inspector-tab:hover .it-label { max-width: 160px; opacity: 1; }
 #inspector > header { display: flex; justify-content: space-between; align-items: center; }
 #inspector h3 {
@@ -641,7 +641,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   padding: 8px 12px; cursor: pointer; transition: all .15s;
 }
 .toggle-list li:hover { border-color: var(--line); }
-.toggle-list li.on { border-color: rgba(255, 212, 0, .5); background: rgba(255, 212, 0, .04); box-shadow: 0 0 12px rgba(255, 212, 0, .07); }
+.toggle-list li.on { border-color: color-mix(in srgb, var(--gold) 50%, transparent); background: color-mix(in srgb, var(--gold) 04%, transparent); box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 07%, transparent); }
 .toggle-list .tgl {
   width: 30px; height: 16px; border-radius: 2px; background: var(--panel);
   border: 1px solid var(--line); position: relative;
@@ -652,7 +652,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   background: var(--bone-dim); transition: all .15s;
 }
 .toggle-list li.on .tgl { background: var(--red-deep); border-color: var(--gold-deep); }
-.toggle-list li.on .tgl::after { left: 15px; background: var(--gold); box-shadow: 0 0 6px rgba(255, 212, 0, .8); }
+.toggle-list li.on .tgl::after { left: 15px; background: var(--gold); box-shadow: 0 0 6px color-mix(in srgb, var(--gold) 80%, transparent); }
 .toggle-list .tl-name { font-family: var(--font-mono); font-size: 16px; color: var(--bone); }
 .toggle-list li.on .tl-name { color: var(--gold); }
 .toggle-list .tl-desc {
@@ -689,7 +689,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .modal-panel {
   background: var(--onyx); border: 1px solid var(--gold-deep); border-radius: 2px;
   display: flex; flex-direction: column; overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(255, 212, 0, .12), 0 0 40px rgba(255, 212, 0, .08), 0 30px 80px rgba(0, 0, 0, .7);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 12%, transparent), 0 0 40px color-mix(in srgb, var(--gold) 08%, transparent), 0 30px 80px rgba(0, 0, 0, .7);
   animation: fadeUp .2s ease both;
 }
 .modal-panel > header {
@@ -707,7 +707,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 #file-browser { width: min(680px, 92vw); height: min(560px, 86vh); }
 #fb-path {
   font-family: var(--font-mono); font-size: 16px; color: var(--cyan);
-  text-shadow: 0 0 8px rgba(0, 255, 224, .35);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--cyan) 35%, transparent);
   padding: 8px 20px; border-bottom: 1px solid var(--line-soft);
   white-space: nowrap; overflow-x: auto; background: var(--field);
 }
@@ -765,7 +765,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 }
 .proj-card:hover {
   border-color: var(--gold); transform: translateY(-2px);
-  box-shadow: 0 0 18px rgba(255, 212, 0, .12), 0 12px 30px rgba(0, 0, 0, .5);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--gold) 12%, transparent), 0 12px 30px rgba(0, 0, 0, .5);
 }
 .pc-name {
   font-family: var(--font-display); font-size: 18px; color: var(--bone);
@@ -795,7 +795,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   font-style: normal; display: block; font-size: 11px; margin-top: 2px;
   color: var(--bone-dim); text-transform: none; letter-spacing: 0;
 }
-.of-body .btn-primary em { color: rgba(0, 0, 0, .6); }
+.of-body .btn-primary em { color: color-mix(in srgb, var(--on-accent) 60%, transparent); }
 
 /* ---- model manager modal ---- */
 #model-manager-backdrop { z-index: 118; }
@@ -803,7 +803,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .mm-scroll { overflow-y: auto; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
 .mm-pull { display: flex; gap: 10px; }
 .mm-pull input { flex: 1; padding: 9px 12px; font-size: 13px; font-family: var(--font-mono); }
-.mm-bar { height: 6px; background: rgba(255, 212, 0, .12); border-radius: 3px; overflow: hidden; }
+.mm-bar { height: 6px; background: color-mix(in srgb, var(--gold) 12%, transparent); border-radius: 3px; overflow: hidden; }
 .mm-bar > i { display: block; height: 100%; width: 0; background: var(--gold); transition: width .2s; }
 .mm-hint { font-size: 11.5px; color: var(--bone-dim); margin-top: 5px; font-family: var(--font-mono); }
 .mm-total { font-size: 12px; color: var(--gold-deep); font-family: var(--font-mono); }
@@ -819,7 +819,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   background: none; border: 1px solid var(--red-deep); color: var(--red-bright);
   border-radius: 2px; padding: 4px 12px; cursor: pointer; transition: all .12s;
 }
-#mm-list .mm-del:hover { background: rgba(229, 9, 20, .14); border-color: var(--red); }
+#mm-list .mm-del:hover { background: color-mix(in srgb, var(--red) 14%, transparent); border-color: var(--red); }
 #mm-list .empty { color: var(--bone-dim); font-size: 12.5px; font-style: italic; padding: 4px 2px; border: none; }
 #btn-open-model-manager { align-self: flex-start; }
 
@@ -851,7 +851,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 /* selected-model info box */
 #model-info {
   border: 1px solid var(--line-soft); border-left: 2px solid var(--gold-deep);
-  border-radius: 0 2px 2px 0; padding: 10px 14px; background: rgba(255, 212, 0, .03);
+  border-radius: 0 2px 2px 0; padding: 10px 14px; background: color-mix(in srgb, var(--gold) 03%, transparent);
   display: flex; flex-direction: column; gap: 4px;
 }
 #mi-name { font-family: var(--font-mono); font-size: 13.5px; color: var(--gold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -863,7 +863,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .ms-hint { font-style: normal; line-height: 1.4; }
 .ms-warn {
   font-size: 11.5px; line-height: 1.45; color: var(--gold-bright);
-  background: rgba(255, 212, 0, .08); border: 1px solid rgba(255, 212, 0, .35);
+  background: color-mix(in srgb, var(--gold) 08%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
   border-radius: 3px; padding: 7px 10px;
 }
 
@@ -951,7 +951,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .prefs-body { padding: 20px; display: flex; flex-direction: column; gap: 18px; flex: 1; min-height: 0; overflow-y: auto; }
 .prefs-path {
   font-family: var(--font-mono); font-size: 16px; color: var(--cyan);
-  text-shadow: 0 0 8px rgba(0, 255, 224, .35);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--cyan) 35%, transparent);
   padding: 8px 12px; border: 1px solid var(--line-soft); border-radius: 2px;
   background: var(--field); white-space: nowrap; overflow-x: auto;
 }
@@ -999,7 +999,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 /* Reasoning ("thinking") blocks + remote usage/cost */
 .think {
   margin: 0 0 10px; border: 1px solid var(--line-soft); border-radius: 2px;
-  background: rgba(255, 255, 255, .02);
+  background: color-mix(in srgb, var(--bone) 3%, transparent);
 }
 .think summary {
   cursor: pointer; padding: 5px 10px; font-size: 11px; letter-spacing: .08em;
@@ -1027,7 +1027,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .remote-badge {
   font-size: 10.5px; letter-spacing: .06em; white-space: nowrap;
   color: var(--gold); border: 1px solid var(--gold-deep); border-radius: 999px;
-  padding: 2px 8px; cursor: help; background: rgba(255, 200, 60, .07);
+  padding: 2px 8px; cursor: help; background: color-mix(in srgb, var(--gold) 07%, transparent);
 }
 #or-panel { width: min(680px, 94vw); max-height: 86vh; }
 .or-remote-note { font-size: 11px; color: var(--gold-deep); font-weight: normal; margin-left: 10px; letter-spacing: .04em; }
@@ -1047,7 +1047,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 #or-list li.empty { color: var(--bone-dim); font-size: 13px; border: none; background: none; }
 .or-star { background: none; border: none; font-size: 17px; color: var(--bone-dim); cursor: pointer; padding: 0 2px; }
 .or-star:hover { color: var(--gold); }
-.or-star.faved { color: var(--gold); text-shadow: 0 0 8px rgba(255, 200, 60, .5); }
+.or-star.faved { color: var(--gold); text-shadow: 0 0 8px color-mix(in srgb, var(--gold) 50%, transparent); }
 .or-meta { flex: 1; min-width: 0; }
 .or-name { font-size: 13px; color: var(--bone); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .or-id { font-family: var(--font-mono); font-size: 11px; color: var(--bone-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1062,11 +1062,11 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .faq p { margin: 0 0 6px; color: var(--bone); font-size: 13.5px; }
 .faq ul { margin: 4px 0 6px; padding-left: 20px; color: var(--bone); font-size: 13.5px; }
 .faq li { margin: 4px 0; }
-.faq b { color: #f5efe0; }
+.faq b { color: var(--bone); }
 .faq code { font-family: var(--font-mono); background: var(--field); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; font-size: .9em; color: var(--cyan); }
 .help-links { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
 .help-links a { color: var(--cyan); text-decoration: none; font-family: var(--font-mono); font-size: 13px; }
-.help-links a:hover { text-shadow: 0 0 8px rgba(0, 255, 224, .4); }
+.help-links a:hover { text-shadow: 0 0 8px color-mix(in srgb, var(--cyan) 40%, transparent); }
 
 .about-body p { color: var(--bone); font-size: 14px; margin: 0 0 12px; }
 .about-body a { color: var(--cyan); text-decoration: none; }
@@ -1080,7 +1080,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 #ctx-menu {
   position: fixed; z-index: 300; min-width: 180px;
   background: var(--onyx); border: 1px solid var(--gold-deep); border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(255, 212, 0, .12), 0 12px 40px rgba(0, 0, 0, .7);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 12%, transparent), 0 12px 40px rgba(0, 0, 0, .7);
   padding: 5px; display: flex; flex-direction: column;
   animation: fadeUp .12s ease both;
 }
@@ -1091,7 +1091,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 }
 .ctx-item:hover { background: var(--panel); color: var(--gold); }
 .ctx-item.danger { color: var(--bone-dim); }
-.ctx-item.danger:hover { background: rgba(229, 9, 20, .12); color: var(--red-bright); }
+.ctx-item.danger:hover { background: color-mix(in srgb, var(--red) 12%, transparent); color: var(--red-bright); }
 .ctx-sep { height: 1px; background: var(--line-soft); margin: 5px 4px; }
 
 .chat-rename {
@@ -1106,7 +1106,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
   background: var(--panel); border: 1px solid var(--gold-deep); color: var(--bone);
   padding: 10px 22px; border-radius: 2px; z-index: 200; font-size: 13.5px;
-  box-shadow: 0 0 20px rgba(255, 212, 0, .1), 0 10px 40px rgba(0, 0, 0, .6);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--gold) 10%, transparent), 0 10px 40px rgba(0, 0, 0, .6);
   animation: fadeUp .2s ease both;
 }
-#toast.error { border-color: var(--red); color: var(--red-bright); box-shadow: 0 0 20px rgba(229, 9, 20, .15), 0 10px 40px rgba(0, 0, 0, .6); }
+#toast.error { border-color: var(--red); color: var(--red-bright); box-shadow: 0 0 20px color-mix(in srgb, var(--red) 15%, transparent), 0 10px 40px rgba(0, 0, 0, .6); }

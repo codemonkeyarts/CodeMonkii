@@ -8,7 +8,7 @@
  * stored locally as {id, name, contextLength} so the picker renders them
  * without needing the catalog fetched first.
  */
-import { $, esc, fmtCtx } from './util.js';
+import { $, esc, fmtCtx, fmtPerM } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
 import { initModal } from './modal.js';
@@ -36,7 +36,7 @@ export async function refreshOrStatus() {
 
 /* ---- browse dialog ---- */
 
-const perM = (p) => (p == null || Number.isNaN(p)) ? '—' : `$${(p * 1e6).toFixed(2)}`;
+const perM = fmtPerM;
 
 function renderList() {
   const q = $('#or-search').value.trim().toLowerCase();

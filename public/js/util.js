@@ -39,6 +39,12 @@ export function fmtCtx(n, empty = '') {
   return n >= 1024 ? `${Math.round(n / 1024)}k` : String(n);
 }
 
+/** USD-per-token → "$0.32" per million tokens; `empty` for unknown pricing. */
+export function fmtPerM(p, empty = '—') {
+  if (p == null || Number.isNaN(p)) return empty;
+  return `$${(p * 1e6).toFixed(2)}`;
+}
+
 /** Async-iterate an NDJSON fetch Response, yielding each parsed object.
  *  Partial/invalid lines are skipped; the caller handles any {error} events. */
 export async function* readNdjson(res) {

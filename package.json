@@ -1,10 +1,11 @@
 {
   "name": "monkii",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "Monkii — local LLM studio for Ollama: projects, Claude-style skills, and live file knowledge",
   "main": "electron/main.js",
   "scripts": {
     "start": "node server.js",
+    "test": "node scripts/test-openrouter.js",
     "desktop": "electron .",
     "bench": "node scripts/benchmark.js",
     "dist": "node scripts/build-info.js",

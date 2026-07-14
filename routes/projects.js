@@ -126,7 +126,9 @@ router.delete('/projects/:pid/chats/:cid/messages/last', (req, res) => {
     while (c.messages.length && c.messages[c.messages.length - 1].role !== 'user') c.messages.pop();
     const user = c.messages.pop();
     saveProject(p);
-    res.json({ message: user.content, skillIds: user.skillIds || [] });
+    // return the trimmed history too, so the client adopts the server's truth
+    // instead of mirroring the pop logic (which could silently drift)
+    res.json({ message: user.content, skillIds: user.skillIds || [], messages: c.messages });
   } catch { res.status(404).json({ error: 'project not found' }); }
 });
 

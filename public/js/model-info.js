@@ -6,7 +6,7 @@
  * derived from the model's size, name, and capabilities — including a heads-up
  * when a model is large enough to load slowly on a modest machine.
  */
-import { $, fmtBytes, fmtCtx } from './util.js';
+import { $, fmtBytes, fmtCtx, fmtPerM } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
 import { orFavorites, isRemoteModel, OR_PREFIX } from './openrouter.js';
@@ -66,7 +66,7 @@ function updateRemoteInfo(name) {
   const m = (state.orCatalog || []).find(x => x.id === id)
     || orFavorites().find(x => x.id === id)
     || { id };
-  const perM = (p) => (p == null || Number.isNaN(p)) ? null : `$${(p * 1e6).toFixed(2)}`;
+  const perM = (p) => fmtPerM(p, null);
   $('#mi-name').textContent = m.name || id;
   $('#mi-specs').textContent = [
     fmtCtxLabel(m.contextLength),
