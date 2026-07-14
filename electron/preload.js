@@ -50,4 +50,8 @@ contextBridge.exposeInMainWorld('monkii', {
   /** Save (or clear, with '') the OpenRouter API key — restarts the server.
    *  Returns the prefs summary; the key itself is never readable back. */
   setOpenRouterKey: (key) => ipcRenderer.invoke('prefs:set-openrouter-key', key),
+
+  /** Remote privacy routing: allow=false (default) restricts remote chats to
+   *  providers that don't log/train on prompts. Restarts the server. */
+  setOrLogging: (allow) => ipcRenderer.invoke('prefs:set-or-logging', allow),
 });

@@ -10,6 +10,7 @@
  * In plain browser mode the global is absent and the gear stays hidden.
  */
 import { $, esc, toast } from './util.js';
+import { api } from './api.js';
 import { initModal } from './modal.js';
 
 const bridge = window.monkii;
@@ -47,7 +48,7 @@ function render(prefs) {
 }
 
 /** OpenRouter key status: the key is write-only, so all we render is whether
- * one exists and where it came from. */
+ * one exists and where it came from — plus a live credits readout. */
 function renderOpenRouter(prefs) {
   $('#prefs-or-status').textContent = prefs.openrouterConfigured
     ? 'Key saved — remote models are available in the model picker.'
@@ -56,6 +57,21 @@ function renderOpenRouter(prefs) {
   for (const id of ['#prefs-or-key', '#btn-prefs-or-save', '#btn-prefs-or-clear'])
     $(id).disabled = Boolean(prefs.openrouterKeyEnv);
   $('#btn-prefs-or-clear').hidden = !prefs.openrouterConfigured || prefs.openrouterKeyEnv;
+
+  // privacy routing toggle (checked = allow logging providers)
+  $('#prefs-or-logging').checked = prefs.orDataCollection === 'allow';
+  $('#prefs-or-logging').disabled = Boolean(prefs.orDataCollectionEnv);
+  $('#prefs-or-logging-env-note').hidden = !prefs.orDataCollectionEnv;
+
+  // live spend on the key, appended once the (async) check returns
+  if (prefs.openrouterConfigured) {
+    api('/api/openrouter/key-status').then(k => {
+      const spent = k.usage != null ? `$${k.usage.toFixed(2)} used` : '';
+      const cap = k.limit != null ? ` of $${k.limit.toFixed(2)}` : '';
+      const tier = k.isFreeTier ? ' (free tier)' : '';
+      if (spent) $('#prefs-or-status').textContent += ` · ${spent}${cap}${tier}`;
+    }).catch(() => { /* offline — the static line stands */ });
+  }
 }
 
 /** The file-access allowlist: whole-disk banner, or a removable list of folders. */
@@ -138,4 +154,7 @@ export function initPrefs() {
     const prefs = await bridge.setOpenRouterKey('');
     if (prefs) { render(prefs); toast('OpenRouter key removed — fully local again'); }
   });
+
+  // privacy routing: restarts the server (config reads the flag at boot)
+  $('#prefs-or-logging').addEventListener('change', (e) => bridge.setOrLogging(e.target.checked));
 }

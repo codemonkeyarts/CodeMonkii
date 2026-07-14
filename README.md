@@ -192,7 +192,11 @@ If your machine can't run the model your work needs, add an [OpenRouter](https:/
 The trust model is explicit, not fine print:
 
 - **Nothing goes remote unless you pick a remote model for a chat.** Local chats are untouched, and a fresh install has no key and makes no remote calls at all.
+- **Privacy routing by default** — remote requests are restricted to providers that **don't log or train on prompts** (`data_collection: deny`); widen it in Preferences if you want more provider choice.
 - Chats using a remote model send that chat's messages, project instructions, and attachments to openrouter.ai and the model's provider — a **☁ remote** badge sits beside the picker whenever that's the case.
+- **Costs are visible**: every remote reply shows its exact $ cost and token counts, the chat header totals the conversation's spend, and Preferences shows what your key has used.
+- **Reasoning models work properly** — R1-class models stream their thinking into a collapsible block instead of appearing frozen; it's saved with the message.
+- The browse dialog has a **"free only"** filter (the `:free` variants cost nothing, rate-limited), and a per-project `or_route` option routes to the cheapest (`floor`) or fastest (`nitro`) provider. On Claude/Gemini models the system prompt is **cache-marked** automatically, discounting the re-sent instructions+attachments each message.
 - Retrieval embeddings stay **local-only**: large attachments are indexed on-device via Ollama even when the chat model is remote.
 - The API key is stored OS-encrypted (DPAPI via Electron `safeStorage`), is only handed to the local server process, and never reaches the browser UI.
 
@@ -209,6 +213,7 @@ The trust model is explicit, not fine print:
 | `MONKII_EMBED_MODEL` | *(auto-detect)* | Force a specific Ollama embedding model; otherwise the first installed embed model is used |
 | `MONKII_EMBED_DIR` | *(beside data dir)* | Where the on-disk embedding indexes are stored |
 | `MONKII_OPENROUTER_KEY` | *(unset)* | OpenRouter API key enabling optional remote models. In the desktop app, set it in Preferences → Remote models instead (stored OS-encrypted); the env var overrides that. Unset = fully local. |
+| `MONKII_OR_DATA_COLLECTION` | `deny` | Remote privacy routing: `deny` restricts remote chats to providers that don't log/train on prompts; `allow` widens provider choice. Toggle in Preferences → Remote models. |
 
 ## Security
 

@@ -12,7 +12,7 @@
 const { ipcMain, dialog, shell } = require('electron');
 const os = require('os');
 const runtime = require('./runtime');
-const { loadSettings, saveSettings, effectiveStorage, fsRootsList, fsWholeDisk, updateCheckEnabled, setOpenRouterKey, openrouterConfigured } = require('./settings');
+const { loadSettings, saveSettings, effectiveStorage, fsRootsList, fsWholeDisk, updateCheckEnabled, setOpenRouterKey, openrouterConfigured, orDataCollection } = require('./settings');
 const { pickFolder } = require('./dialogs');
 const { restartServer } = require('./server');
 const { buildMenu } = require('./menu');
@@ -44,6 +44,8 @@ function prefsSummary() {
     // crosses into the renderer
     openrouterConfigured: openrouterConfigured(),
     openrouterKeyEnv: process.env.MONKII_OPENROUTER_KEY !== undefined,
+    orDataCollection: orDataCollection(),
+    orDataCollectionEnv: process.env.MONKII_OR_DATA_COLLECTION !== undefined,
   };
 }
 
@@ -206,6 +208,9 @@ function registerPrefsIpc() {
     await restartServer();
     return prefsSummary();
   });
+
+  // remote privacy routing (deny logging providers vs. allow all)
+  handleUI('prefs:set-or-logging', (allow) => applyStorageChange({ orAllowLogging: Boolean(allow) || undefined }));
 
   handleUI('ollama:update-prompt', (info) => promptOllamaUpdate(info));
   handleUI('ollama:embed-prompt', (info) => promptEmbedModel(info));

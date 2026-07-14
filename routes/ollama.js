@@ -132,6 +132,17 @@ router.get('/openrouter/models', async (req, res) => {
   }
 });
 
+/* Key/credit status for the Preferences panel: label, USD spent, USD limit.
+ * Never returns the key itself. */
+router.get('/openrouter/key-status', async (req, res) => {
+  if (!openrouter.configured()) return res.status(400).json({ error: 'No OpenRouter API key configured.' });
+  try { res.json(await openrouter.keyInfo()); }
+  catch (e) {
+    logError('openrouter key-status', e);
+    res.status(502).json({ error: 'Could not check the key — is the internet reachable?' });
+  }
+});
+
 /* Friendly copy for remote failures: the status codes carry the meaning. */
 function openrouterErrorMessage(status, detail) {
   if (status === 401) return 'OpenRouter rejected the API key — check it in Preferences.';
@@ -312,9 +323,13 @@ router.post('/chat', async (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
 
   let acc = '';
+  let accThink = '';
+  let usage = null;
   try {
     await pipeNdjson(upstream, res, (obj) => {
       if (obj.message && obj.message.content) acc += obj.message.content;
+      if (obj.message && obj.message.thinking) accThink += obj.message.thinking; // reasoning models
+      if (obj.or_usage) usage = obj.or_usage; // remote tokens + exact cost
     });
   } catch (e) {
     // client aborting is normal (Stop button); anything else is worth logging
@@ -327,7 +342,10 @@ router.post('/chat', async (req, res) => {
       const fresh = loadProject(projectId);
       const freshChat = fresh.chats.find(c => c.id === chatId);
       if (freshChat) {
-        freshChat.messages.push({ role: 'assistant', content: acc, ts: Date.now(), model });
+        const msg = { role: 'assistant', content: acc, ts: Date.now(), model };
+        if (accThink) msg.thinking = accThink;
+        if (usage) msg.usage = usage;
+        freshChat.messages.push(msg);
         saveProject(fresh);
       }
     } catch { /* project deleted mid-stream */ }

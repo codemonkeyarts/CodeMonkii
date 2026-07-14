@@ -33,6 +33,7 @@ const ADVANCED = [
   ['min_p', 'min_p', 'Minimum token probability relative to the most likely. (Default 0.0)', '0.00'],
   ['stop', 'stop', 'Stop sequences, comma-separated. Generation halts when one is produced.', 'stop, \\n, user:'],
   ['keep_alive', 'keep_alive', 'How long the model stays loaded (e.g. 5m, 30, -1 for forever, 0 to unload now).', '5m'],
+  ['or_route', 'or_route', 'Remote (OpenRouter) routing: floor = cheapest provider, nitro = fastest. Local models ignore this.', 'floor or nitro'],
 ];
 
 const ctxLabel = (pow) => fmtK(2 ** pow);

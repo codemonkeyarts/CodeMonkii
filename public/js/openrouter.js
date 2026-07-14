@@ -40,10 +40,12 @@ const perM = (p) => (p == null || Number.isNaN(p)) ? '—' : `$${(p * 1e6).toFix
 
 function renderList() {
   const q = $('#or-search').value.trim().toLowerCase();
+  const freeOnly = $('#or-free-only').checked;
   const favs = orFavorites();
   const isFav = (id) => favs.some(f => f.id === id);
   const rows = (state.orCatalog || [])
     .filter(m => !q || m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q))
+    .filter(m => !freeOnly || (m.promptPrice === 0 && m.completionPrice === 0))
     .sort((a, b) => (isFav(b.id) - isFav(a.id)) || a.id.localeCompare(b.id))
     .slice(0, 250);
 
@@ -94,4 +96,5 @@ export function initOpenRouter() {
   initModal('#or-backdrop', '#btn-close-or');
   $('#btn-or-browse').addEventListener('click', () => { $('#or-backdrop').hidden = false; $('#or-search').focus(); loadCatalog(); });
   $('#or-search').addEventListener('input', renderList);
+  $('#or-free-only').addEventListener('change', renderList);
 }

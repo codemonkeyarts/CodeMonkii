@@ -35,6 +35,31 @@ const humanizeError = (msg, model) => (isRemoteModel(model) || !RUNNER_CRASH_RE.
   ? msg
   : "The model's runner ran out of GPU memory and crashed. Lower the context length in Model settings, pick a smaller model, or close other GPU apps.";
 
+/* ---- reasoning + cost display (remote models) ---- */
+
+/** Collapsible "thinking" block for reasoning models; open while it's all we have. */
+function thinkingHtml(t, open = false) {
+  return t ? `<details class="think"${open ? ' open' : ''}><summary>thinking</summary><div class="think-body">${md(t)}</div></details>` : '';
+}
+
+const fmtTok = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n || 0));
+
+/** Per-reply usage line: exact cost + token counts (remote replies only). */
+function usageMeta(u) {
+  if (!u) return '';
+  const cost = u.cost != null ? `$${u.cost < 0.01 ? u.cost.toFixed(4) : u.cost.toFixed(2)} · ` : '';
+  return `<div class="msg-usage">${cost}${fmtTok(u.promptTokens)} in / ${fmtTok(u.completionTokens)} out</div>`;
+}
+
+/** Running OpenRouter spend for the open chat, shown in the header. */
+export function updateChatCost() {
+  const el = $('#chat-cost');
+  const chat = state.project && currentChat();
+  const total = chat ? chat.messages.reduce((s, m) => s + ((m.usage && m.usage.cost) || 0), 0) : 0;
+  el.hidden = !total;
+  if (total) el.textContent = `Σ $${total < 0.01 ? total.toFixed(4) : total.toFixed(2)}`;
+}
+
 /** Toggle streaming state and the send/stop button pair together. */
 function setStreaming(on) {
   state.streaming = on;
@@ -150,9 +175,10 @@ export function renderMessages() {
   box.innerHTML = chat.messages.map(m => m.role === 'user'
     ? `<div class="msg msg-user"><div class="msg-role">You</div><div class="msg-body">${esc(m.content)}</div>${
         m.skillIds && m.skillIds.length ? `<div class="msg-skills">invoked: ${esc(skillNames(m.skillIds).join(', '))}</div>` : ''}</div>`
-    : `<div class="msg msg-assistant"><div class="msg-role">${esc(m.model || 'Model')}</div><div class="msg-body">${md(m.content)}</div></div>`
+    : `<div class="msg msg-assistant"><div class="msg-role">${esc(m.model || 'Model')}</div><div class="msg-body">${thinkingHtml(m.thinking)}${md(m.content)}</div>${usageMeta(m.usage)}</div>`
   ).join('');
   box.scrollTop = box.scrollHeight;
+  updateChatCost();
 }
 
 export async function send(bypassOverflow = false) {
@@ -201,6 +227,8 @@ export async function send(bypassOverflow = false) {
   state.abort = new AbortController();
 
   let acc = '';
+  let accThink = '';
+  let usage = null;
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
@@ -215,26 +243,34 @@ export async function send(bypassOverflow = false) {
     let lastRender = 0;
     for await (const obj of readNdjson(res)) {
       if (obj.error) throw new Error(obj.error);
+      if (obj.message && obj.message.thinking) accThink += obj.message.thinking; // reasoning models
       if (obj.message && obj.message.content) acc += obj.message.content;
+      if (obj.or_usage) usage = obj.or_usage;
       const now = performance.now();
       if (now - lastRender > 80) {  // throttle markdown re-render
-        body.innerHTML = md(acc) || THINKING_DOTS;
+        // the thinking block stays open while it's all we have, folds once the answer starts
+        body.innerHTML = thinkingHtml(accThink, !acc) + (md(acc) || THINKING_DOTS);
         const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 160;
         if (nearBottom) box.scrollTop = box.scrollHeight;
         lastRender = now;
       }
     }
-    body.innerHTML = md(acc) || '<em>(empty response)</em>';
+    body.innerHTML = thinkingHtml(accThink) + (md(acc) || '<em>(empty response)</em>');
+    if (usage) bubble.insertAdjacentHTML('beforeend', usageMeta(usage));
   } catch (e) {
     if (e.name === 'AbortError') {
-      body.innerHTML = md(acc) + '<p><em>— stopped —</em></p>';
+      body.innerHTML = thinkingHtml(accThink) + md(acc) + '<p><em>— stopped —</em></p>';
     } else {
       body.innerHTML = `<p style="color:var(--blood)">⚠ ${esc(humanizeError(e.message, model))}</p>`;
     }
   }
   box.scrollTop = box.scrollHeight;
   setStreaming(false);
-  chat.messages.push({ role: 'assistant', content: acc, model });
+  const doneMsg = { role: 'assistant', content: acc, model };
+  if (accThink) doneMsg.thinking = accThink;
+  if (usage) doneMsg.usage = usage;
+  chat.messages.push(doneMsg);
   chat.model = model;
+  updateChatCost();
   refreshContext(); // history grew — re-estimate the base
 }

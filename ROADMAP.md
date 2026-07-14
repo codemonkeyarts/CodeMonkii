@@ -16,16 +16,16 @@ The current focus, in priority order (details in the sections below). With the l
 
 *(The CA-signed certificate is deliberately deferred for now.)*
 
-### OpenRouter deepening (in progress)
+### OpenRouter deepening
 
 Folding in the parts of OpenRouter's API that serve Monkii's promises — privacy first, then cost transparency, then writing workflow:
 
-- [ ] **Privacy routing by default** — remote requests demand `data_collection: deny` (only providers that don't log/train see your words), with a Preferences opt-out for wider provider choice
-- [ ] **Cost per reply** — token counts and exact $ cost under each remote reply, plus a running per-chat total (the remote sibling of the local token meter)
-- [ ] **Credits & key check in Preferences** — a live "credits used / remaining" readout next to where the key is saved
-- [ ] **Reasoning-model support** — R1-class models stream their thinking separately; show it as a collapsible "thinking…" block instead of dropping it (today they look frozen, then answer)
-- [ ] **Free tier & routing variants** — a "free models only" filter in the browse dialog, and per-project `:floor` (cheapest) / `:nitro` (fastest) routing
-- [ ] **Prompt caching** — automatic cache markers on the system prompt for models that support it (Claude, Gemini); big savings for the resend-the-manuscript editing pattern
+- [x] **Privacy routing by default** — remote requests demand `data_collection: deny` (only providers that don't log/train see your words), with a Preferences opt-out for wider provider choice
+- [x] **Cost per reply** — token counts and exact $ cost under each remote reply, plus a running per-chat total in the header (the remote sibling of the local token meter)
+- [x] **Credits & key check in Preferences** — a live "$ used (of $ limit)" readout next to where the key is saved
+- [x] **Reasoning-model support** — R1-class models stream their thinking separately; it renders as a collapsible "thinking…" block (open while the model thinks, folded once the answer starts) and persists with the message
+- [x] **Free tier & routing variants** — a "free only" filter in the browse dialog, and a per-project `or_route` option (`floor` = cheapest provider, `nitro` = fastest)
+- [x] **Prompt caching** — automatic cache markers on the system prompt for models that support it (Claude, Gemini); big savings for the resend-the-manuscript editing pattern
 - [ ] **Fallback models** — an ordered backup list so a provider outage fails over instead of erroring
 - [ ] **Web search per chat** — OpenRouter's search plugin, opt-in and badged like remote itself (it's a second place your query text goes)
 

@@ -107,6 +107,12 @@ function openrouterKey() {
 
 const openrouterConfigured = () => Boolean(openrouterKey());
 
+/* Remote privacy routing: 'deny' (default) = only providers that don't log or
+ * train on prompts; 'allow' widens provider choice. Ambient env wins. */
+const orDataCollection = () => (process.env.MONKII_OR_DATA_COLLECTION !== undefined)
+  ? (process.env.MONKII_OR_DATA_COLLECTION.toLowerCase() === 'allow' ? 'allow' : 'deny')
+  : (loadSettings().orAllowLogging ? 'allow' : 'deny');
+
 /** Env block handed to the forked server. Seeds the bundled sample skills
  *  into a fresh skills folder when packaged (never overwriting files). */
 function storageEnv() {
@@ -125,11 +131,12 @@ function storageEnv() {
     MONKII_FS_ROOTS: fsRootsEnvValue(),
     MONKII_UPDATE_CHECK: updateCheckEnabled() ? 'on' : 'off',
     MONKII_OPENROUTER_KEY: openrouterKey(),
+    MONKII_OR_DATA_COLLECTION: orDataCollection(),
   };
 }
 
 module.exports = {
   loadSettings, saveSettings, defaultStorage, effectiveStorage, storageEnv, logDir,
   fsRootsList, fsWholeDisk, updateCheckEnabled,
-  setOpenRouterKey, openrouterConfigured,
+  setOpenRouterKey, openrouterConfigured, orDataCollection,
 };

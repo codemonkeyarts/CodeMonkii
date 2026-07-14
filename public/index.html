@@ -75,6 +75,7 @@
           <select id="model-select" title="Model"></select>
           <span id="remote-badge" class="remote-badge" hidden
             title="This model runs on OpenRouter's servers — this chat's messages and attachments leave your machine.">☁ remote</span>
+          <span id="chat-cost" class="chat-cost" hidden title="What this conversation has cost on OpenRouter so far"></span>
           <button id="btn-or-browse" class="icon-btn" title="Browse OpenRouter models" hidden>☁</button>
           <button id="btn-model-settings" class="icon-btn" title="Model settings">⚙</button>
           <button id="btn-clear-chat" class="icon-btn" title="Clear conversation (keeps the chat, resets its context)">🧹</button>
@@ -230,7 +231,10 @@
         <button id="btn-close-or" class="icon-btn" title="Close">×</button>
       </header>
       <div class="or-scroll">
-        <input id="or-search" type="text" placeholder="Search 300+ models — try: deepseek, qwen, claude, mistral…" autocomplete="off" spellcheck="false">
+        <div class="or-search-row">
+          <input id="or-search" type="text" placeholder="Search 300+ models — try: deepseek, qwen, claude, mistral…" autocomplete="off" spellcheck="false">
+          <label class="or-free-toggle"><input type="checkbox" id="or-free-only"> free only</label>
+        </div>
         <div class="or-hint">★ a model to add it to your model picker. Prices are per million tokens.</div>
         <ul id="or-list"></ul>
       </div>
@@ -369,6 +373,13 @@
           </div>
           <div id="prefs-or-env-note" class="prefs-note" hidden>
             Set by the <b>MONKII_OPENROUTER_KEY</b> environment variable — it overrides this preference.
+          </div>
+          <label class="prefs-toggle">
+            <input type="checkbox" id="prefs-or-logging">
+            <span>Allow providers that log or train on prompts (wider model choice)</span>
+          </label>
+          <div id="prefs-or-logging-env-note" class="prefs-note" hidden>
+            Set by the <b>MONKII_OR_DATA_COLLECTION</b> environment variable — it overrides this preference.
           </div>
           <div class="prefs-note"><b>This changes where your words go.</b> Chats that use an OpenRouter model send that chat's messages, project instructions, and attachments to openrouter.ai and the model's provider — they leave this machine. Local models are never affected, and nothing goes remote unless you pick a remote model for a chat. The key is stored OS-encrypted and never shown again. Saving restarts the app view.</div>
         </div>
