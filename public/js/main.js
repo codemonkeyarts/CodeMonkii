@@ -13,7 +13,8 @@ import { initOpenRouter, refreshOrStatus } from './openrouter.js';
 import { loadSkills, updateSkillPopup, pickSkill, renderSkillToggles, handleSkillPopupKey } from './skills.js';
 import { initSkillCreate, showSkillCreateForm, importSkillFlow } from './skill-create.js';
 import { createProject, openProject, saveProjectMeta, deleteProject, showProjectsPage, quickChat } from './projects.js';
-import { openBrowser, browseTo, closeBrowser, pickCurrentDir, attachToChat } from './attachments.js';
+import { openBrowser, browseTo, closeBrowser, pickCurrentDir } from './filebrowser.js';
+import { attachPath, attachToChat } from './attachments.js';
 import { newChat, send, clearChat } from './chat.js';
 import { initOverflowDialog } from './overflow.js';
 import { initModal } from './modal.js';
@@ -90,7 +91,8 @@ function wireInspector() {
 }
 
 function wireFileBrowser() {
-  $('#btn-browse').addEventListener('click', () => openBrowser());
+  // the plain "Attach from this machine" entry point: project-level Knowledge
+  $('#btn-browse').addEventListener('click', () => openBrowser({ onPick: attachPath }));
   $('#btn-close-browser').addEventListener('click', closeBrowser);
   $('#btn-fb-drives').addEventListener('click', () => browseTo('__drives__'));
   $('#btn-attach-dir').addEventListener('click', pickCurrentDir);

@@ -714,7 +714,6 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   white-space: nowrap; overflow-x: auto; background: var(--field);
 }
 #fb-path::before { content: '> '; color: var(--gold); }
-.fb-file[title] { cursor: pointer; }
 
 /* file preview modal */
 #preview-backdrop { z-index: 120; }
@@ -759,6 +758,11 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 #fb-entries li:hover { background: var(--panel); color: var(--bone); }
 #fb-entries .fb-icon { color: var(--gold); width: 16px; text-align: center; }
 #fb-entries li.fb-file .fb-icon { color: var(--bone-dim); }
+/* a file's name is clickable (opens a preview) — say so without requiring a
+ * hover to discover it, the way a folder row's click-to-navigate doesn't need
+ * one either since it's the row's only click target */
+#fb-entries li.fb-file .fb-name { text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+#fb-entries li.fb-file:hover .fb-name { text-decoration-color: currentColor; }
 #fb-entries li .fb-attach {
   margin-left: auto; visibility: hidden; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
   background: none; border: 1px solid var(--gold-deep); color: var(--gold);

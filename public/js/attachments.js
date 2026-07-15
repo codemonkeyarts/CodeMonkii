@@ -1,15 +1,17 @@
 /**
- * attachments.js — project knowledge panel and the file-browser modal.
+ * attachments.js — project & chat knowledge: attach, detach, and index status.
  *
- * Renders the list of attached files/folders in the inspector, handles
- * attach/detach calls, and drives the modal directory browser (navigate,
- * drill into folders, attach a file or the whole current folder).
+ * Renders the list of attached files/folders in the inspector and the
+ * per-chat attachment chips, handles attach/detach calls, and polls
+ * background-indexing progress. Picking a file/folder to attach happens
+ * through the generic browser in filebrowser.js — this module is just one
+ * of its callers, not the browser's owner.
  */
 import { $, esc, toast } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
 import { refreshContext } from './context-meter.js';
-import { openPreview } from './filepreview.js';
+import { openBrowser } from './filebrowser.js';
 
 /* Live background-index progress per attachment path, for the "indexing %"
  * badge. A big attachment starts embedding on attach; we poll until it's ready. */
@@ -131,53 +133,3 @@ export function attachToChat() {
     },
   });
 }
-
-/* ---- file browser modal ----
- * By default picking a file/folder attaches it to the current project, but
- * openBrowser accepts a different onPick handler (e.g. importing a skill
- * folder) along with the title and verb to show. The mode resets on every
- * open, so a skill import never leaks into a later knowledge attach. */
-
-let pick = attachPath;
-let pickVerb = 'attach';
-let dirsOnly = false; // e.g. "Save as file…" picks a folder, never a file
-
-export async function openBrowser(opts = {}) {
-  pick = opts.onPick || attachPath;
-  pickVerb = opts.verb || 'attach';
-  dirsOnly = Boolean(opts.dirsOnly);
-  $('#file-browser h3').textContent = opts.title || 'Attach from this machine';
-  $('#btn-attach-dir').textContent = opts.dirLabel || 'Attach this folder';
-  $('#modal-backdrop').hidden = false;
-  await browseTo(state.fbDir || undefined);
-}
-
-/** Hand the currently open directory to the active pick handler. */
-export function pickCurrentDir() {
-  if (state.fbDir && state.fbDir !== '__drives__') { pick(state.fbDir); closeBrowser(); }
-}
-
-export async function browseTo(dir) {
-  try {
-    const data = await api('/api/fs' + (dir ? `?dir=${encodeURIComponent(dir)}` : ''));
-    state.fbDir = data.dir;
-    $('#fb-path').textContent = data.dir === '__drives__' ? 'This PC' : data.dir;
-    $('#btn-attach-dir').style.visibility = data.dir === '__drives__' ? 'hidden' : 'visible';
-    const up = data.dir !== '__drives__' && data.parent !== data.dir
-      ? `<li data-dir="${esc(data.parent)}"><span class="fb-icon">↰</span><span>..</span></li>` : '';
-    $('#fb-entries').innerHTML = up + data.entries.map(e => e.isDir
-      ? `<li data-dir="${esc(e.path)}"><span class="fb-icon">▣</span><span>${esc(e.name)}</span><button class="fb-attach" data-attach="${esc(e.path)}">${esc(pickVerb)}</button></li>`
-      : `<li class="fb-file" data-file="${esc(e.path)}" title="Click to preview"><span class="fb-icon">▤</span><span>${esc(e.name)}</span>${
-          dirsOnly ? '' : `<button class="fb-attach" data-attach="${esc(e.path)}">${esc(pickVerb)}</button>`}</li>`
-    ).join('');
-    $('#fb-entries').querySelectorAll('li[data-dir]').forEach(li =>
-      li.addEventListener('click', (e) => { if (!e.target.dataset.attach) browseTo(li.dataset.dir); }));
-    // clicking a file previews it; the button (when shown) is what picks/attaches
-    $('#fb-entries').querySelectorAll('li[data-file]').forEach(li =>
-      li.addEventListener('click', (e) => { if (!e.target.dataset.attach) openPreview(li.dataset.file); }));
-    $('#fb-entries').querySelectorAll('[data-attach]').forEach(b =>
-      b.addEventListener('click', () => { pick(b.dataset.attach); closeBrowser(); }));
-  } catch (e) { toast(e.message, true); }
-}
-
-export function closeBrowser() { $('#modal-backdrop').hidden = true; }

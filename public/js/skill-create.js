@@ -12,7 +12,7 @@
 import { $, esc, toast } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
-import { openBrowser } from './attachments.js';
+import { openBrowser } from './filebrowser.js';
 import { loadSkills, renderSkillToggles } from './skills.js';
 
 function rankModelsForWriting(models) {

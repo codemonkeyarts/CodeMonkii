@@ -22,18 +22,23 @@ const router = express.Router();
  * filename) can't leave `dir` no matter what dir resolves to. */
 const SAFE_FILENAME = /^(?!\.{1,2}$)[^\\/:*?"<>|\x00-\x1f]{1,255}$/;
 
-/* Sniff the first chunk of a buffer for binary content: a NUL byte, or a
- * heavy share of non-printable bytes, means "don't try to render this as
- * text." Cheap and good enough — this gates a preview, not a security check. */
+/* Sniff a buffer for binary content: any NUL byte, or more than a tenth of
+ * it being non-printable control bytes, means "don't try to render this as
+ * text." Scans the WHOLE buffer, not a prefix — `buf` is already bounded to
+ * PREVIEW_MAX_BYTES (a couple MB) by the caller, so a full scan costs well
+ * under a millisecond, and a partial scan would let binary content past the
+ * sample window reach the browser as "text" (garbled control bytes, not a
+ * script-injection risk given the client always HTML-escapes, but still a
+ * broken preview and a false "this is text" guarantee). 10% tolerates a
+ * handful of stray control bytes in an otherwise-normal text/log file. */
 function looksBinary(buf) {
-  const n = Math.min(buf.length, 8000);
   let suspect = 0;
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < buf.length; i++) {
     const b = buf[i];
     if (b === 0) return true;
     if (b < 9 || (b > 13 && b < 32)) suspect++;
   }
-  return n > 0 && suspect / n > 0.1;
+  return buf.length > 0 && suspect / buf.length > 0.1;
 }
 
 function listDrives() {
@@ -121,7 +126,7 @@ router.post('/fs/write', (req, res) => {
 
   const bytes = Buffer.byteLength(content, 'utf8');
   if (bytes > WRITE_MAX_BYTES) {
-    return res.status(413).json({ error: `That's ${(bytes / 1024 / 1024).toFixed(1)} MB — files saved from Monkii are capped at ${(WRITE_MAX_BYTES / 1024 / 1024).toFixed(0)} MB.` });
+    return res.status(413).json({ error: `That's ${(bytes / 1024 / 1024).toFixed(1)} MB — files saved from Monkii are capped at ${(WRITE_MAX_BYTES / 1024 / 1024).toFixed(1)} MB.` });
   }
 
   const target = path.join(dir, filename);

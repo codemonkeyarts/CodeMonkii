@@ -295,7 +295,10 @@ public/
     modal.js            shared open/close behavior for backdrop modals
     ctxmenu.js          right-click menus (chats, projects, messages, skills)
     projects.js         projects page, lifecycle + inspector
-    attachments.js      knowledge panel + file browser
+    attachments.js      project & chat knowledge: attach, detach, index status
+    filebrowser.js      the generic "pick a file/folder from this machine" modal
+    filepreview.js      read-only preview of a file on disk
+    savefile.js         "Save as file…": write chat content to disk
     chat.js             messages, streaming, stop
     context-meter.js    live token/context estimate in the composer
     model-manager.js    pull / delete / disk usage for Ollama models

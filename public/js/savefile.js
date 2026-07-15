@@ -2,15 +2,19 @@
  * savefile.js — "Save as file…": write chat content to disk.
  *
  * Reuses the file browser in folder-picking mode (dirsOnly — only folders are
- * pickable) to choose a destination, then a small in-app filename dialog
- * (never window.prompt(): the native dialog drops Electron's keyboard focus,
- * same reason the app has its own confirm dialog) before writing through
+ * pickable, and its pick verb reads "save here" instead of "attach") to
+ * choose a destination, then a small in-app filename dialog (never
+ * window.prompt(): the native dialog drops Electron's keyboard focus, same
+ * reason the app has its own confirm dialog) before writing through
  * /api/fs/write. An existing file is never silently overwritten — the write
  * 409s and the user is asked to confirm before it's retried with overwrite.
+ * A successful save opens a preview of the file, so you can see it landed
+ * right rather than just trusting a toast.
  */
 import { $, toast } from './util.js';
 import { api } from './api.js';
-import { openBrowser } from './attachments.js';
+import { openBrowser } from './filebrowser.js';
+import { openPreview } from './filepreview.js';
 import { confirmDialog } from './confirm.js';
 
 let resolveName = null;
@@ -50,9 +54,10 @@ async function writeFile(dir, filename, content, overwrite) {
   try {
     const res = await api('/api/fs/write', { method: 'POST', body: { dir, filename, content, overwrite } });
     toast(`Saved: ${res.path}`);
+    openPreview(res.path); // confirm it landed right, not just trust the toast
     return true;
   } catch (e) {
-    if (e.exists) {
+    if (e.body?.exists) {
       const replace = await confirmDialog(`"${filename}" already exists in this folder. Replace it?`,
         { confirmLabel: 'Replace', danger: true });
       return replace ? writeFile(dir, filename, content, true) : false;
@@ -67,6 +72,7 @@ export function saveAsFile(content) {
   if (!content || !content.trim()) { toast('Nothing to save', true); return; }
   openBrowser({
     title: 'Save file to…',
+    verb: 'save here',
     dirLabel: 'Save in this folder',
     dirsOnly: true,
     onPick: async (dir) => {
