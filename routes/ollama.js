@@ -132,8 +132,8 @@ router.get('/openrouter/models', async (req, res) => {
   }
 });
 
-/* Key/credit status for the Preferences panel: label, USD spent, USD limit.
- * Never returns the key itself. */
+/* Key/credit status for the Preferences panel and browse dialog: USD spent,
+ * key cap, and the account's remaining balance. Never returns the key itself. */
 router.get('/openrouter/key-status', async (req, res) => {
   if (!openrouter.configured()) return res.status(400).json({ error: 'No OpenRouter API key configured.' });
   try { res.json(await openrouter.keyInfo()); }

@@ -47,6 +47,10 @@ function render(prefs) {
   renderOpenRouter(prefs);
 }
 
+// generation counter for the async credits line — a slow response from a
+// previous Preferences open must never overwrite a newer render
+let keyStatusGen = 0;
+
 /** OpenRouter key status: the key is write-only, so all we render is whether
  * one exists and where it came from — plus a live credits readout. */
 function renderOpenRouter(prefs) {
@@ -80,7 +84,6 @@ function renderOpenRouter(prefs) {
     }).catch(() => { /* offline — the static line stands */ });
   }
 }
-let keyStatusGen = 0;
 
 /** The file-access allowlist: whole-disk banner, or a removable list of folders. */
 function renderFsAccess(prefs) {

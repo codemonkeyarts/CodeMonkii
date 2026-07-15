@@ -250,8 +250,14 @@ export async function retryLast() {
 
   chat.messages = removed.messages; // the server's trimmed truth — no mirror logic
   // the user may have switched chats while the pop was in flight — never
-  // resend the prompt into whatever chat is now open
-  if (state.chatId !== cid) return;
+  // resend the prompt into whatever chat is now open. The popped turn is
+  // already off the disk, so hand it back via the composer instead of
+  // silently losing it.
+  if (state.chatId !== cid) {
+    $('#input').value = removed.message;
+    toast('Chat changed mid-retry — your prompt is in the composer, unsent.');
+    return;
+  }
   renderMessages();
   await runExchange(removed.message, removed.skillIds || [], model);
 }

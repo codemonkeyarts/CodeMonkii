@@ -11,7 +11,8 @@
 import { $, toast } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
-import { neededContext, fmtK } from './context-meter.js';
+import { neededContext } from './context-meter.js';
+import { fmtCtx } from './util.js';
 import { initModal } from './modal.js';
 
 let overflowText = '';
@@ -23,7 +24,7 @@ let newChatFn;
 export function openOverflowDialog(text) {
   overflowText = text;
   $('#of-msg').textContent =
-    `This request needs more room than the context length (${fmtK(state.contextLimit)} tokens) allows, and it can't be trimmed by dropping older messages — the project's instructions and attached files alone fill it. Choose how to proceed:`;
+    `This request needs more room than the context length (${fmtCtx(state.contextLimit)} tokens) allows, and it can't be trimmed by dropping older messages — the project's instructions and attached files alone fill it. Choose how to proceed:`;
   modal.open();
 }
 
@@ -39,7 +40,7 @@ export function initOverflowDialog(send, newChat) {
     state.contextLimit = ctx;
     await api(`/api/projects/${state.project.id}`, { method: 'PUT', body: { options: state.project.options } });
     modal.close();
-    toast(`Context raised to ${fmtK(ctx)} for this project`);
+    toast(`Context raised to ${fmtCtx(ctx)} for this project`);
     sendFn(true);
   });
 

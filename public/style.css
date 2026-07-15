@@ -61,10 +61,10 @@
   --cyan: #a9d97c;
   --bone: #efe4cd;
   --bone-dim: #ab9d84;
-  --line: rgba(212, 163, 85, .22);
-  --line-soft: rgba(212, 163, 85, .10);
-  --glow-a: rgba(212, 163, 85, .06);
-  --glow-b: rgba(142, 36, 50, .05);
+  --line: color-mix(in srgb, var(--gold) 22%, transparent);
+  --line-soft: color-mix(in srgb, var(--gold) 10%, transparent);
+  --glow-a: color-mix(in srgb, var(--gold) 6%, transparent);
+  --glow-b: color-mix(in srgb, var(--red) 5%, transparent);
 }
 
 /* Gothic Library — oak-green dark, candle gold, deep red, verdigris */
@@ -83,10 +83,10 @@
   --cyan: #7fd4a8;
   --bone: #eee6cf;
   --bone-dim: #a8a189;
-  --line: rgba(224, 182, 79, .20);
-  --line-soft: rgba(224, 182, 79, .09);
-  --glow-a: rgba(224, 182, 79, .05);
-  --glow-b: rgba(40, 68, 58, .10);
+  --line: color-mix(in srgb, var(--gold) 20%, transparent);
+  --line-soft: color-mix(in srgb, var(--gold) 9%, transparent);
+  --glow-a: color-mix(in srgb, var(--gold) 5%, transparent);
+  --glow-b: color-mix(in srgb, var(--teal) 10%, transparent);
 }
 
 /* ---- light presets ----
@@ -110,10 +110,10 @@
   --cyan: #0b6b5e;
   --bone: #2b2415;
   --bone-dim: #6d6350;
-  --line: rgba(107, 84, 22, .35);
-  --line-soft: rgba(107, 84, 22, .16);
-  --glow-a: rgba(138, 109, 31, .07);
-  --glow-b: rgba(143, 29, 38, .04);
+  --line: color-mix(in srgb, var(--gold) 35%, transparent);
+  --line-soft: color-mix(in srgb, var(--gold) 16%, transparent);
+  --glow-a: color-mix(in srgb, var(--gold) 7%, transparent);
+  --glow-b: color-mix(in srgb, var(--red) 4%, transparent);
   --field: #fbf7ec;
   --item: #f6efdd;
   --code-bg: #efe7d2;
@@ -138,10 +138,10 @@
   --cyan: #0a7c70;
   --bone: #292317;
   --bone-dim: #6e6753;
-  --line: rgba(122, 92, 0, .32);
-  --line-soft: rgba(122, 92, 0, .15);
-  --glow-a: rgba(154, 116, 0, .06);
-  --glow-b: rgba(179, 18, 28, .04);
+  --line: color-mix(in srgb, var(--gold) 32%, transparent);
+  --line-soft: color-mix(in srgb, var(--gold) 15%, transparent);
+  --glow-a: color-mix(in srgb, var(--gold) 6%, transparent);
+  --glow-b: color-mix(in srgb, var(--red) 4%, transparent);
   --field: #fffef9;
   --item: #f7f3e8;
   --code-bg: #f0ebdd;
@@ -166,10 +166,10 @@
   --cyan: #0d7f9e;
   --bone: #242b38;
   --bone-dim: #5d6a7d;
-  --line: rgba(35, 74, 128, .30);
-  --line-soft: rgba(35, 74, 128, .14);
-  --glow-a: rgba(46, 95, 163, .06);
-  --glow-b: rgba(13, 127, 158, .04);
+  --line: color-mix(in srgb, var(--gold) 30%, transparent);
+  --line-soft: color-mix(in srgb, var(--gold) 14%, transparent);
+  --glow-a: color-mix(in srgb, var(--gold) 6%, transparent);
+  --glow-b: color-mix(in srgb, var(--cyan) 4%, transparent);
   --field: #fdfeff;
   --item: #f3f6fa;
   --code-bg: #e9eef5;
@@ -194,10 +194,10 @@
   --cyan: #66e0ff;
   --bone: #e8edf6;
   --bone-dim: #97a2b5;
-  --line: rgba(127, 180, 255, .20);
-  --line-soft: rgba(127, 180, 255, .09);
-  --glow-a: rgba(127, 180, 255, .05);
-  --glow-b: rgba(102, 224, 255, .03);
+  --line: color-mix(in srgb, var(--gold) 20%, transparent);
+  --line-soft: color-mix(in srgb, var(--gold) 9%, transparent);
+  --glow-a: color-mix(in srgb, var(--gold) 5%, transparent);
+  --glow-b: color-mix(in srgb, var(--cyan) 3%, transparent);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

@@ -36,7 +36,6 @@ export async function refreshOrStatus() {
 
 /* ---- browse dialog ---- */
 
-const perM = fmtPerM;
 
 function renderList() {
   const q = $('#or-search').value.trim().toLowerCase();
@@ -57,7 +56,7 @@ function renderList() {
         <div class="or-name">${esc(m.name)}</div>
         <div class="or-id">${esc(m.id)}</div>
       </div>
-      <div class="or-specs">${fmtCtx(m.contextLength, '—')} ctx · ${perM(m.promptPrice)} in / ${perM(m.completionPrice)} out <span class="or-perm">per M tokens</span></div>
+      <div class="or-specs">${fmtCtx(m.contextLength, '—')} ctx · ${fmtPerM(m.promptPrice)} in / ${fmtPerM(m.completionPrice)} out <span class="or-perm">per M tokens</span></div>
     </li>`).join('')
     : '<li class="empty">No models match.</li>';
 
@@ -95,6 +94,7 @@ async function loadCatalog() {
 
 /** Remaining account budget in the dialog hint — you're about to spend it. */
 async function showBalance() {
+  $('#or-balance').textContent = ''; // never let a previous balance linger
   try {
     const k = await api('/api/openrouter/key-status'); // server caches 60s
     if (k.credits) {

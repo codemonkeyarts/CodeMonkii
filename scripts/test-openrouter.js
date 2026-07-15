@@ -10,13 +10,10 @@
 const assert = require('assert');
 const { buildChatPayload, sseToNdjson } = require('../lib/openrouter');
 
-let failures = 0;
-function test(name, fn) {
-  Promise.resolve().then(fn).then(
-    () => console.log(`  ok  ${name}`),
-    (e) => { failures++; console.error(`FAIL  ${name}\n      ${e.message}`); },
-  );
-}
+/* Tests queue here and run sequentially at the bottom of the file, so the
+ * output order matches the declaration order. */
+const tests = [];
+function test(name, fn) { tests.push([name, fn]); }
 
 const sys = [{ role: 'system', content: 'You edit manuscripts.' }, { role: 'user', content: 'hi' }];
 
@@ -98,7 +95,23 @@ test('stream: provider errors become Ollama-shaped {error} lines', async () => {
   assert.deepStrictEqual(events[0], { error: 'provider hiccup' });
 });
 
-process.on('beforeExit', () => {
+test('stream: a newline-less oversized line fails loudly instead of buffering forever', async () => {
+  const events = await collect(['data: ' + 'x'.repeat(1100 * 1024)]); // > MAX_SSE_LINE, no \n
+  assert.strictEqual(events.length, 1, 'stream must terminate after the error');
+  assert.match(events[0].error, /oversized/i);
+});
+
+test('stream: a usage chunk without total_tokens emits no or_usage', async () => {
+  const events = await collect(['data: {"choices":[{"delta":{}}],"usage":{"prompt_tokens":5}}\n\ndata: [DONE]\n\n']);
+  assert.deepStrictEqual(events, [{ done: true }]);
+});
+
+(async () => {
+  let failures = 0;
+  for (const [name, fn] of tests) {
+    try { await fn(); console.log(`  ok  ${name}`); }
+    catch (e) { failures++; console.error(`FAIL  ${name}\n      ${e.message}`); }
+  }
   if (failures) { console.error(`\n${failures} test(s) failed`); process.exit(1); }
   console.log('\nall openrouter adapter tests passed');
-});
+})();

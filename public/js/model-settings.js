@@ -8,11 +8,10 @@
  * each /api/chat request via chat.js. Empty advanced fields are omitted so
  * the model's own default applies; the server sanitizes everything again.
  */
-import { $, esc, toast } from './util.js';
+import { $, esc, toast, fmtCtx } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
 import { updateModelInfo } from './model-info.js';
-import { fmtK } from './context-meter.js';
 
 /* Advanced params: [key, label, description, placeholder]. Order matches the
  * Ollama docs the screenshots came from. num_ctx/temperature live in the
@@ -36,7 +35,7 @@ const ADVANCED = [
   ['or_route', 'or_route', 'Remote (OpenRouter) routing: floor = cheapest provider, nitro = fastest. Local models ignore this.', 'floor or nitro'],
 ];
 
-const ctxLabel = (pow) => fmtK(2 ** pow);
+const ctxLabel = (pow) => fmtCtx(2 ** pow);
 
 function renderAdvanced() {
   $('#ms-advanced-fields').innerHTML = ADVANCED.map(([key, label, desc, ph]) => `
