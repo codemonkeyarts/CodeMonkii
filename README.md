@@ -2,6 +2,8 @@
 
 A local, private LLM studio for [Ollama](https://ollama.com) — projects, Claude-style skills, and live file knowledge. Local by default: out of the box, nothing ever leaves your machine. When your hardware can't carry the model you need, an **optional** [OpenRouter](https://openrouter.ai) key adds remote models — per chat, clearly badged, never implicit.
 
+**Website:** [codalanguez.com/monkii](https://codalanguez.com/monkii/) · more experiments in [The Lab](https://codalanguez.com/lab/)
+
 ![Chat with a project, skill, and live token count](docs/screenshots/chat.png)
 
 <table>
