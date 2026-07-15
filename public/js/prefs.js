@@ -12,6 +12,7 @@
 import { $, esc, toast } from './util.js';
 import { api } from './api.js';
 import { initModal } from './modal.js';
+import { confirmDialog } from './confirm.js';
 
 const bridge = window.monkii;
 
@@ -47,9 +48,13 @@ function render(prefs) {
   renderOpenRouter(prefs);
 }
 
-// generation counter for the async credits line — a slow response from a
+// generation counter for the async budget box — a slow response from a
 // previous Preferences open must never overwrite a newer render
 let keyStatusGen = 0;
+
+// whether a key is currently saved — the Save button uses this to ask
+// before replacing an existing key
+let orKeySaved = false;
 
 /** OpenRouter key status: the key is write-only, so all we render is whether
  * one exists and where it came from — plus a live credits readout. */
@@ -67,11 +72,14 @@ function renderOpenRouter(prefs) {
   $('#prefs-or-logging').disabled = Boolean(prefs.orDataCollectionEnv);
   $('#prefs-or-logging-env-note').hidden = !prefs.orDataCollectionEnv;
 
-  // live budget + spend, filled in once the (async) check returns. The
-  // generation counter keeps a slow response from a previous open from
-  // appending to (or duplicating on) a newer render.
+  // live budget + spend, in its own box, filled once the (async) check
+  // returns. The generation counter keeps a slow response from a previous
+  // open from overwriting a newer render.
+  orKeySaved = Boolean(prefs.openrouterConfigured);
+  const budget = $('#prefs-or-budget');
+  budget.hidden = true;
+  budget.textContent = '';
   if (prefs.openrouterConfigured) {
-    const base = $('#prefs-or-status').textContent;
     const gen = ++keyStatusGen;
     api('/api/openrouter/key-status').then(k => {
       if (gen !== keyStatusGen) return; // a newer render superseded this fetch
@@ -80,8 +88,8 @@ function renderOpenRouter(prefs) {
       if (k.credits) parts.push(`$${k.credits.remaining.toFixed(2)} remaining of $${k.credits.totalCredits.toFixed(2)} loaded`);
       if (k.usage != null) parts.push(`$${k.usage.toFixed(2)} used by this key${k.limit != null ? ` (cap $${k.limit.toFixed(2)})` : ''}`);
       if (k.isFreeTier) parts.push('free tier');
-      if (parts.length) $('#prefs-or-status').textContent = `${base} · ${parts.join(' · ')}`;
-    }).catch(() => { /* offline — the static line stands */ });
+      if (parts.length) { budget.textContent = parts.join(' · '); budget.hidden = false; }
+    }).catch(() => { /* offline — the box stays hidden */ });
   }
 }
 
@@ -176,6 +184,10 @@ export function initPrefs() {
   $('#btn-prefs-or-save').addEventListener('click', async () => {
     const key = $('#prefs-or-key').value.trim();
     if (!key) { toast('Paste an OpenRouter API key first', true); return; }
+    // a key is already saved — replacing it should be a decision, not a slip
+    if (orKeySaved && !await confirmDialog(
+      'Replace the saved OpenRouter key with this new one? The old key stays valid at openrouter.ai — this only changes which key Monkii uses.',
+      { confirmLabel: 'Replace key' })) return;
     $('#prefs-or-key').value = '';
     try {
       const prefs = await bridge.setOpenRouterKey(key);

@@ -622,12 +622,12 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 }
 
 .field { display: flex; flex-direction: column; gap: 6px; }
-.field > span {
+.field > span, .field > summary > span {
   font-family: var(--font-display);
   font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
   color: var(--gold-deep);
 }
-.field > span em { font-family: var(--font-body); font-style: normal; letter-spacing: 0; text-transform: none; color: var(--bone-dim); display: block; font-size: 11px; margin-top: 1px; }
+.field > span em, .field > summary > span em { font-family: var(--font-body); font-style: normal; letter-spacing: 0; text-transform: none; color: var(--bone-dim); display: block; font-size: 11px; margin-top: 1px; }
 .field input, .field textarea {
   background: var(--obsidian); border: 1px solid var(--line); border-radius: 2px;
   padding: 8px 12px; font-size: 13.5px; outline: none; resize: vertical;
@@ -972,6 +972,22 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 .prefs-toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13.5px; color: var(--bone); }
 .prefs-toggle input { width: 16px; height: 16px; accent-color: var(--gold); cursor: pointer; }
 .prefs-toggle:has(input:disabled) { opacity: .5; cursor: default; }
+/* collapsible preference sections */
+.prefs-body details.field > summary {
+  cursor: pointer; user-select: none; list-style: none;
+  display: flex; align-items: baseline; gap: 8px;
+}
+.prefs-body details.field > summary::-webkit-details-marker { display: none; }
+.prefs-body details.field > summary::before {
+  content: '▸'; color: var(--gold-deep); font-size: 12px; flex: none;
+  transition: transform .15s ease;
+}
+.prefs-body details.field[open] > summary::before { content: '▾'; }
+.prefs-body details.field > summary:hover span { color: var(--gold); }
+
+.prefs-budget { color: var(--gold); }
+.prefs-budget::before { content: '$ '; color: var(--gold-deep); }
+
 .prefs-key-input {
   flex: 1; min-width: 0;
   font-family: var(--font-mono); font-size: 13px; color: var(--bone);

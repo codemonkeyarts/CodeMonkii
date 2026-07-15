@@ -310,8 +310,8 @@
         <button id="btn-close-prefs" class="icon-btn" title="Close">×</button>
       </header>
       <div class="prefs-body">
-        <div class="field">
-          <span>Theme <em>the palette Monkii wears</em></span>
+        <details class="field" open>
+          <summary><span>Theme <em>the palette Monkii wears</em></span></summary>
           <div class="prefs-actions">
             <select id="prefs-theme" class="prefs-theme-select" title="Theme">
               <optgroup label="Dark">
@@ -328,10 +328,10 @@
             </select>
           </div>
           <div class="prefs-note">Applies instantly and sticks — no restart. More theming (custom colors, fonts, light mode) is on the roadmap.</div>
-        </div>
+        </details>
 
-        <div class="field prefs-desktop">
-          <span>Ollama models folder <em>where pulled models are stored on disk</em></span>
+        <details class="field prefs-desktop">
+          <summary><span>Ollama models folder <em>where pulled models are stored on disk</em></span></summary>
           <div id="prefs-models-dir" class="prefs-path"></div>
           <div class="prefs-actions">
             <button id="btn-prefs-choose-dir" class="btn btn-ghost">Choose folder…</button>
@@ -341,10 +341,10 @@
             Set by the <b>OLLAMA_MODELS</b> environment variable — it overrides this preference. Unset it to manage the folder here.
           </div>
           <div class="prefs-note">Takes effect the next time Monkii starts Ollama (quit Ollama, then relaunch the app).</div>
-        </div>
+        </details>
 
-        <div class="field prefs-desktop">
-          <span>Projects &amp; chats folder <em>where conversations and project settings are saved</em></span>
+        <details class="field prefs-desktop">
+          <summary><span>Projects &amp; chats folder <em>where conversations and project settings are saved</em></span></summary>
           <div id="prefs-data-dir" class="prefs-path"></div>
           <div class="prefs-actions">
             <button id="btn-prefs-choose-data" class="btn btn-ghost">Choose folder…</button>
@@ -354,10 +354,10 @@
             Set by the <b>MONKII_DATA_DIR</b> environment variable — it overrides this preference.
           </div>
           <div class="prefs-note">Changing this restarts the app view. Existing chats stay in the old folder — move the JSON files over if you want them in the new one.</div>
-        </div>
+        </details>
 
-        <div class="field prefs-desktop">
-          <span>Skills folder <em>where SKILL.md folders are scanned from</em></span>
+        <details class="field prefs-desktop">
+          <summary><span>Skills folder <em>where SKILL.md folders are scanned from</em></span></summary>
           <div id="prefs-skills-dir" class="prefs-path"></div>
           <div class="prefs-actions">
             <button id="btn-prefs-choose-skills" class="btn btn-ghost">Choose folder…</button>
@@ -367,10 +367,10 @@
             Set by the <b>MONKII_SKILLS_DIR</b> environment variable — it overrides this preference.
           </div>
           <div class="prefs-note">Point this at an existing library (e.g. <b>~\.claude\skills</b>) to use your Claude Code skills as-is.</div>
-        </div>
+        </details>
 
-        <div class="field prefs-desktop">
-          <span>File access <em>which folders the browser and attachments can read</em></span>
+        <details class="field prefs-desktop">
+          <summary><span>File access <em>which folders the browser and attachments can read</em></span></summary>
           <div id="prefs-fs-summary" class="prefs-path"></div>
           <ul id="prefs-fs-list" class="prefs-fs-list"></ul>
           <div class="prefs-actions">
@@ -382,11 +382,12 @@
             Set by the <b>MONKII_FS_ROOTS</b> environment variable — it overrides this preference.
           </div>
           <div class="prefs-note">By default Monkii can only read inside your home folder (this includes <b>AppData</b> and dotfiles like <b>.ssh</b> — narrow it to a specific folder if that matters to you). Add a folder to allow attachments from elsewhere (e.g. a projects drive), or allow the whole disk. Changing this restarts the app view.</div>
-        </div>
+        </details>
 
-        <div class="field prefs-desktop">
-          <span>Remote models — OpenRouter <em>optional; off unless you add a key</em></span>
+        <details class="field prefs-desktop">
+          <summary><span>Remote models — OpenRouter <em>optional; off unless you add a key</em></span></summary>
           <div id="prefs-or-status" class="prefs-path"></div>
+          <div id="prefs-or-budget" class="prefs-path prefs-budget" title="Your OpenRouter account budget (checked when this panel opens, cached for a minute)" hidden></div>
           <div class="prefs-actions">
             <input type="password" id="prefs-or-key" class="prefs-key-input" placeholder="sk-or-v1-…" autocomplete="off" spellcheck="false">
             <button id="btn-prefs-or-save" class="btn btn-ghost">Save key</button>
@@ -403,10 +404,10 @@
             Set by the <b>MONKII_OR_DATA_COLLECTION</b> environment variable — it overrides this preference.
           </div>
           <div class="prefs-note"><b>This changes where your words go.</b> Chats that use an OpenRouter model send that chat's messages, project instructions, and attachments to openrouter.ai and the model's provider — they leave this machine. Local models are never affected, and nothing goes remote unless you pick a remote model for a chat. The key is stored OS-encrypted and never shown again. While a key is saved, opening this panel or the ☁ model browser checks your credit balance with OpenRouter (no chat data — just the key, cached for a minute). Saving restarts the app view.</div>
-        </div>
+        </details>
 
-        <div class="field prefs-desktop">
-          <span>Update check <em>look for newer Ollama releases</em></span>
+        <details class="field prefs-desktop">
+          <summary><span>Update check <em>look for newer Ollama releases</em></span></summary>
           <label class="prefs-toggle">
             <input type="checkbox" id="prefs-update-check">
             <span>Check GitHub daily for a newer Ollama version</span>
@@ -415,7 +416,7 @@
             Set by the <b>MONKII_UPDATE_CHECK</b> environment variable — it overrides this preference.
           </div>
           <div class="prefs-note"><b>Off by default.</b> This is the only thing Monkii ever sends off your machine — a version check to GitHub, with no data about you or your chats. Enable it to get update notifications. Changing this restarts the app view.</div>
-        </div>
+        </details>
       </div>
     </div>
   </div>
