@@ -31,6 +31,18 @@ function attachedPaths() {
   return [...s];
 }
 
+/** Turn a batch endpoint's per-path results into one toast line. */
+function summarizeBatch(results) {
+  const added = results.filter(r => r.ok && !r.already).length;
+  const already = results.filter(r => r.ok && r.already).length;
+  const failed = results.filter(r => !r.ok);
+  const parts = [];
+  if (added) parts.push(`attached ${added}`);
+  if (already) parts.push(`${already} already attached`);
+  if (failed.length) parts.push(`${failed.length} failed (${failed[0].error}${failed.length > 1 ? ', …' : ''})`);
+  return { text: parts.join(', ') || 'Nothing to attach', isError: added === 0 && failed.length > 0 };
+}
+
 /** Poll index-status until nothing is building, refreshing the badges. */
 export async function pollIndexing() {
   if (polling) return;
@@ -76,13 +88,28 @@ export function renderAttachments() {
     }));
 }
 
-export async function attachPath(p) {
+/** Attach one or more files/folders (the file browser's multi-select) to the project. */
+export async function attachPaths(paths) {
+  if (!paths.length) return;
   try {
-    state.project = await api(`/api/projects/${state.project.id}/attachments`, { method: 'POST', body: { path: p } });
+    const { project, results } = await api(`/api/projects/${state.project.id}/attachments/batch`, { method: 'POST', body: { paths } });
+    state.project = project;
     renderAttachments();
     pollIndexing();
-    toast(`Attached: ${p}`);
+    const { text, isError } = summarizeBatch(results);
+    toast(text, isError);
   } catch (e) { toast(e.message, true); }
+}
+
+/** Attach files/folders to the project via the file browser's multi-select. */
+export function attachToProject() {
+  if (!state.project) return;
+  openBrowser({
+    title: 'Attach files or folders',
+    dirLabel: 'Attach this folder',
+    multi: true,
+    onPickMany: attachPaths,
+  });
 }
 
 /* ---- per-chat attachments (knowledge for a single chat) ---- */
@@ -114,21 +141,22 @@ function syncChat(chat) {
   if (c && chat) c.attachments = chat.attachments || [];
 }
 
-/** Attach a file/folder to the current chat via the file browser. */
+/** Attach files/folders to the current chat via the file browser's multi-select. */
 export function attachToChat() {
   if (!state.project || !state.chatId) { toast('Open a chat first', true); return; }
   openBrowser({
     title: 'Add files or folders to this chat',
-    verb: 'add',
     dirLabel: 'Add this folder',
-    onPick: async (p) => {
+    multi: true,
+    onPickMany: async (paths) => {
       try {
-        const chat = await api(`/api/projects/${state.project.id}/chats/${state.chatId}/attachments`, { method: 'POST', body: { path: p } });
+        const { chat, results } = await api(`/api/projects/${state.project.id}/chats/${state.chatId}/attachments/batch`, { method: 'POST', body: { paths } });
         syncChat(chat);
         renderChatAttachments();
         pollIndexing();
         refreshContext();
-        toast(`Added to this chat: ${p}`);
+        const { text, isError } = summarizeBatch(results);
+        toast(text, isError);
       } catch (e) { toast(e.message, true); }
     },
   });

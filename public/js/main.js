@@ -13,8 +13,8 @@ import { initOpenRouter, refreshOrStatus } from './openrouter.js';
 import { loadSkills, updateSkillPopup, pickSkill, renderSkillToggles, handleSkillPopupKey } from './skills.js';
 import { initSkillCreate, showSkillCreateForm, importSkillFlow } from './skill-create.js';
 import { createProject, openProject, saveProjectMeta, deleteProject, showProjectsPage, quickChat } from './projects.js';
-import { openBrowser, browseTo, closeBrowser, pickCurrentDir } from './filebrowser.js';
-import { attachPath, attachToChat } from './attachments.js';
+import { openBrowser, browseTo, closeBrowser, pickCurrentDir, commitSelection } from './filebrowser.js';
+import { attachToProject, attachToChat } from './attachments.js';
 import { newChat, send, clearChat } from './chat.js';
 import { initOverflowDialog } from './overflow.js';
 import { initModal } from './modal.js';
@@ -92,10 +92,11 @@ function wireInspector() {
 
 function wireFileBrowser() {
   // the plain "Attach from this machine" entry point: project-level Knowledge
-  $('#btn-browse').addEventListener('click', () => openBrowser({ onPick: attachPath }));
+  $('#btn-browse').addEventListener('click', attachToProject);
   $('#btn-close-browser').addEventListener('click', closeBrowser);
   $('#btn-fb-drives').addEventListener('click', () => browseTo('__drives__'));
   $('#btn-attach-dir').addEventListener('click', pickCurrentDir);
+  $('#btn-fb-attach-selected').addEventListener('click', commitSelection);
   $('#modal-backdrop').addEventListener('click', (e) => { if (e.target.id === 'modal-backdrop') closeBrowser(); });
   initFilePreview(); // file rows in the browser preview on click
   initSaveFile();

@@ -770,6 +770,16 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 }
 #fb-entries li .fb-attach:hover { background: var(--gold); color: var(--on-accent); }
 #fb-entries li:hover .fb-attach { visibility: visible; }
+/* multi-select toggle — always visible (not hover-only like .fb-attach): a
+ * checked box needs to stay legible as you navigate away from it, not just
+ * while you're pointing at it */
+#fb-entries li .fb-select {
+  margin-left: auto; flex: none; width: 22px; height: 22px; line-height: 20px;
+  text-align: center; font-size: 13px; font-weight: 600;
+  background: none; border: 1px solid var(--line); border-radius: 3px; color: var(--bone-dim);
+}
+#fb-entries li .fb-select:hover { border-color: var(--gold-deep); color: var(--gold); }
+#fb-entries li .fb-select.on { background: var(--gold); border-color: var(--gold); color: var(--on-accent); }
 #file-browser > footer {
   display: flex; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--line);
 }

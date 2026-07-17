@@ -61,6 +61,7 @@ Folding in the parts of OpenRouter's API that serve Monkii's promises — privac
 - [x] **Seven theme presets** — dark: Cyber Deco, Speakeasy Noir, Gothic Library, Midnight; light: Parchment, Daylight, Porcelain. Applied pre-paint (no flash), persisted, WCAG-AA contrast-checked, and the entire chrome (glows, scrollbars, chips, scrims) derives from theme tokens via `color-mix` — no hardcoded accent survives a theme switch (first slice of theming)
 - [x] **Adapter test suite** — `npm test` covers the OpenRouter boundary: privacy routing present, option remapping, routing-variant suffixes, cache markers, SSE→NDJSON translation, and hard numeric coercion of provider-supplied usage data
 - [x] **Preview & save files** — click a file in the browser to preview it (markdown rendered, binary refused, size-capped); right-click any message → **Save as file…** writes the real markdown source to disk (not a flattened copy — headings/code/links survive) via a folder-pick + in-app filename dialog, never silently overwriting. Fenced by the same `MONKII_FS_ROOTS` allowlist as everything else
+- [x] **Multi-file attach** — the file browser's attach flow now lets you toggle-select any number of files and folders, even across different folders as you navigate, and attach them all in one action (one project/chat write for the whole batch, not one per file); a summary reports what was added vs. already-attached vs. failed instead of one path aborting the rest
 
 ## More local
 

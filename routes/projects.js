@@ -169,6 +169,32 @@ router.post('/projects/:pid/attachments', (req, res) => {
   } catch (e) { res.status(400).json({ error: String(e.message || e) }); }
 });
 
+/* Attach several files/folders at once (the file browser's multi-select) —
+ * one project write for the whole batch instead of N, and a per-path result
+ * so the UI can summarize "attached 6, 2 already there, 1 failed" instead of
+ * failing the whole batch over one bad path. */
+router.post('/projects/:pid/attachments/batch', (req, res) => {
+  try {
+    const p = loadProject(req.params.pid);
+    const paths = Array.isArray(req.body.paths) ? req.body.paths.slice(0, 200) : [];
+    const results = [];
+    const warmed = [];
+    for (const path of paths) {
+      const existing = p.attachments.find(a => a.path === path);
+      if (existing) { results.push({ path, ok: true, already: true }); continue; }
+      try {
+        const att = makeAttachment(path);
+        p.attachments.push(att);
+        warmed.push(att);
+        results.push({ path, ok: true });
+      } catch (e) { results.push({ path, ok: false, error: String(e.message || e) }); }
+    }
+    saveProject(p);
+    warmed.forEach(warmAttachment);
+    res.json({ project: p, results });
+  } catch (e) { res.status(400).json({ error: String(e.message || e) }); }
+});
+
 router.delete('/projects/:pid/attachments/:aid', (req, res) => {
   try {
     const p = loadProject(req.params.pid);
@@ -192,6 +218,34 @@ router.post('/projects/:pid/chats/:cid/attachments', (req, res) => {
     saveProject(p);
     warmAttachment(att); // background index build so the first message doesn't hang
     res.json(c);
+  } catch (e) { res.status(400).json({ error: String(e.message || e) }); }
+});
+
+/* Attach several files/folders to a chat at once — see the project-level
+ * /attachments/batch above for why this is a separate batch endpoint rather
+ * than looping the single one client-side. */
+router.post('/projects/:pid/chats/:cid/attachments/batch', (req, res) => {
+  try {
+    const p = loadProject(req.params.pid);
+    const c = p.chats.find(c => c.id === req.params.cid);
+    if (!c) return res.status(404).json({ error: 'chat not found' });
+    if (!c.attachments) c.attachments = [];
+    const paths = Array.isArray(req.body.paths) ? req.body.paths.slice(0, 200) : [];
+    const results = [];
+    const warmed = [];
+    for (const path of paths) {
+      const existing = c.attachments.find(a => a.path === path);
+      if (existing) { results.push({ path, ok: true, already: true }); continue; }
+      try {
+        const att = makeAttachment(path);
+        c.attachments.push(att);
+        warmed.push(att);
+        results.push({ path, ok: true });
+      } catch (e) { results.push({ path, ok: false, error: String(e.message || e) }); }
+    }
+    saveProject(p);
+    warmed.forEach(warmAttachment);
+    res.json({ chat: c, results });
   } catch (e) { res.status(400).json({ error: String(e.message || e) }); }
 });
 
