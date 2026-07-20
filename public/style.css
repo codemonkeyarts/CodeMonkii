@@ -1070,6 +1070,15 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 }
 .msg-retry:hover { color: var(--gold); border-color: var(--gold-deep); }
 
+/* edit & resend — an inline textarea inside the user message's own bordered
+ * box (.msg-user .msg-body), so it reads as "this message, now editable"
+ * rather than a nested box within a box */
+.msg-edit-box {
+  display: block; width: 100%; font-family: inherit; font-size: inherit; line-height: 1.6; color: var(--bone);
+  background: none; border: none; padding: 0; resize: vertical; outline: none;
+}
+.msg-edit-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+
 /* Reasoning ("thinking") blocks + remote usage/cost */
 .think {
   margin: 0 0 10px; border: 1px solid var(--line-soft); border-radius: 2px;

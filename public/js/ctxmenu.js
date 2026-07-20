@@ -12,7 +12,7 @@
  * editing menu (provided by the desktop shell) can appear.
  */
 import { $, copyText, toast } from './util.js';
-import { openChat, renameChat, deleteChat, clearChat, currentChat } from './chat.js';
+import { openChat, renameChat, deleteChat, clearChat, currentChat, beginEditMessage, copyConversationMarkdown, saveConversationAsFile } from './chat.js';
 import { openProject, deleteProjectById } from './projects.js';
 import { openSkillDetail } from './skills.js';
 import { saveAsFile } from './savefile.js';
@@ -55,6 +55,9 @@ function menuFor(target) {
       { label: 'Rename chat…', action: () => renameChat(cid) },
       { label: 'Clear messages', action: () => clearChat(cid) },
       'sep',
+      { label: 'Copy as Markdown', action: () => copyConversationMarkdown(cid) },
+      { label: 'Save as file…', action: () => saveConversationAsFile(cid) },
+      'sep',
       { label: 'Delete chat', danger: true, action: () => deleteChat(cid) },
     ];
   }
@@ -71,16 +74,19 @@ function menuFor(target) {
 
   const msg = target.closest('#messages .msg');
   if (msg) {
+    const idx = Number(msg.dataset.idx);
+    const stored = currentChat()?.messages[idx];
     const selection = String(getSelection() || '').trim();
     const body = msg.querySelector('.msg-body');
     // the real markdown source, keyed by render position — falls back to the
     // rendered text for a message not yet indexed (e.g. still streaming).
     // Matters because rendered headings are CSS-uppercased and markdown
     // syntax (**bold**, code fences, links) doesn't survive an innerText read.
-    const raw = currentChat()?.messages[Number(msg.dataset.idx)]?.content ?? body.innerText.trim();
+    const raw = stored?.content ?? body.innerText.trim();
     return [
       selection && { label: 'Copy selection', action: () => { copyText(selection); toast('Copied'); } },
       { label: 'Copy message', action: () => { copyText(body.innerText.trim()); toast('Message copied'); } },
+      stored?.role === 'user' && { label: 'Edit & resend…', action: () => beginEditMessage(idx) },
       { label: 'Save as file…', action: () => saveAsFile(raw) },
     ];
   }

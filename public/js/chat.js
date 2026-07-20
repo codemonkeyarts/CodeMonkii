@@ -8,7 +8,7 @@
  * 80ms, keeps the view pinned to the bottom unless the user scrolled up,
  * and supports mid-generation Stop.
  */
-import { $, esc, toast, readNdjson } from './util.js';
+import { $, esc, toast, readNdjson, copyText } from './util.js';
 import { api } from './api.js';
 import { state } from './state.js';
 import { md } from './markdown.js';
@@ -20,6 +20,7 @@ import { isRemoteModel } from './openrouter.js';
 import { confirmDialog } from './confirm.js';
 import { openOverflowDialog } from './overflow.js';
 import { renderChatAttachments } from './attachments.js';
+import { saveAsFile } from './savefile.js';
 
 const THINKING_DOTS = '<span class="thinking-dots"><i></i><i></i><i></i></span>';
 
@@ -97,6 +98,35 @@ export async function deleteChat(cid) {
     state.chatId = null;
     if (state.project.chats.length) openChat(state.project.chats[0].id); else newChat();
   } else renderChatList();
+}
+
+/** Render a chat's full history as a Markdown transcript — headings for
+ *  speaker turns, the raw stored content underneath (not a rendered/
+ *  flattened copy, so bold/code/links survive round-tripping back in). */
+function chatToMarkdown(chat) {
+  const lines = [`# ${chat.title}`, ''];
+  for (const m of chat.messages) {
+    lines.push(`### ${m.role === 'user' ? 'You' : (m.model || 'Model')}`, '', m.content, '');
+  }
+  return lines.join('\n').trim() + '\n';
+}
+
+/** Copy a chat's whole conversation to the clipboard as Markdown. Defaults
+ *  to the open chat, but takes an explicit id so it works from the chat-list
+ *  context menu on a chat that isn't the one currently open. */
+export function copyConversationMarkdown(cid = state.chatId) {
+  const chat = state.project?.chats.find(c => c.id === cid);
+  if (!chat || !chat.messages.length) { toast('Nothing to copy', true); return; }
+  copyText(chatToMarkdown(chat));
+  toast('Conversation copied as Markdown');
+}
+
+/** Save a chat's whole conversation to disk as Markdown, via the same
+ *  folder-pick + filename flow as a per-message save. */
+export function saveConversationAsFile(cid = state.chatId) {
+  const chat = state.project?.chats.find(c => c.id === cid);
+  if (!chat || !chat.messages.length) { toast('Nothing to save', true); return; }
+  saveAsFile(chatToMarkdown(chat), chat.title);
 }
 
 /** Wipe a chat's messages (keeps the chat, model, and attachments), resetting
@@ -273,6 +303,72 @@ export async function retryLast() {
   }
   renderMessages();
   await runExchange(removed.message, removed.skillIds || [], model);
+}
+
+/** Turn a past USER message into an inline edit box. Save truncates the
+ *  chat to just before it and resends the new text — the same "edit &
+ *  regenerate" idea as retry, generalized to any earlier message rather
+ *  than only the last one. */
+export function beginEditMessage(idx) {
+  if (state.streaming) return;
+  const chat = currentChat();
+  const m = chat?.messages[idx];
+  if (!m || m.role !== 'user') return;
+  const li = document.querySelector(`#messages .msg[data-idx="${idx}"]`);
+  if (!li) return;
+  const body = li.querySelector('.msg-body');
+  body.innerHTML = `
+    <textarea class="msg-edit-box" rows="3">${esc(m.content)}</textarea>
+    <div class="msg-edit-actions">
+      <button class="btn btn-ghost msg-edit-cancel">Cancel</button>
+      <button class="btn btn-primary msg-edit-save">Save &amp; resend</button>
+    </div>`;
+  const ta = body.querySelector('textarea');
+  ta.focus();
+  ta.setSelectionRange(ta.value.length, ta.value.length);
+  body.querySelector('.msg-edit-cancel').addEventListener('click', () => renderMessages());
+  body.querySelector('.msg-edit-save').addEventListener('click', () => submitEdit(idx, ta.value));
+  ta.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); submitEdit(idx, ta.value); }
+    else if (e.key === 'Escape') { e.preventDefault(); renderMessages(); }
+  });
+}
+
+async function submitEdit(idx, newContent) {
+  const text = newContent.trim();
+  if (!text) { toast("Message can't be empty", true); return; }
+  const chat = currentChat();
+  const cid = state.chatId;
+  const model = $('#model-select').value;
+  if (!model) { toast('No model available — pull one via Manage models, or add remote models in Preferences.', true); return; }
+  if (isRemoteModel(model) && !state.orConfigured) {
+    toast('This model needs an OpenRouter key — add one in Preferences, or pick a local model.', true);
+    return;
+  }
+
+  // editing message N discards it and everything after — its own reply is
+  // expected (that's the whole point of editing), but discarding more than
+  // that deserves a heads-up before it's gone
+  const discarded = chat.messages.length - idx - 1;
+  if (discarded > 1 && !await confirmDialog(
+    `Editing this message will discard ${discarded} messages after it. Continue?`,
+    { confirmLabel: 'Discard & resend', danger: true }
+  )) { renderMessages(); return; }
+
+  const skillIds = chat.messages[idx].skillIds || [];
+  let trimmed;
+  try {
+    trimmed = await api(`/api/projects/${state.project.id}/chats/${cid}/messages/from/${idx}`, { method: 'DELETE' });
+  } catch (e) { toast(e.message, true); renderMessages(); return; }
+
+  chat.messages = trimmed.messages; // server truth, same pattern as retry
+  if (state.chatId !== cid) {
+    $('#input').value = text;
+    toast('Chat changed mid-edit — your edited text is in the composer, unsent.');
+    return;
+  }
+  renderMessages();
+  await runExchange(text, skillIds, model);
 }
 
 const RETRY_BTN = '<button class="msg-retry" title="Retry — re-run your last prompt (with the currently selected model)">↻ retry</button>';

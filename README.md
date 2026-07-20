@@ -192,6 +192,8 @@ The system prompt stays constant as the conversation grows. With the old dump it
 - Auto-detects Ollama at `http://localhost:11434` (override with `OLLAMA_HOST`; bind-style values like `0.0.0.0` are normalized automatically)
 - Model picker per chat, streaming responses, stop button
 - **↻ Retry** on the conversation's last reply — re-runs your last prompt (with the same invoked skills) under whatever model is currently selected, so you can switch models and compare takes; available after errors and Stop too
+- **Edit & resend** any of *your own* past messages, not just the last one — right-click → **Edit & resend…** turns it into an inline textarea; saving discards it and everything after it (its own reply is expected — that's the point) and resends the edited text. Discarding more than that asks first
+- **Copy or save a whole conversation as Markdown** — right-click a chat in the rail for **Copy as Markdown** (clipboard) or **Save as file…** (through the same folder-pick + filename flow as a per-message save). It's the real stored source, not a flattened render, so headings/code/links come out intact
 - Health indicator in the sidebar
 - Update check (**off by default, opt-in**): when enabled, a cached daily check notices a newer Ollama release and shows a download pill plus (in the desktop app) a popup offering to download it. Turn it on in Preferences → Update check, or `MONKII_UPDATE_CHECK=on`
 

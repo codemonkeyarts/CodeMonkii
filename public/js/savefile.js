@@ -42,9 +42,11 @@ function askFilename(dir, suggested) {
   });
 }
 
-/** First non-blank line, slugged into a filename: "# Chapter One" → chapter-one.md */
-function suggestName(content) {
-  const first = content.split('\n').find(l => l.trim()) || 'message';
+/** A short name to seed the filename dialog with: `hint` (e.g. a chat title)
+ *  if given, else the content's first non-blank line — either way slugged
+ *  into something filesystem-safe. "# Chapter One" → chapter-one.md */
+function suggestName(content, hint) {
+  const first = hint || content.split('\n').find(l => l.trim()) || 'message';
   const slug = first.replace(/^#+\s*/, '').trim().slice(0, 50)
     .replace(/[\\/:*?"<>|\x00-\x1f]/g, ' ').replace(/\s+/g, '-').replace(/^-+|-+$/g, '');
   return `${slug || 'message'}.md`;
@@ -67,8 +69,11 @@ async function writeFile(dir, filename, content, overwrite) {
   }
 }
 
-/** Entry point: save `content` (e.g. a chat message) to a file the user picks. */
-export function saveAsFile(content) {
+/** Entry point: save `content` (e.g. a chat message or a whole exported
+ *  conversation) to a file the user picks. `nameHint` overrides the
+ *  suggested filename — a whole-conversation export wants the chat title,
+ *  not its first message's first line. */
+export function saveAsFile(content, nameHint) {
   if (!content || !content.trim()) { toast('Nothing to save', true); return; }
   openBrowser({
     title: 'Save file to…',
@@ -76,7 +81,7 @@ export function saveAsFile(content) {
     dirLabel: 'Save in this folder',
     dirsOnly: true,
     onPick: async (dir) => {
-      const filename = await askFilename(dir, suggestName(content));
+      const filename = await askFilename(dir, suggestName(content, nameHint));
       if (filename) await writeFile(dir, filename, content, false);
     },
   });

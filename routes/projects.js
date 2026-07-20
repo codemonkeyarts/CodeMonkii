@@ -132,6 +132,26 @@ router.delete('/projects/:pid/chats/:cid/messages/last', (req, res) => {
   } catch { res.status(404).json({ error: 'project not found' }); }
 });
 
+/* "Edit & resend" a past user message: truncate the chat to just before it —
+ * that message and everything after it (including its own reply) is about
+ * to be regenerated with the edited text. Same "server truth" shape as
+ * .../messages/last: the client resends with the trimmed history this
+ * returns rather than re-deriving the cut itself. */
+router.delete('/projects/:pid/chats/:cid/messages/from/:idx', (req, res) => {
+  try {
+    const p = loadProject(req.params.pid);
+    const c = p.chats.find(c => c.id === req.params.cid);
+    if (!c) return res.status(404).json({ error: 'chat not found' });
+    const idx = Number(req.params.idx);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= c.messages.length || c.messages[idx].role !== 'user') {
+      return res.status(400).json({ error: 'not an editable message' });
+    }
+    c.messages = c.messages.slice(0, idx);
+    saveProject(p);
+    res.json({ messages: c.messages });
+  } catch { res.status(404).json({ error: 'project not found' }); }
+});
+
 /* Clear a chat's messages — keeps the chat, its model, and attachments, but
  * wipes the conversation (and so the context it was building up). */
 router.delete('/projects/:pid/chats/:cid/messages', (req, res) => {

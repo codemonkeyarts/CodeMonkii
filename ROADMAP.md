@@ -9,7 +9,7 @@ Have an idea? Open an issue — local-first, private-by-default proposals move t
 The current focus, in priority order (details in the sections below). With the local/secure foundation in place, this round is about making Monkii a great daily tool:
 
 1. ~~**Search across chats & projects**~~ — **shipped**: ⌕ Search in the rail (or Ctrl+K) searches project names, chat titles, and every message at once, with match-centered snippets and jump-to-exact-message
-2. **Edit · regenerate · branch messages** — fix a prompt and re-run, branch an alternate take, copy a conversation as Markdown *(first slice shipped: ↻ retry on the last reply — re-runs your last prompt, including under a different model)*
+2. **Edit · regenerate · branch messages** — fix a prompt and re-run, branch an alternate take, copy a conversation as Markdown *(shipped so far: ↻ retry on the last reply; edit-and-resend on any past message of your own, with a heads-up before discarding more than its own reply; copy/save a whole conversation as Markdown, real source not a flattened render. Remaining: branching an alternate take without losing the original)*
 3. **Backup & wipe controls** — one-click backup (zip the data dir), a real "erase everything" (including embeddings), and a data-location shortcut
 4. **Theming** — palette presets, light/dark/system, font & density controls (the UI already runs on CSS variables) *(shipped so far: seven presets in Preferences → Theme — dark: Cyber Deco, Speakeasy Noir, Gothic Library, Midnight; light: Parchment, Daylight, Porcelain — applied pre-paint, persisted, all WCAG-AA contrast-checked. Remaining: system-follow toggle, custom colors, fonts, density)*
 5. **Completion notifications** — a desktop toast (optional sound) when a long generation finishes while Monkii is in the background
@@ -63,6 +63,8 @@ Folding in the parts of OpenRouter's API that serve Monkii's promises — privac
 - [x] **Preview & save files** — click a file in the browser to preview it (markdown rendered, binary refused, size-capped); right-click any message → **Save as file…** writes the real markdown source to disk (not a flattened copy — headings/code/links survive) via a folder-pick + in-app filename dialog, never silently overwriting. Fenced by the same `MONKII_FS_ROOTS` allowlist as everything else
 - [x] **Multi-file attach** — the file browser's attach flow now lets you toggle-select any number of files and folders, even across different folders as you navigate, and attach them all in one action (one project/chat write for the whole batch, not one per file); a summary reports what was added vs. already-attached vs. failed instead of one path aborting the rest
 - [x] **Search across chats & projects** — ⌕ Search in the rail (or Ctrl+K) searches every project name, chat title, and message at once against a local endpoint (no index to maintain at this scale); results are grouped with a match-centered snippet, and clicking one opens the right project and chat and scrolls straight to (and briefly flashes) the exact message
+- [x] **Edit & resend** — right-click any of your own past messages → Edit & resend… turns it into an inline textarea; saving discards that message and everything after it (its own reply is expected) and resends the edited text, asking first only when more than that would be lost
+- [x] **Copy / save a conversation as Markdown** — right-click a chat for Copy as Markdown (clipboard) or Save as file… (the same folder-pick + filename flow as a per-message save); it's the real stored source, not a flattened render
 
 ## More local
 
@@ -86,7 +88,7 @@ Folding in the parts of OpenRouter's API that serve Monkii's promises — privac
 
 - [ ] **Theming** — built-in palette presets (Cyber Deco, Speakeasy Noir, Gothic Library, Midnight), a light/dark/system toggle, a custom-color editor with live preview and contrast check, font choices (bundled + system-installed), background options (solid / gradient / local image), and density & text-size controls. All rendered offline; themes persist per-user and never phone home. The UI already runs on CSS variables, so it's within reach
 - [ ] **Export & import projects** — move a project (skills, knowledge refs, settings, chats) as one portable file: backups, and carrying your work between machines
-- [ ] **Edit · regenerate · branch messages**, and copy a whole conversation as Markdown
+- [ ] **Branch messages** — fork an alternate take from any point in a conversation without losing the original (edit-and-resend and copy/save-as-Markdown are already shipped, see the roadmap's Next-up section)
 - [ ] **Prompt & snippet library** — save reusable prompts and system-prompt templates you can drop into any chat or project
 - [ ] **Organize — pin, tag, folder** — pin the chats that matter, tag or group projects; a flat list stops scaling once the work piles up
 - [ ] **Per-chat option overrides** on top of the project defaults
