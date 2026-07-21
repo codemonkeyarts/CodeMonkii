@@ -1151,7 +1151,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   display: flex; flex-direction: column; gap: 3px; cursor: pointer;
   padding: 8px 10px; border: 1px solid var(--line-soft); border-radius: 2px; background: var(--item);
 }
-#search-results li:hover { border-color: var(--gold-deep); background: var(--panel); }
+#search-results li:hover, #search-results li.search-active { border-color: var(--gold-deep); background: var(--panel); }
 #search-results li.search-empty { color: var(--bone-dim); font-size: 13px; cursor: default; border: none; background: none; }
 #search-results li.search-empty:hover { border: none; background: none; }
 .search-kind {

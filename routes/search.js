@@ -14,16 +14,24 @@ const router = express.Router();
 
 const MAX_RESULTS = 60;
 const SNIPPET_RADIUS = 50; // chars of context kept on each side of a match
+const MAX_QUERY_LEN = 300;
 
-/** A short, match-centered excerpt with … markers where it was trimmed. */
+const isLowSurrogate = (c) => c >= 0xdc00 && c <= 0xdfff;
+const isHighSurrogate = (c) => c >= 0xd800 && c <= 0xdbff;
+
+/** A short, match-centered excerpt with … markers where it was trimmed.
+ *  Shrinks the boundary inward rather than outward so a UTF-16 surrogate
+ *  pair (e.g. an emoji) never gets split into an orphaned half. */
 function snippet(text, at, len) {
-  const start = Math.max(0, at - SNIPPET_RADIUS);
-  const end = Math.min(text.length, at + len + SNIPPET_RADIUS);
+  let start = Math.max(0, at - SNIPPET_RADIUS);
+  if (start > 0 && isLowSurrogate(text.charCodeAt(start))) start++;
+  let end = Math.min(text.length, at + len + SNIPPET_RADIUS);
+  if (end < text.length && isHighSurrogate(text.charCodeAt(end - 1))) end--;
   return (start > 0 ? '…' : '') + text.slice(start, end).replace(/\s+/g, ' ').trim() + (end < text.length ? '…' : '');
 }
 
 router.get('/search', (req, res) => {
-  const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+  const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, MAX_QUERY_LEN) : '';
   if (q.length < 2) return res.json({ results: [] }); // avoid a flood of noise on one character
   const needle = q.toLowerCase();
   const results = [];

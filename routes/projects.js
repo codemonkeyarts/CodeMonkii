@@ -137,11 +137,16 @@ router.delete('/projects/:pid/chats/:cid/messages/last', (req, res) => {
  * to be regenerated with the edited text. Same "server truth" shape as
  * .../messages/last: the client resends with the trimmed history this
  * returns rather than re-deriving the cut itself. */
+/* Truncates the chat to just before `idx` — used by "edit & resend" to drop
+ * everything from the edited message onward before the edited turn is
+ * replayed. Destructive-only: there's no copy-on-write here, so a future
+ * "branch" feature needs its own copy-based sibling rather than reusing this. */
 router.delete('/projects/:pid/chats/:cid/messages/from/:idx', (req, res) => {
   try {
     const p = loadProject(req.params.pid);
     const c = p.chats.find(c => c.id === req.params.cid);
     if (!c) return res.status(404).json({ error: 'chat not found' });
+    if (!/^\d+$/.test(req.params.idx)) return res.status(400).json({ error: 'not an editable message' });
     const idx = Number(req.params.idx);
     if (!Number.isInteger(idx) || idx < 0 || idx >= c.messages.length || c.messages[idx].role !== 'user') {
       return res.status(400).json({ error: 'not an editable message' });
@@ -192,23 +197,29 @@ router.post('/projects/:pid/attachments', (req, res) => {
 /* Attach several files/folders at once (the file browser's multi-select) —
  * one project write for the whole batch instead of N, and a per-path result
  * so the UI can summarize "attached 6, 2 already there, 1 failed" instead of
- * failing the whole batch over one bad path. */
+ * failing the whole batch over one bad path. Shared by the project- and
+ * chat-level batch routes below. */
+function attachBatch(list, rawPaths) {
+  const paths = Array.isArray(rawPaths) ? rawPaths.slice(0, 200) : [];
+  const results = [];
+  const warmed = [];
+  for (const path of paths) {
+    const existing = list.find(a => a.path === path);
+    if (existing) { results.push({ path, ok: true, already: true }); continue; }
+    try {
+      const att = makeAttachment(path);
+      list.push(att);
+      warmed.push(att);
+      results.push({ path, ok: true });
+    } catch (e) { results.push({ path, ok: false, error: String(e.message || e) }); }
+  }
+  return { results, warmed };
+}
+
 router.post('/projects/:pid/attachments/batch', (req, res) => {
   try {
     const p = loadProject(req.params.pid);
-    const paths = Array.isArray(req.body.paths) ? req.body.paths.slice(0, 200) : [];
-    const results = [];
-    const warmed = [];
-    for (const path of paths) {
-      const existing = p.attachments.find(a => a.path === path);
-      if (existing) { results.push({ path, ok: true, already: true }); continue; }
-      try {
-        const att = makeAttachment(path);
-        p.attachments.push(att);
-        warmed.push(att);
-        results.push({ path, ok: true });
-      } catch (e) { results.push({ path, ok: false, error: String(e.message || e) }); }
-    }
+    const { results, warmed } = attachBatch(p.attachments, req.body.paths);
     saveProject(p);
     warmed.forEach(warmAttachment);
     res.json({ project: p, results });
@@ -250,19 +261,7 @@ router.post('/projects/:pid/chats/:cid/attachments/batch', (req, res) => {
     const c = p.chats.find(c => c.id === req.params.cid);
     if (!c) return res.status(404).json({ error: 'chat not found' });
     if (!c.attachments) c.attachments = [];
-    const paths = Array.isArray(req.body.paths) ? req.body.paths.slice(0, 200) : [];
-    const results = [];
-    const warmed = [];
-    for (const path of paths) {
-      const existing = c.attachments.find(a => a.path === path);
-      if (existing) { results.push({ path, ok: true, already: true }); continue; }
-      try {
-        const att = makeAttachment(path);
-        c.attachments.push(att);
-        warmed.push(att);
-        results.push({ path, ok: true });
-      } catch (e) { results.push({ path, ok: false, error: String(e.message || e) }); }
-    }
+    const { results, warmed } = attachBatch(c.attachments, req.body.paths);
     saveProject(p);
     warmed.forEach(warmAttachment);
     res.json({ chat: c, results });

@@ -108,6 +108,7 @@ export function attachToProject() {
     title: 'Attach files or folders',
     dirLabel: 'Attach this folder',
     multi: true,
+    onPick: (dir) => attachPaths([dir]),
     onPickMany: attachPaths,
   });
 }
@@ -141,6 +142,20 @@ function syncChat(chat) {
   if (c && chat) c.attachments = chat.attachments || [];
 }
 
+/** Attach one or more files/folders (the file browser's multi-select) to the current chat. */
+async function attachPathsToChat(paths) {
+  if (!paths.length) return;
+  try {
+    const { chat, results } = await api(`/api/projects/${state.project.id}/chats/${state.chatId}/attachments/batch`, { method: 'POST', body: { paths } });
+    syncChat(chat);
+    renderChatAttachments();
+    pollIndexing();
+    refreshContext();
+    const { text, isError } = summarizeBatch(results);
+    toast(text, isError);
+  } catch (e) { toast(e.message, true); }
+}
+
 /** Attach files/folders to the current chat via the file browser's multi-select. */
 export function attachToChat() {
   if (!state.project || !state.chatId) { toast('Open a chat first', true); return; }
@@ -148,16 +163,7 @@ export function attachToChat() {
     title: 'Add files or folders to this chat',
     dirLabel: 'Add this folder',
     multi: true,
-    onPickMany: async (paths) => {
-      try {
-        const { chat, results } = await api(`/api/projects/${state.project.id}/chats/${state.chatId}/attachments/batch`, { method: 'POST', body: { paths } });
-        syncChat(chat);
-        renderChatAttachments();
-        pollIndexing();
-        refreshContext();
-        const { text, isError } = summarizeBatch(results);
-        toast(text, isError);
-      } catch (e) { toast(e.message, true); }
-    },
+    onPick: (dir) => attachPathsToChat([dir]),
+    onPickMany: attachPathsToChat,
   });
 }

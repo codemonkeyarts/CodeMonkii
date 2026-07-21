@@ -14,6 +14,8 @@ import { initModal } from './modal.js';
 
 let modal;
 let debounceTimer;
+let searchGen = 0; // bumped per query; a stale async response is dropped if it doesn't match
+let activeIdx = -1;
 
 /** Escape `text`, wrapping the first case-insensitive match of `q` in <mark>. */
 function highlight(text, q) {
@@ -36,17 +38,31 @@ function resultRow(r, q) {
   </li>`;
 }
 
+function resultEls() { return [...$('#search-results').querySelectorAll('li[data-project]')]; }
+
+/** Highlight result `i` (wrapping) as the keyboard-active row. */
+function setActive(i) {
+  const els = resultEls();
+  activeIdx = els.length ? ((i % els.length) + els.length) % els.length : -1;
+  els.forEach((li, idx) => li.classList.toggle('search-active', idx === activeIdx));
+  if (activeIdx !== -1) els[activeIdx].scrollIntoView({ block: 'nearest' });
+}
+
 async function runSearch(q) {
   const list = $('#search-results');
+  activeIdx = -1;
   if (q.trim().length < 2) { list.innerHTML = ''; return; }
   list.innerHTML = '<li class="search-empty">Searching…</li>';
+  const gen = ++searchGen;
   let data;
   try { data = await api(`/api/search?q=${encodeURIComponent(q)}`); }
-  catch { list.innerHTML = '<li class="search-empty">Search failed.</li>'; return; }
+  catch { if (gen === searchGen) list.innerHTML = '<li class="search-empty">Search failed.</li>'; return; }
+  if (gen !== searchGen) return; // a newer query started since this one fired; drop the stale response
   list.innerHTML = data.results.length
     ? data.results.map(r => resultRow(r, q)).join('')
     : '<li class="search-empty">No matches.</li>';
   list.querySelectorAll('li[data-project]').forEach(li => li.addEventListener('click', () => openResult(li)));
+  if (data.results.length) setActive(0);
 }
 
 async function openResult(li) {
@@ -72,5 +88,14 @@ export function initSearch() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => runSearch(e.target.value), 200);
   });
-  $('#search-input').addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSearch(); });
+  $('#search-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeSearch(); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive(activeIdx + 1); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); setActive(activeIdx - 1); return; }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const els = resultEls();
+      if (activeIdx !== -1 && els[activeIdx]) openResult(els[activeIdx]);
+    }
+  });
 }
