@@ -42,7 +42,7 @@ function wireNavigation() {
   $('#btn-search').addEventListener('click', openSearch);
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-      if (document.querySelector('.modal-backdrop:not([hidden])')) return; // another modal is already up
+      if (document.querySelector('.modal-backdrop:not([hidden]):not(#search-backdrop)')) return; // another modal is already up
       e.preventDefault();
       openSearch();
     }

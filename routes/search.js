@@ -24,9 +24,9 @@ const isHighSurrogate = (c) => c >= 0xd800 && c <= 0xdbff;
  *  pair (e.g. an emoji) never gets split into an orphaned half. */
 function snippet(text, at, len) {
   let start = Math.max(0, at - SNIPPET_RADIUS);
-  if (start > 0 && isLowSurrogate(text.charCodeAt(start))) start++;
+  while (start > 0 && isLowSurrogate(text.charCodeAt(start))) start++; // also handles unpaired/malformed runs
   let end = Math.min(text.length, at + len + SNIPPET_RADIUS);
-  if (end < text.length && isHighSurrogate(text.charCodeAt(end - 1))) end--;
+  while (end < text.length && isHighSurrogate(text.charCodeAt(end - 1))) end--;
   return (start > 0 ? '…' : '') + text.slice(start, end).replace(/\s+/g, ' ').trim() + (end < text.length ? '…' : '');
 }
 

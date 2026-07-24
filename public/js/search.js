@@ -51,7 +51,7 @@ function setActive(i) {
 async function runSearch(q) {
   const list = $('#search-results');
   activeIdx = -1;
-  if (q.trim().length < 2) { list.innerHTML = ''; return; }
+  if (q.trim().length < 2) { searchGen++; list.innerHTML = ''; return; } // also bump gen: drops any in-flight stale fetch
   list.innerHTML = '<li class="search-empty">Searching…</li>';
   const gen = ++searchGen;
   let data;

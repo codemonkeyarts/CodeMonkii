@@ -136,11 +136,9 @@ router.delete('/projects/:pid/chats/:cid/messages/last', (req, res) => {
  * that message and everything after it (including its own reply) is about
  * to be regenerated with the edited text. Same "server truth" shape as
  * .../messages/last: the client resends with the trimmed history this
- * returns rather than re-deriving the cut itself. */
-/* Truncates the chat to just before `idx` — used by "edit & resend" to drop
- * everything from the edited message onward before the edited turn is
- * replayed. Destructive-only: there's no copy-on-write here, so a future
- * "branch" feature needs its own copy-based sibling rather than reusing this. */
+ * returns rather than re-deriving the cut itself. Destructive-only: there's
+ * no copy-on-write here, so a future "branch" feature needs its own
+ * copy-based sibling rather than reusing this. */
 router.delete('/projects/:pid/chats/:cid/messages/from/:idx', (req, res) => {
   try {
     const p = loadProject(req.params.pid);
@@ -198,7 +196,9 @@ router.post('/projects/:pid/attachments', (req, res) => {
  * one project write for the whole batch instead of N, and a per-path result
  * so the UI can summarize "attached 6, 2 already there, 1 failed" instead of
  * failing the whole batch over one bad path. Shared by the project- and
- * chat-level batch routes below. */
+ * chat-level batch routes below. Pushes new attachments onto `list` in place
+ * — callers must already hold the array they want mutated (p.attachments or
+ * c.attachments), it isn't returned. */
 function attachBatch(list, rawPaths) {
   const paths = Array.isArray(rawPaths) ? rawPaths.slice(0, 200) : [];
   const results = [];
