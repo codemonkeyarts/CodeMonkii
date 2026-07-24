@@ -13,6 +13,7 @@ import { api } from './api.js';
 import { state } from './state.js';
 import { md } from './markdown.js';
 import { refreshContext } from './context-meter.js';
+import { confirmDialog } from './confirm.js';
 
 export async function loadSkills() {
   try {
@@ -103,9 +104,13 @@ async function toggleRef(sid, li) {
   } catch (e) { toast(e.message, true); }
 }
 
+let currentDetail = null; // the skill currently shown/edited in the detail modal
+
 export async function openSkillDetail(sid) {
   try {
     const d = await api(`/api/skills/${encodeURIComponent(sid)}`);
+    currentDetail = d;
+    cancelSkillEdit();
     $('#sd-title').textContent = d.meta.name || d.id;
     $('#sd-desc').textContent = d.meta.description || '';
     $('#sd-path').textContent = d.dir;
@@ -123,6 +128,63 @@ export async function openSkillDetail(sid) {
     }
     $('#skill-detail-backdrop').hidden = false;
   } catch (e) { toast(e.message, true); }
+}
+
+/* ---- edit / delete (from the detail modal's footer) ---- */
+
+function enterSkillEdit() {
+  if (!currentDetail) return;
+  $('#sd-edit-desc').value = currentDetail.meta.description || '';
+  $('#sd-edit-body').value = (currentDetail.body || '').trim();
+  $('#sd-body').hidden = true;
+  $('#sd-edit').hidden = false;
+  $('#sd-edit-desc').focus();
+}
+
+function cancelSkillEdit() {
+  $('#sd-edit').hidden = true;
+  $('#sd-body').hidden = false;
+}
+
+async function saveSkillEdit() {
+  if (!currentDetail) return;
+  const sid = currentDetail.id;
+  const description = $('#sd-edit-desc').value;
+  const body = $('#sd-edit-body').value;
+  try {
+    await api(`/api/skills/${encodeURIComponent(sid)}`, { method: 'PUT', body: { description, body } });
+    await loadSkills();
+    renderSkillToggles();
+    await openSkillDetail(sid); // re-fetch and re-render with the saved content
+    toast('Skill saved');
+  } catch (e) { toast(e.message, true); }
+}
+
+/** Remove a skill entirely — from disk and from any project's always-on list. */
+async function deleteSkillFlow() {
+  if (!currentDetail) return;
+  const { id, meta } = currentDetail;
+  if (!await confirmDialog(`Delete skill "${meta.name || id}"? This removes its folder and cannot be undone.`,
+    { confirmLabel: 'Delete', danger: true })) return;
+  try {
+    await api(`/api/skills/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (state.project) state.project.skills = (state.project.skills || []).filter(sid => sid !== id);
+    state.invokedSkills = state.invokedSkills.filter(sid => sid !== id);
+    renderSkillChips();
+    await loadSkills();
+    renderSkillToggles();
+    $('#skill-detail-backdrop').hidden = true;
+    currentDetail = null;
+    toast(`Skill /${id} deleted`);
+  } catch (e) { toast(e.message, true); }
+}
+
+/** Bind the detail modal's Edit/Save/Cancel/Delete controls (called once from main.js). */
+export function initSkillDetailActions() {
+  $('#btn-sd-edit').addEventListener('click', enterSkillEdit);
+  $('#btn-sd-cancel-edit').addEventListener('click', cancelSkillEdit);
+  $('#btn-sd-save').addEventListener('click', saveSkillEdit);
+  $('#btn-sd-delete').addEventListener('click', deleteSkillFlow);
 }
 
 /* ---- "/" invocation popup + chips ---- */

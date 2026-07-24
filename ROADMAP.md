@@ -68,6 +68,7 @@ Folding in the parts of OpenRouter's API that serve Monkii's promises — privac
 - [x] **macOS build** — native `.dmg`/`.zip` for both Intel (x64) and Apple Silicon (arm64), built in one `npm run dist` run via electron-builder's cross-packaging; unsigned for now (Gatekeeper needs a right-click → Open on first launch), per-user data lives under `~/Library/Application Support/Monkii`. Linux is still on the list
 - [x] **Compact the embedding index** — vectors are now stored as raw binary Float32 in a sibling `.bin` file instead of JSON-encoded decimal text, cutting a typical index by roughly 75–90% (measured, not estimated) with no change to what's indexed or how retrieval scores; a pre-upgrade index just misses the cache once and rebuilds in the new format
 - [x] **Backup & wipe controls** — **Preferences → Data & backup**: one-click backup zips your projects & chats to a folder you choose (cached embeddings are excluded — they rebuild automatically), and "Erase everything" clears every project, chat, and cached embedding in place, gated behind typing the exact confirmation phrase so it can't happen by a stray click. A live readout above the buttons shows the project count and data-folder path; the desktop app adds an "Open data folder" shortcut
+- [x] **Edit & delete skills** — a skill's detail view (opened from its name) gains **Edit…** (rewrite its description and instructions in place) and **Delete skill…** (remove the folder, asking first, and drop it from any project that had it toggled on)
 
 ## More local
 

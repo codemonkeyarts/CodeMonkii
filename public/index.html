@@ -348,9 +348,23 @@
         <div id="sd-path" class="prefs-path"></div>
         <div class="sd-label">Instructions</div>
         <div id="sd-body" class="sd-body"></div>
+        <div id="sd-edit" hidden>
+          <input id="sd-edit-desc" type="text" maxlength="200" placeholder="One line describing when to use this skill.">
+          <textarea id="sd-edit-body" rows="14" placeholder="Instructions the model follows when this skill is loaded…"></textarea>
+          <div class="prefs-actions">
+            <button id="btn-sd-save" class="btn btn-primary">Save</button>
+            <button id="btn-sd-cancel-edit" class="btn btn-ghost">Cancel</button>
+          </div>
+        </div>
         <div class="sd-label">References <em id="sd-refs-count"></em></div>
         <ul id="sd-refs"></ul>
       </div>
+      <footer>
+        <div class="prefs-actions">
+          <button id="btn-sd-edit" class="btn btn-ghost">Edit…</button>
+          <button id="btn-sd-delete" class="btn btn-danger-ghost">Delete skill…</button>
+        </div>
+      </footer>
     </div>
   </div>
 

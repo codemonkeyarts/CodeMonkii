@@ -10,8 +10,11 @@
  */
 const express = require('express');
 const { SKILLS_DIR } = require('../lib/config');
-const { scanSkills, skillDetail, skillFile, createSkill, generateSkill, importSkill } = require('../lib/skills');
+const {
+  scanSkills, skillDetail, skillFile, createSkill, generateSkill, importSkill, updateSkill, deleteSkill,
+} = require('../lib/skills');
 const { pathAllowed } = require('../lib/security');
+const { listProjects, saveProject } = require('../lib/store');
 
 const router = express.Router();
 
@@ -63,6 +66,26 @@ router.get('/skills/:sid', (req, res) => {
 router.get('/skills/:sid/file', (req, res) => {
   try { res.json(skillFile(req.params.sid, req.query.path)); }
   catch (e) { res.status(400).json({ error: String(e.message || e) }); }
+});
+
+/* Rewrite a skill's description and/or instructions in place — id unchanged. */
+router.put('/skills/:sid', (req, res) => {
+  try { res.json(updateSkill(req.params.sid, req.body.description, req.body.body)); }
+  catch (e) { res.status(400).json({ error: String(e.message || e) }); }
+});
+
+/* Delete a skill folder entirely, and drop it from any project that had it
+ * toggled always-on — otherwise a stale id would linger in project.skills. */
+router.delete('/skills/:sid', (req, res) => {
+  try {
+    deleteSkill(req.params.sid);
+    for (const p of listProjects()) {
+      if (!(p.skills || []).includes(req.params.sid)) continue;
+      p.skills = p.skills.filter(id => id !== req.params.sid);
+      saveProject(p);
+    }
+    res.json({ ok: true });
+  } catch (e) { res.status(400).json({ error: String(e.message || e) }); }
 });
 
 module.exports = router;

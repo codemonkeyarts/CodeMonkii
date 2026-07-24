@@ -129,6 +129,8 @@ Existing skills can be brought in with **⇪ Import skill…** — pick a skill 
 
 Prefer not to write it yourself? **✦ Create with model** has one of your installed Ollama models draft the instructions from your name + description brief. The model picker recommends the best installed candidate for the job (solid instruct families at GPU-friendly sizes; reasoning and cloud models rank lower). Review the generated `SKILL.md` before relying on it.
 
+Click any skill's name to open its detail view — **Edit…** rewrites its description and instructions in place (same file, no need to touch it on disk), **Delete skill…** removes the folder entirely and drops it from every project that had it toggled on, asking first since it can't be undone.
+
 Two ways to use a skill:
 1. **Project toggle** — switch it on in the project panel; it loads into every message.
 2. **Slash invoke** — type `/` in the composer and pick a skill; it loads for that message only (and stays in the conversation history from then on).

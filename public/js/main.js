@@ -10,7 +10,7 @@ import { $, autoGrow } from './util.js';
 import { state } from './state.js';
 import { checkHealth, loadModels, checkOllamaUpdate, updateRemoteBadge } from './status.js';
 import { initOpenRouter, refreshOrStatus } from './openrouter.js';
-import { loadSkills, updateSkillPopup, pickSkill, renderSkillToggles, handleSkillPopupKey } from './skills.js';
+import { loadSkills, updateSkillPopup, pickSkill, renderSkillToggles, handleSkillPopupKey, initSkillDetailActions } from './skills.js';
 import { initSkillCreate, showSkillCreateForm, importSkillFlow } from './skill-create.js';
 import { createProject, openProject, saveProjectMeta, deleteProject, showProjectsPage, quickChat } from './projects.js';
 import { openBrowser, browseTo, closeBrowser, pickCurrentDir, commitSelection } from './filebrowser.js';
@@ -56,6 +56,7 @@ function wireSkillsModal() {
   $('#btn-open-skills').addEventListener('click', open);
   $('#btn-skills-page').addEventListener('click', open);
   initModal('#skill-detail-backdrop', '#btn-close-skill-detail'); // detail view (opened from a skill name)
+  initSkillDetailActions();
   initSkillCreate();
   return open;
 }
