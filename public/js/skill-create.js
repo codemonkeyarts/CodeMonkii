@@ -45,6 +45,7 @@ function fillModelSelect() {
 
 export function showSkillCreateForm() {
   fillModelSelect();
+  hideImportConflict(); // the two forms share the modal footer's space; only one at a time
   $('#skill-create').hidden = false;
   $('#ns-name').focus();
 }
@@ -97,6 +98,7 @@ function hideImportConflict() {
 
 function showImportConflict(path, id) {
   conflictPath = path;
+  $('#skill-create').hidden = true; // the two forms share the modal footer's space; only one at a time
   $('#sic-message').textContent = `A skill named "${id}" already exists — replace it with this one, or import it under a different name?`;
   $('#sic-newid').value = `${id}-2`;
   $('#btn-sic-rename').disabled = false;
