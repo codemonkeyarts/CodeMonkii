@@ -897,12 +897,14 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   font-family: var(--font-mono); font-size: 15px; color: var(--cyan);
 }
 /* shared dark-terminal chrome for selects and text inputs across the modals */
-.ms-field select, .ms-adv-field input, #skill-create input, #skill-create select, .mm-pull input {
+.ms-field select, .ms-adv-field input, #skill-create input, #skill-create select, .mm-pull input,
+#sd-edit input, #sd-edit textarea, #skill-import-conflict input {
   background: var(--field); border: 1px solid var(--line); color: var(--bone);
   border-radius: 2px; outline: none;
 }
 .ms-field select:focus, .ms-adv-field input:focus,
-#skill-create input:focus, #skill-create select:focus, .mm-pull input:focus { border-color: var(--gold); }
+#skill-create input:focus, #skill-create select:focus, .mm-pull input:focus,
+#sd-edit input:focus, #sd-edit textarea:focus, #skill-import-conflict input:focus { border-color: var(--gold); }
 
 .ms-field select { padding: 9px 12px; font-size: 13px; font-family: var(--font-body); }
 .ms-field input[type="range"] { width: 100%; accent-color: var(--gold); }
@@ -985,10 +987,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 #sd-refs .empty { color: var(--bone-dim); font-size: 12.5px; font-style: italic; padding: 4px 2px; }
 #sd-edit { display: flex; flex-direction: column; gap: 8px; }
 #sd-edit input { padding: 8px 12px; font-size: 13px; font-family: var(--font-body); }
-#sd-edit textarea {
-  padding: 12px 16px; font-size: 14px; line-height: 1.6; font-family: var(--font-body); color: var(--bone);
-  background: var(--field); border: 1px solid var(--line-soft); border-radius: 2px; resize: vertical;
-}
+#sd-edit textarea { padding: 12px 16px; font-size: 14px; line-height: 1.6; font-family: var(--font-body); resize: vertical; }
 #skill-detail-panel > footer { padding: 12px 20px; border-top: 1px solid var(--line); }
 #skill-create {
   padding: 14px 20px; border-top: 1px solid var(--line);
@@ -999,6 +998,13 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
 }
 #skill-create input:first-child { font-family: var(--font-mono); font-size: 15px; }
 #skill-create button[disabled] { opacity: .5; pointer-events: none; }
+#skill-import-conflict {
+  padding: 14px 20px; border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 8px;
+}
+#sic-message { font-size: 13px; color: var(--bone-dim); line-height: 1.5; }
+#skill-import-conflict input { padding: 8px 12px; font-size: 13px; font-family: var(--font-mono); }
+#btn-sic-rename[disabled] { opacity: .5; pointer-events: none; }
 #skills-panel > footer .prefs-actions { margin-bottom: 8px; }
 #skills-panel .toggle-list li.browse { cursor: default; }
 #skills-mode-note { font-size: 11.5px; color: var(--bone-dim); line-height: 1.5; margin-bottom: 6px; }

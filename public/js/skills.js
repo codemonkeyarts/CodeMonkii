@@ -132,22 +132,36 @@ export async function openSkillDetail(sid) {
 
 /* ---- edit / delete (from the detail modal's footer) ---- */
 
+let editOriginal = null; // { description, body } as last loaded, to gate Save on an actual change
+
+function syncSaveEnabled() {
+  if (!editOriginal) return;
+  const changed = $('#sd-edit-desc').value !== editOriginal.description
+    || $('#sd-edit-body').value !== editOriginal.body;
+  $('#btn-sd-save').disabled = !changed;
+}
+
 function enterSkillEdit() {
   if (!currentDetail) return;
-  $('#sd-edit-desc').value = currentDetail.meta.description || '';
-  $('#sd-edit-body').value = (currentDetail.body || '').trim();
+  editOriginal = { description: currentDetail.meta.description || '', body: (currentDetail.body || '').trim() };
+  $('#sd-edit-desc').value = editOriginal.description;
+  $('#sd-edit-body').value = editOriginal.body;
+  $('#btn-sd-save').disabled = true;
+  $('#sd-desc').hidden = true; // the read-only description would otherwise sit right above its own edit field
   $('#sd-body').hidden = true;
   $('#sd-edit').hidden = false;
   $('#sd-edit-desc').focus();
 }
 
 function cancelSkillEdit() {
+  editOriginal = null;
   $('#sd-edit').hidden = true;
+  $('#sd-desc').hidden = false;
   $('#sd-body').hidden = false;
 }
 
 async function saveSkillEdit() {
-  if (!currentDetail) return;
+  if (!currentDetail || $('#btn-sd-save').disabled) return;
   const sid = currentDetail.id;
   const description = $('#sd-edit-desc').value;
   const body = $('#sd-edit-body').value;
@@ -185,6 +199,8 @@ export function initSkillDetailActions() {
   $('#btn-sd-cancel-edit').addEventListener('click', cancelSkillEdit);
   $('#btn-sd-save').addEventListener('click', saveSkillEdit);
   $('#btn-sd-delete').addEventListener('click', deleteSkillFlow);
+  $('#sd-edit-desc').addEventListener('input', syncSaveEnabled);
+  $('#sd-edit-body').addEventListener('input', syncSaveEnabled);
 }
 
 /* ---- "/" invocation popup + chips ---- */

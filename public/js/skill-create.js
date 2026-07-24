@@ -87,17 +87,41 @@ async function submitNewSkill(generate) {
   }
 }
 
+let conflictPath = null; // the source path awaiting a replace/rename decision
+
+function hideImportConflict() {
+  conflictPath = null;
+  $('#skill-import-conflict').hidden = true;
+  $('#sic-newid').value = '';
+}
+
+function showImportConflict(path, id) {
+  conflictPath = path;
+  $('#sic-message').textContent = `A skill named "${id}" already exists — replace it with this one, or import it under a different name?`;
+  $('#sic-newid').value = `${id}-2`;
+  $('#btn-sic-rename').disabled = false;
+  $('#skill-import-conflict').hidden = false;
+}
+
+async function attemptImport(path, opts = {}) {
+  try {
+    const s = await api('/api/skills/import', { method: 'POST', body: { path, ...opts } });
+    hideImportConflict();
+    await skillAdded(s.already ? `Skill /${s.id} is already in your skills folder`
+      : opts.force ? `Skill /${s.id} replaced` : `Skill /${s.id} imported`);
+  } catch (e) {
+    const m = e.message.match(/^skill "([^"]+)" already exists$/);
+    if (m && !opts.force && !opts.asId) showImportConflict(path, m[1]);
+    else toast(e.message, true);
+  }
+}
+
 export function importSkillFlow() {
   openBrowser({
     title: 'Import a skill folder or .skill file',
     verb: 'import',
     dirLabel: 'Import this folder',
-    onPick: async (p) => {
-      try {
-        const s = await api('/api/skills/import', { method: 'POST', body: { path: p } });
-        await skillAdded(s.already ? `Skill /${s.id} is already in your skills folder` : `Skill /${s.id} imported`);
-      } catch (e) { toast(e.message, true); }
-    },
+    onPick: (p) => attemptImport(p),
   });
 }
 
@@ -111,4 +135,10 @@ export function initSkillCreate() {
   const onEnter = (e) => { if (e.key === 'Enter') submitNewSkill(true); };
   $('#ns-name').addEventListener('keydown', onEnter);
   $('#ns-desc').addEventListener('keydown', onEnter);
+
+  $('#btn-sic-replace').addEventListener('click', () => attemptImport(conflictPath, { force: true }));
+  $('#btn-sic-rename').addEventListener('click', () => attemptImport(conflictPath, { asId: $('#sic-newid').value.trim() }));
+  $('#btn-sic-cancel').addEventListener('click', hideImportConflict);
+  $('#sic-newid').addEventListener('input', () => { $('#btn-sic-rename').disabled = !$('#sic-newid').value.trim(); });
+  $('#sic-newid').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !$('#btn-sic-rename').disabled) $('#btn-sic-rename').click(); });
 }
