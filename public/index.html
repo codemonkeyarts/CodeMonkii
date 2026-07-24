@@ -458,6 +458,17 @@
           <div class="prefs-note"><b>This changes where your words go.</b> Chats that use an OpenRouter model send that chat's messages, project instructions, and attachments to openrouter.ai and the model's provider — they leave this machine. Local models are never affected, and nothing goes remote unless you pick a remote model for a chat. The key is stored OS-encrypted and never shown again. While a key is saved, opening this panel or the ☁ model browser checks your credit balance with OpenRouter (no chat data — just the key, cached for a minute). Saving restarts the app view.</div>
         </details>
 
+        <details class="field">
+          <summary><span>Data &amp; backup <em>export a backup, or erase everything</em></span></summary>
+          <div id="prefs-data-summary" class="prefs-path"></div>
+          <div class="prefs-actions">
+            <button id="btn-prefs-backup" class="btn btn-ghost">Back up now…</button>
+            <button id="btn-prefs-open-data" class="btn btn-ghost prefs-desktop">Open data folder</button>
+            <button id="btn-prefs-wipe" class="btn btn-danger-ghost">Erase everything…</button>
+          </div>
+          <div class="prefs-note">Backup zips your projects &amp; chats to a folder you choose — cached embeddings aren't included, they rebuild automatically. Erasing removes every project, chat, and cached embedding; skills and these preferences are untouched. Neither can be undone once done — back up first if you want to keep anything.</div>
+        </details>
+
         <details class="field prefs-desktop">
           <summary><span>Update check <em>look for newer Ollama releases</em></span></summary>
           <label class="prefs-toggle">
@@ -546,6 +557,10 @@
     <div id="confirm-panel" class="modal-panel">
       <div class="confirm-body">
         <p id="confirm-message"></p>
+        <label id="confirm-typed-field" class="field" hidden>
+          <span id="confirm-typed-label"></span>
+          <input id="confirm-typed" type="text" autocomplete="off" spellcheck="false">
+        </label>
         <div class="confirm-actions">
           <button id="btn-confirm-cancel" class="btn btn-ghost">Cancel</button>
           <button id="btn-confirm-ok" class="btn btn-primary">Confirm</button>

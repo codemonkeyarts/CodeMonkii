@@ -10,7 +10,7 @@ The current focus, in priority order (details in the sections below). With the l
 
 1. ~~**Search across chats & projects**~~ — **shipped**: ⌕ Search in the rail (or Ctrl+K) searches project names, chat titles, and every message at once, with match-centered snippets and jump-to-exact-message
 2. **Edit · regenerate · branch messages** — fix a prompt and re-run, branch an alternate take, copy a conversation as Markdown *(shipped so far: ↻ retry on the last reply; edit-and-resend on any past message of your own, with a heads-up before discarding more than its own reply; copy/save a whole conversation as Markdown, real source not a flattened render. Remaining: branching an alternate take without losing the original)*
-3. **Backup & wipe controls** — one-click backup (zip the data dir), a real "erase everything" (including embeddings), and a data-location shortcut
+3. ~~**Backup & wipe controls**~~ — **shipped**: Preferences → Data & backup — one-click backup (zips the data dir to a folder you pick) and a real "erase everything" (projects, chats, and cached embeddings) gated behind typing the exact confirmation phrase, plus a live project-count/data-path readout and an "Open data folder" shortcut in the desktop app
 4. **Theming** — palette presets, light/dark/system, font & density controls (the UI already runs on CSS variables) *(shipped so far: seven presets in Preferences → Theme — dark: Cyber Deco, Speakeasy Noir, Gothic Library, Midnight; light: Parchment, Daylight, Porcelain — applied pre-paint, persisted, all WCAG-AA contrast-checked. Remaining: system-follow toggle, custom colors, fonts, density)*
 5. **Completion notifications** — a desktop toast (optional sound) when a long generation finishes while Monkii is in the background
 
@@ -65,13 +65,15 @@ Folding in the parts of OpenRouter's API that serve Monkii's promises — privac
 - [x] **Search across chats & projects** — ⌕ Search in the rail (or Ctrl+K) searches every project name, chat title, and message at once against a local endpoint (no index to maintain at this scale); results are grouped with a match-centered snippet, and clicking one opens the right project and chat and scrolls straight to (and briefly flashes) the exact message
 - [x] **Edit & resend** — right-click any of your own past messages → Edit & resend… turns it into an inline textarea; saving discards that message and everything after it (its own reply is expected) and resends the edited text, asking first only when more than that would be lost
 - [x] **Copy / save a conversation as Markdown** — right-click a chat for Copy as Markdown (clipboard) or Save as file… (the same folder-pick + filename flow as a per-message save); it's the real stored source, not a flattened render
+- [x] **macOS build** — native `.dmg`/`.zip` for both Intel (x64) and Apple Silicon (arm64), built in one `npm run dist` run via electron-builder's cross-packaging; unsigned for now (Gatekeeper needs a right-click → Open on first launch), per-user data lives under `~/Library/Application Support/Monkii`. Linux is still on the list
+- [x] **Compact the embedding index** — vectors are now stored as raw binary Float32 in a sibling `.bin` file instead of JSON-encoded decimal text, cutting a typical index by roughly 75–90% (measured, not estimated) with no change to what's indexed or how retrieval scores; a pre-upgrade index just misses the cache once and rebuilds in the new format
+- [x] **Backup & wipe controls** — **Preferences → Data & backup**: one-click backup zips your projects & chats to a folder you choose (cached embeddings are excluded — they rebuild automatically), and "Erase everything" clears every project, chat, and cached embedding in place, gated behind typing the exact confirmation phrase so it can't happen by a stray click. A live readout above the buttons shows the project count and data-folder path; the desktop app adds an "Open data folder" shortcut
 
 ## More local
 
 *Install it, and it works and stays entirely on your machine — no separate installs, no calls out, no dependency you didn't choose.*
 
 - [ ] **Self-contained Ollama** — run (and ideally ship) the Ollama runtime so Monkii works without a separate Ollama install. It already auto-starts Ollama when it's installed (via the desktop app when present, else a hidden `ollama serve`); the gap is when it isn't installed at all. Tradeoff from investigation: the `ollama` binary is only ~34 MB, but the GPU runtimes (CUDA/ROCm) are ~2.8 GB, so full bundling would balloon the installer — likely path is to ship the small binary + CPU backend and fetch the GPU runtime on first run, with models still stored separately
-- [ ] **Compact the embedding index** — vectors are currently stored as JSON floats, making a single index ~12–17× the source text (34 MB for a 2 MB doc). The index *directory* is already size-capped (LRU eviction), so total disk is bounded; this item is about shrinking each index — store vectors as binary Float32 to cut it roughly 10×
 
 ## More secure
 
@@ -79,7 +81,6 @@ Folding in the parts of OpenRouter's API that serve Monkii's promises — privac
 
 - [ ] **Encryption at rest** — chats, projects, and the retrieval indexes (which hold chunked attachment text) are plaintext JSON (great for inspection, less so on an unencrypted disk). Add an optional encrypted data folder, or surface a clear "enable device encryption" note in Preferences
 - [ ] **CA-signed certificate** — the installer is signed but self-signed, so other machines still see "unknown publisher." A CA cert (e.g. Azure Trusted Signing) removes the SmartScreen warning for anyone you share it with
-- [ ] **Backup & wipe controls** — one-click "export a backup" (zip the data dir), a clear "erase everything," and a visible data-location shortcut. Ownership includes being able to take it and to leave cleanly
 - [ ] **Auto-update** for the desktop app (`electron-updater`) — with pinned signature verification when it lands
 
 ## More yours
@@ -102,4 +103,4 @@ Folding in the parts of OpenRouter's API that serve Monkii's promises — privac
 - [ ] **Image input** for multimodal models (llava, etc.)
 - [ ] **Voice** in and out, entirely on-device
 - [ ] **A skill "shelf"** for browsing and one-click installing shared `.skill` packs
-- [ ] **macOS & Linux builds**
+- [ ] **Linux build**

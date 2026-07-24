@@ -200,6 +200,8 @@ function registerPrefsIpc() {
 
   handleUI('prefs:set-update-check', (on) => applyStorageChange({ updateCheck: Boolean(on) }));
 
+  handleUI('prefs:open-data-folder', () => { shell.openPath(effectiveStorage().dataDir); });
+
   // OpenRouter key: save (encrypted) or clear, then restart the server so it
   // picks the key up from its env. The renderer sends the key one way and
   // only ever reads back a boolean.

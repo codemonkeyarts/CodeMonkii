@@ -42,7 +42,7 @@ npm test           # unit tests for the OpenRouter adapter boundary
 
 On Windows you can also just double-click **`Start Monkii.cmd`** — it starts Ollama if needed and opens the app.
 
-Requires **Node.js 18+** and **Ollama** running locally (`ollama serve`, or the Ollama app) with at least one model pulled, e.g. `ollama pull llama3.2`.
+Requires **Node.js 18+** and **Ollama** running locally (`ollama serve`, or the Ollama app) with at least one model pulled, e.g. `ollama pull llama3.2`. Works the same way on macOS and Linux — swap the `powershell` block above for your shell.
 
 ## Desktop app
 
@@ -63,19 +63,23 @@ Or double-click **`Start Monkii Desktop.cmd`** (installs dependencies on first r
 
 Each location's env var (`OLLAMA_MODELS`, `MONKII_DATA_DIR`, `MONKII_SKILLS_DIR`) always wins over the saved preference and shows as read-only in the panel.
 
+**Data & backup** (also in Preferences, and works in plain browser mode too — not desktop-only) — **Back up now…** zips your projects & chats to a folder you pick; cached retrieval embeddings aren't included since they rebuild automatically. **Erase everything…** clears every project, chat, and cached embedding in place — skills and these preferences are untouched — and is gated behind typing the exact confirmation phrase, so it can't happen by a stray click. A live line above the buttons shows your project count and data-folder path; the desktop app adds an **Open data folder** shortcut next to it.
+
 ### Build a standalone installer
 
-To produce a Windows installer (`.exe`) you can hand to another machine — no Node required on the target:
+To produce an installer you can hand to another machine — no Node required on the target:
 
 ```powershell
-npm run dist       # outputs Monkii Setup <version>.exe under dist/
+npm run dist       # Windows: Monkii Setup <version>.exe · macOS: Monkii-<version>[-arm64].dmg / .zip · Linux: Monkii-<version>.AppImage
 ```
 
-The installer is a standard NSIS setup: install-location picker, Start-menu entry, desktop shortcut, uninstaller. It installs per-user (no admin needed). The target machine only needs [Ollama](https://ollama.com/download).
+`electron-builder` picks the target platform from the host you build on. On Windows it produces a standard NSIS setup: install-location picker, Start-menu entry, desktop shortcut, uninstaller, installed per-user (no admin needed). On macOS it produces a `.dmg` (drag-to-Applications) and a `.zip` for **both Intel (x64) and Apple Silicon (arm64)** in one run — electron-builder cross-packages the arm64 build even from an x64 host, no separate Mac needed. On Linux it produces a single-file `.AppImage` (x64) — no install step, just `chmod +x` and run; a `.deb` isn't built from a macOS host (the bundled packager needs GNU `ar`, which macOS doesn't ship — build `.deb` from an actual Linux machine if you need one). The target machine only needs [Ollama](https://ollama.com/download) either way.
 
-When running as an installed app, project data and skills live in `%APPDATA%\Monkii` (`data\projects` and `skills`), so updates and uninstalls never touch your chats; the bundled sample skills are copied there on first run. A repo checkout (`npm start` / `npm run desktop`) keeps everything repo-local as before. `MONKII_DATA_DIR` / `MONKII_SKILLS_DIR` env vars override either way.
+Unsigned macOS builds (the default here, no Apple Developer ID on hand) trigger Gatekeeper on first launch — right-click the app → **Open**, or allow it via **System Settings → Privacy & Security → Open Anyway**. After that first launch it opens normally.
 
-The build config lives in `package.json` under `"build"`; icon assets are in `electron/build/`. The desktop shell lives entirely in `electron/` and reuses the server unchanged — `npm start` still runs it headless in a browser.
+When running as an installed app, project data and skills live under the OS's per-user app-data folder — `%APPDATA%\Monkii` on Windows, `~/Library/Application Support/Monkii` on macOS, `~/.config/Monkii` on Linux (`data/projects` and `skills` inside it) — so updates and uninstalls never touch your chats; the bundled sample skills are copied there on first run. A repo checkout (`npm start` / `npm run desktop`) keeps everything repo-local as before. `MONKII_DATA_DIR` / `MONKII_SKILLS_DIR` env vars override either way.
+
+The build config lives in `package.json` under `"build"`; icon assets are in `electron/build/` (`icon.ico` for Windows, `icon.icns` for macOS, a `icons/` folder of PNGs for Linux — all generated from `icon-source.png`). The desktop shell lives entirely in `electron/` and reuses the server unchanged — `npm start` still runs it headless in a browser.
 
 **Code signing** — point electron-builder at a PFX and it signs the app, uninstaller, and installer (SHA-256 + RFC-3161 timestamp):
 
@@ -183,9 +187,9 @@ Retrieval reaches the first token **~10.7× sooner**. And a full manuscript (500
 
 The system prompt stays constant as the conversation grows. With the old dump it would pin the system at ~31k tokens, so a long chat overflows the 32k window and older messages get trimmed.
 
-> **Caveats.** The *first* index of a huge file scales with size (~92.2 s for the 2.0 MB file; one-time, cached until it changes). The index stores the chunked source **text** (not just vectors) plus the file path in plaintext under the data dir — gitignored, removed when you detach the attachment, and size-capped; `MONKII_RETRIEVAL=off` avoids it. It's currently ~12–16× the source (JSON-float vectors — 32.5 MB for the 2.0 MB doc); a binary vector store is a tracked follow-up. Warm-SSD read caching saves only sub-millisecond per message; the cache that matters is the index.
+> **Caveats.** The *first* index of a huge file scales with size (~92.2 s for the 2.0 MB file; one-time, cached until it changes). The index stores the chunked source **text** (not just vectors) plus the file path in plaintext under the data dir — gitignored, removed when you detach the attachment, and size-capped; `MONKII_RETRIEVAL=off` avoids it. Vectors are stored as raw binary Float32 in a sibling `.bin` file rather than JSON-encoded decimal text (the old format ran ~12–16× the source; storing 4 bytes/float instead of a text-encoded number cuts that substantially — the timing table above predates the switch and is due for a re-run on the reference laptop). Warm-SSD read caching saves only sub-millisecond per message; the cache that matters is the index.
 
-<sub>Auto-generated by `npm run bench` · last measured 2026-07-12.</sub>
+<sub>Auto-generated by `npm run bench` · last measured 2026-07-12 · index format updated 2026-07-23, timings not yet re-measured.</sub>
 <!-- BENCH:END -->
 
 ### Ollama
@@ -258,7 +262,7 @@ The desktop shell adds its own hardening: sandboxed renderer with context isolat
 
 Monkii's plans live in **[ROADMAP.md](ROADMAP.md)** — grouped by the promise each item serves: keeping it **local-first**, **honest**, and **yours**. The guiding rule for everything there: nothing ever *requires* an account, a cloud service, or sending your data off the machine — anything remote is opt-in, per chat, and labeled.
 
-A few of what's next: search across chats & projects, edit·regenerate·branch messages, backup & wipe controls, theming, and completion notifications. (Local retrieval over big attachments and optional remote models via OpenRouter have already shipped.) See the [full roadmap →](ROADMAP.md)
+A few of what's next: branching an alternate take without losing the original, theming (custom colors, fonts, a system-follow toggle), and completion notifications. (Search across chats & projects, backup & wipe controls, local retrieval over big attachments, and optional remote models via OpenRouter have already shipped.) See the [full roadmap →](ROADMAP.md)
 
 ## Layout
 

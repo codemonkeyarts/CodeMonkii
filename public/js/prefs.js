@@ -1,5 +1,5 @@
 /**
- * prefs.js — in-app Preferences panel (desktop shell only).
+ * prefs.js — in-app Preferences panel.
  *
  * The Electron preload exposes `window.monkii`; when present, the gear in
  * the rail footer opens a modal with three storage locations:
@@ -7,14 +7,20 @@
  *   - projects & chats folder (server restarts + UI reloads on change)
  *   - skills folder          (server restarts + UI reloads on change)
  * Each can be overridden by its env var, in which case it renders read-only.
- * In plain browser mode the global is absent and the gear stays hidden.
+ * In plain browser mode the global is absent and those sections hide (see
+ * the `.prefs-desktop` sweep below) — but Data & backup works in both modes,
+ * since a repo checkout has projects worth backing up too.
  */
-import { $, esc, toast } from './util.js';
+import { $, esc, toast, fmtBytes } from './util.js';
 import { api } from './api.js';
 import { initModal } from './modal.js';
 import { confirmDialog } from './confirm.js';
+import { openBrowser } from './filebrowser.js';
+import { state } from './state.js';
+import { showProjectsPage } from './projects.js';
 
 const bridge = window.monkii;
+const WIPE_PHRASE = 'ERASE EVERYTHING';
 
 function renderLocation(pathElId, noteElId, buttonIds, value, envValue) {
   $(pathElId).textContent = envValue || value;
@@ -120,6 +126,19 @@ function renderFsAccess(prefs) {
     }));
 }
 
+/* ---- Data & backup (works in browser mode too, not just the desktop shell) ---- */
+
+/** Fetch and render the project/embedding-cache summary shown above the
+ *  backup/wipe buttons. Fire-and-forget from the panel's open handler. */
+async function loadDataSummary() {
+  const el = $('#prefs-data-summary');
+  try {
+    const info = await api('/api/backup/info');
+    const projects = `${info.projectCount} project${info.projectCount === 1 ? '' : 's'}`;
+    el.textContent = `${projects} · ${info.dataDir}${info.embedBytes ? ` · embeddings cache: ${fmtBytes(info.embedBytes)}` : ''}`;
+  } catch { el.textContent = 'Could not read data folder'; }
+}
+
 /* Data/skills changes restart the server and reload the page, so the toast
  * only shows if the call returns without a reload (cancel or env-locked). */
 function wireAction(btnId, call, msg) {
@@ -153,14 +172,51 @@ export function initPrefs() {
   $('#btn-prefs').addEventListener('click', async () => {
     themeSel.value = savedTheme();
     if (bridge) render(await bridge.getPrefs());
+    loadDataSummary();
     modal.open();
   });
 
+  $('#btn-prefs-backup').addEventListener('click', () => {
+    openBrowser({
+      title: 'Back up to…',
+      verb: 'back up here',
+      dirLabel: 'Back up here',
+      dirsOnly: true,
+      onPick: async (dir) => {
+        const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+        try {
+          const res = await api('/api/backup', { method: 'POST', body: { dir, filename: `monkii-backup-${stamp}.zip` } });
+          toast(`Backed up ${res.projects} project${res.projects === 1 ? '' : 's'} to ${res.path}`);
+        } catch (e) { toast(e.message, true); }
+      },
+    });
+  });
+
+  $('#btn-prefs-wipe').addEventListener('click', async () => {
+    const ok = await confirmDialog(
+      'Erase ALL projects, chats, and cached embeddings? Skills and these preferences are untouched. ' +
+      'This cannot be undone — back up first if you want to keep anything.',
+      { confirmLabel: 'Erase everything', danger: true, requireText: WIPE_PHRASE });
+    if (!ok) return;
+    try {
+      const res = await api('/api/wipe', { method: 'POST', body: { confirm: WIPE_PHRASE } });
+      state.project = null;
+      state.chatId = null;
+      $('#chat-section').hidden = true;
+      $('#inspector').hidden = true;
+      await showProjectsPage();
+      loadDataSummary();
+      toast(`Erased ${res.projects} project${res.projects === 1 ? '' : 's'} and ${res.embeddings} cached embedding${res.embeddings === 1 ? '' : 's'}`);
+    } catch (e) { toast(e.message, true); }
+  });
+
   if (!bridge) {
-    // browser mode: no desktop shell to configure — only the theme applies
+    // browser mode: no desktop shell to configure — only theme + backup/wipe apply
     document.querySelectorAll('#prefs-backdrop .prefs-desktop').forEach(el => { el.hidden = true; });
     return;
   }
+
+  $('#btn-prefs-open-data').addEventListener('click', () => bridge.openDataFolder());
 
   wireAction('#btn-prefs-choose-dir', () => bridge.chooseModelsDir(),
     'Models folder saved — applies next time Monkii starts Ollama');

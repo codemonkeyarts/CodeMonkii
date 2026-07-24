@@ -3,7 +3,10 @@
   "version": "1.10.1",
   "description": "Monkii — local LLM studio for Ollama: projects, Claude-style skills, and live file knowledge",
   "license": "MIT",
-  "author": "Coda Languez",
+  "author": {
+    "name": "Coda Languez",
+    "email": "coda@codalanguez.com"
+  },
   "main": "electron/main.js",
   "scripts": {
     "start": "node server.js",
@@ -49,6 +52,39 @@
         }
       ],
       "icon": "electron/build/icon.ico"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "electron/build/icon.icns",
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "electron/build/icons",
+      "category": "Utility",
+      "executableName": "monkii"
     },
     "nsis": {
       "oneClick": false,

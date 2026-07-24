@@ -37,6 +37,7 @@ app.use('/api', require('./routes/skills'));
 app.use('/api', require('./routes/fs'));
 app.use('/api', require('./routes/search'));
 app.use('/api', require('./routes/ollama'));
+app.use('/api', require('./routes/backup'));
 
 /* JSON error handler — no stack traces to the client, but log the real one */
 app.use((err, req, res, next) => {

@@ -541,6 +541,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: var(-
   font-weight: 400; text-transform: none; letter-spacing: 0; margin-top: auto;
 }
 .btn-danger-ghost:hover { background: color-mix(in srgb, var(--red-deep) 25%, transparent); border-color: var(--red); }
+.btn-danger-ghost:disabled { opacity: .45; cursor: default; background: none; }
 
 #confirm-panel { width: min(420px, 90vw); }
 .confirm-body { padding: 22px; display: flex; flex-direction: column; gap: 20px; }
