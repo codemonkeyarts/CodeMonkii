@@ -13,14 +13,9 @@ const path = require('path');
 const os = require('os');
 const express = require('express');
 const { FS_ROOTS, PREVIEW_MAX_BYTES, WRITE_MAX_BYTES } = require('../lib/config');
-const { pathAllowed } = require('../lib/security');
+const { pathAllowed, SAFE_FILENAME } = require('../lib/security');
 
 const router = express.Router();
-
-/* A lone path segment: no separators, no drive/traversal tricks, none of the
- * characters Windows itself rejects in a filename. Guarantees path.join(dir,
- * filename) can't leave `dir` no matter what dir resolves to. */
-const SAFE_FILENAME = /^(?!\.{1,2}$)[^\\/:*?"<>|\x00-\x1f]{1,255}$/;
 
 /* Sniff a buffer for binary content: any NUL byte, or more than a tenth of
  * it being non-printable control bytes, means "don't try to render this as

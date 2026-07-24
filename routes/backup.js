@@ -18,11 +18,11 @@ const path = require('path');
 const express = require('express');
 const AdmZip = require('adm-zip');
 const { DATA_DIR, EMBED_DIR } = require('../lib/config');
-const { pathAllowed } = require('../lib/security');
+const { pathAllowed, SAFE_FILENAME } = require('../lib/security');
+const { dropAll } = require('../lib/retrieval');
 
 const router = express.Router();
 
-const SAFE_FILENAME = /^(?!\.{1,2}$)[^\\/:*?"<>|\x00-\x1f]{1,255}$/;
 const WIPE_PHRASE = 'ERASE EVERYTHING';
 
 function countJsonFiles(dir) {
@@ -79,6 +79,10 @@ router.post('/wipe', (req, res) => {
   if (req.body.confirm !== WIPE_PHRASE) {
     return res.status(400).json({ error: `type "${WIPE_PHRASE}" to confirm` });
   }
+  // drop every in-flight/tracked build FIRST: a background embed that's mid-flight
+  // right now would otherwise finish after the unlinks below and write its index
+  // pair straight back to EMBED_DIR, silently resurrecting content this just erased.
+  dropAll();
   let projects = 0, embeddings = 0;
   try {
     for (const f of fs.readdirSync(DATA_DIR)) {
@@ -88,7 +92,9 @@ router.post('/wipe', (req, res) => {
   } catch { /* no data dir yet */ }
   try {
     for (const f of fs.readdirSync(EMBED_DIR)) {
-      try { fs.unlinkSync(path.join(EMBED_DIR, f)); embeddings++; } catch { /* raced away */ }
+      // count index pairs, not files: each build writes a .json + a .bin
+      if (f.endsWith('.json')) embeddings++;
+      try { fs.unlinkSync(path.join(EMBED_DIR, f)); } catch { /* raced away */ }
     }
   } catch { /* no embed dir yet */ }
   res.json({ ok: true, projects, embeddings });
